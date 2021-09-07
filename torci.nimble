@@ -2,8 +2,8 @@
 
 version       = "0.1.1"
 author        = "Luca"
-description   = "Torbox's web based control panel."
-license       = "MIT"
+description   = "Configuration Interface for TorBox."
+license       = "GPL-3.0"
 srcDir        = "src"
 bin           = @["torci"]
 
