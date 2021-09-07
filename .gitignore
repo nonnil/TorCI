@@ -8,3 +8,5 @@ nimcache/
 /src/routes/docs.nim
 /src/routes/login.nim
 /dokman.nim
+/src/views/confs.nim
+/src/routes/confs.nim
