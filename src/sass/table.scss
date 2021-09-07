@@ -1,0 +1,100 @@
+*, ::after, ::before {
+  box-sizing: border-box;
+}
+section .table {
+  display: table;
+  font-size: 12px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  table-layout: fixed;
+}
+
+.table {
+  max-width: 100%;
+  margin-bottom: 1rem;
+  background-color: transparent;
+}
+
+.thead {
+  // background-color: #526474;
+  background-color: #7fbb23;
+  color: #fff;
+  letter-spacing: .05rem;
+}
+
+.table-row {
+  display: block;
+  width: 100%;
+  font-size: 0;
+  border-top: 1px solid #dde2e6;
+}
+
+.table-row .table-header {
+  padding: .3rem;
+  border-bottom: 1px solid #2d3f4e;
+  font-weight: 700;
+  line-height: 15px;
+}
+.table-row .table-header, .table-row .table-item {
+  display: inline-block;
+  font-size: 12px;
+  vertical-align: top;
+  word-break: break-word;
+  min-height: 18px;
+  box-sizing: border-box;
+}
+
+.tbody {
+  display: table-row-group;
+  width: 100%;
+}
+
+.table-row .table-item {
+  padding: .3rem .35rem;
+}
+
+.table-row .buttons {
+  width: 150px;
+  float: right;
+}
+
+.table-header.signal {
+  width: 100px;
+}
+
+.table-header.essid {
+  width: 150px;
+}
+
+.table-header.channel {
+  width: 100px;
+}
+
+.table-header.bssid {
+  width: 150px;
+}
+
+.table-header.security {
+  width: 150px;
+}
+
+.table-item.signal {
+  width: 100px;
+}
+
+.table-item.essid {
+  width: 150px;
+}
+
+.table-item.channel {
+  width: 100px;
+}
+
+.table-item.bssid {
+  width: 150px;
+}
+
+.table-item.security {
+  width: 150px;
+}

@@ -1,0 +1,61 @@
+@import 'menues';
+@import 'nav';
+@import 'notice';
+@import 'login';
+@import 'status';
+@import 'sub-menu';
+@import 'card';
+@import 'table';
+@import 'network';
+@import 'wireless';
+
+* {
+  outline: none;
+}
+body {
+  color: #4a4a4a;
+  //background-color: #fafafa;
+  //background-color: #EFEFED;
+  background-color: #fff;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: purple;
+}
+a:hover {
+  color: #ddd;
+}
+.container {
+  color: #4a4a4a;
+  //width: 100%;
+  font-size: 20px;
+  //float: right;
+  width: 80% !important;
+  max-width: unset;
+  display: flex;
+  margin: 0px auto;
+  margin-top: 120px;
+  flex-direction: column;
+}
+.container-inside {
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+}
+.wrap-container {
+  display: flex;
+  margin: 50px auto 0 auto;
+  background-color: #fff;
+  max-width: 1200px;
+}
+.headers {
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+  //margin-bottom: 80px;
+  top: 0;
+  right: 0;
+  left: 0;
+}

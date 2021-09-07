@@ -1,0 +1,32 @@
+.notice-bar {
+  position: relative;
+  width: 60%;
+  text-align: center;
+  margin: 110px auto 0px auto;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+}
+.notice-message {
+  width: 100%;
+  color: white;
+  padding: 15px 0 15px 0;
+  font-size: 24px;
+  background-color: #E74C3C;
+  cursor: pointer;
+  margin-bottom: -98px;
+}
+
+#ignoreNotice {
+  opacity: 0;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+#ignoreNotice:checked ~ .notice-message{
+  display: none;
+}

@@ -1,0 +1,10 @@
+torci
+*.css
+nimcache/
+/testresults
+/tools/gencss
+._*.*
+/src/views/docs.nim
+/src/routes/docs.nim
+/src/routes/login.nim
+/dokman.nim

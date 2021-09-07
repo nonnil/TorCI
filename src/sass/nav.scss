@@ -1,0 +1,101 @@
+.nav-container {
+  width: 100%;
+  height: 50px;
+  margin: auto;
+  background-color: #444;
+  display: flex;
+  //padding: 0 20px 0 0;
+  position: sticky;
+  align-items: center;
+  box-shadow:  inset 0 -3em 3em rgba(0,0,0,0.1),0.3em 0.3em 1em rgba(0,0,0,0.3);
+}
+.nav-contents {
+  display: flex;
+}
+.top {
+  text-align: center;
+}
+.linker-root {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.logo-file {
+  width: 40px;
+  height: 40px;
+  margin: 10px 10px 10px 10px;
+}
+.service-name {
+  font-size: 24px;
+  color: #fff;
+}
+.caracteres-version {
+  color: #fff;
+  font-size: 14px;
+}
+.controle {
+  display: flex;
+  font-size: 20px;
+  /*
+  flex-direction: column;
+  margin: 20px 0 20px 0px;
+  padding: 20px 10px 0 10px;
+  */
+}
+.linker {
+  margin: 12px 0px 12px 0px;
+  color: white;
+  padding: 5px 20px 5px 20px;
+  //box-shadow: inset 0 -3em 3em rgba(0,0,0,0.1),0.3em 0.3em 1em rgba(0,0,0,0.3);
+  flex-wrap: wrap;
+  //border-radius: 10px;
+}
+
+.controle > .active {
+  color: #7fbb23;
+}
+
+@media (max-width: 600px) {
+  .controle {
+    flex-direction: row;
+    bottom: 0;
+    position: fixed;
+    font-size: 20px;
+    margin: 0;
+    width: 100%;
+  }
+  .nav-container {
+    float: bottom;
+  }
+  .top {
+    top: 0;
+    left: 0;
+    position: fixed;
+  }
+  .logo-file {
+    width: 40px;
+    height: 40px;
+  }
+  .linker {
+    margin: 0;
+    border-radius: 0;
+  }
+  .service-name {
+    display: none;
+  }
+  .caracteres-version {
+    display: none;
+  }
+  .top {
+    top: 0;
+    left: 0;
+    position: fixed;
+  }
+  .logo {
+    width: 50px;
+    height: 50px;
+  }
+}
+.linker:hover {
+  color: #ddd;
+}
