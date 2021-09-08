@@ -2,7 +2,7 @@ import karax/[karaxdsl, vdom, vstyles]
 import jester
 import renderutils
 import ".."/types
-import re, os
+# import re, os
 
 const
   doctype = "<!DOCTYPE html>\n"
@@ -18,6 +18,8 @@ proc renderHead(cfg: Config): VNode =
     link(rel="stylesheet", `type`="text/css", href="/css/style.css")
     title: 
       text cfg.title
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
 
 proc renderSubMenu*(req: Request; menu: Menu): VNode =
   buildHtml(tdiv(class="sub-menu")):
