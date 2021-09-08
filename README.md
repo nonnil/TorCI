@@ -2,6 +2,8 @@
 
 TorCI is a Configuration Interface for TorBox. It is implemented in the [Nim](https://nim-lang.org) programming language.
 
+<b>WARNING: THIS IS A BETA VERSION, THEREFORE YOU MAY ENCOUNTER BUGS. IF YOU DO, OPEN AN ISSUE VIA OUR GITHUB REPOSITORY.</b>
+
 ## Installation
 
 ### Nimble
