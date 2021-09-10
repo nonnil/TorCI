@@ -13,8 +13,14 @@ type
     token*: string
     req*: Request
   
+  Protocol* = enum
+    GET = "get",
+    POST = "post"
+  
   TorStatus* = object
     isOnline*: bool
+    exitNodeIp*: string
+    exitNodeGeo*: string
     useObfs4*: bool
     useMeekAzure*: bool
     useSnowflake*: bool

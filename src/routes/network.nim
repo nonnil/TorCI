@@ -20,8 +20,9 @@ proc routingNet*(cfg: Config) =
     var net: Network = new Network
     get "/tor":
       if await request.isLoggedIn():
-        resp renderNode(renderTorConfig(), request, cfg, tab)
+        resp renderNode(renderTorPane(), request, cfg, tab)
       redirectLoginPage()
+
     get "/interfaces":
       if await request.isLoggedIn():
         resp renderNode(renderInterfaces(), request, cfg, tab)

@@ -12,7 +12,7 @@ skipDirs = @["tests"]
 # Dependencies 
 requires "nim >= 1.4.0"
 requires "jester >= 0.5.0"
-requires "karax"
+requires "karax >= 1.2.1"
 #requires "shell >= 0.4.3"
 requires "sass"
 requires "hmac"

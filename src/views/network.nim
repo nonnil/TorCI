@@ -21,12 +21,21 @@ proc collectComponent*(r:Request; cfg:Config; label:array[0..1, string]; card:ar
   result = renderNode(renderControlePanel(label, card), r, cfg, menu=tab)
 
 proc renderTorConfig*(): VNode =
-  buildHtml(tdiv(class="card")):
-    tdiv(class="card-header"):
-      text "Tor Configuration"
-    tdiv(class="card-body"):
-      tdiv(class="card-table"):
-        tdiv(class="card-title"): text ""
+  buildHtml(tdiv(class="columns")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Tor Configuration"
+      table(class="box-table"):
+        tbody():
+          tr():
+            td(): text ""
+          
+proc renderInputObfs4Bridges*(): VNode =
+  buildHtml(tdiv(class="columns")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Add Obfs4 Bridges"
+      
 
 proc renderInterfaces*(): VNode =
   buildHtml(tdiv(class="card")):
@@ -224,3 +233,8 @@ proc renderWirelessPane*(hostap: HostAp): VNode =
   buildHtml(tdiv(class="cards")):
     renderWirelessConfig(hostap)
     renderWirelessPowerButton()
+    
+proc renderTorPane*(): VNode =
+  buildHtml(tdiv(class="cards")):
+    renderTorConfig()
+    renderTorPane()

@@ -1,4 +1,4 @@
-import os, asyncdispatch, re, json, strutils
+import os, osproc, asyncdispatch, re, json, strutils, strformat
 import libcurl
 import ".."/[types]
 const
@@ -16,12 +16,17 @@ proc curlWriteFn(
   outbuf[] &= buffer
   result = size * count
 
-proc socks5Req(url, address: string, port: Port): string =
+proc socks5req(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): string =
   let curl = easy_init()
   let webData: ref string = new string
   discard curl.easy_setopt(OPT_USERAGENT,
     "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0")
-  discard curl.easy_setopt(OPT_HTTPGET, 1)
+  case prt
+  of GET:
+    discard curl.easy_setopt(OPT_HTTPGET, 1)
+  of POST:
+    discard curl.easy_setopt(OPT_HTTPPOST, 10000)
+    discard curl.easy_setopt(OPT_POSTFIELDS, data)
   discard curl.easy_setopt(OPT_WRITEDATA, webData)
   discard curl.easy_setopt(OPT_WRITEFUNCTION, curlWriteFn)
   discard curl.easy_setopt(OPT_URL, url)
@@ -35,27 +40,49 @@ proc socks5Req(url, address: string, port: Port): string =
     result = webData[]
   else: return
 
-proc torsocks*(url, address: string, port: Port): Future[string] {.async.} = 
-  result = url.socks5Req(address, port)
-  
-proc torsocks*(url: string, cfg: Config): Future[string] {.async.} = 
+# proc torsocks*(url, address: string, port: Port, ): Future[string] {.async.} = 
+#   result = url.socks5req(address, port)
+
+proc torsocksGet*(url: string, cfg: Config): Future[string] {.async.} =
   let
     address = cfg.torAddress
     port = cfg.torPort.parseInt.Port
-  result = url.socks5Req(address, port)
+  result = url.socks5req(address, port, GET)
 
-proc isTorActive*(cfg: Config): Future[bool] {.async.} =
+proc torsocksPost*(url: string, cfg: Config, data: string): Future[string] {.async.} =
+  let
+    address = cfg.torAddress
+    port = cfg.torPort.parseInt.Port
+  result = url.socks5req(address, port, POST, data)
+
+proc checkTor*(cfg: Config): Future[tuple[isTor: bool, ipAddr: string]] {.async.} =
   try:
     const
       destHost = "https://check.torproject.org/api/ip"
     let
-      torch = await destHost.torsocks(cfg)
+      torch = await destHost.torsocksGet(cfg)
     if torch.len != 0:
       let jObj = parseJson(torch)
       if $jObj["IsTor"] == "true":
-        return true
+        result.isTor = true
+      result.ipAddr = jObj["IP"].getStr()
   except:
     return
+
+proc checkGeoIp*(cfg: Config, isTor: bool, ipAddr: string = ""): Future[string] {.async.} =
+  const
+    whoer = "https://api.whoer.net/v2/geoip2-city"
+    ipinfo = "https://ipinfo.io/products/ip-geolocation-api"
+  let
+    destHost = if isTor: ipinfo else: whoer
+    jsonKey = if isTor: "country" else: "country_code"
+  # echo "dest host: ", destHost
+  let rawRes = if isTor: await destHost.torsocksPost(cfg, "input=" & ipAddr) else: await destHost.torsocksGet(cfg)
+  echo "raw data: ", rawRes
+  if rawRes.len != 0:
+    let jObj = parseJson(rawRes)
+    echo "result of api.whoer: ", $jObj
+    result = jObj{jsonKey}.getStr()
 
 proc getBridgesStatus*(): Future[tuple[obfs4, meekAzure, snowflake: bool]] {.async.} =
   var
@@ -80,11 +107,23 @@ proc getBridgesStatus*(): Future[tuple[obfs4, meekAzure, snowflake: bool]] {.asy
   result.snowflake = snowflake
   
 proc getTorStatus*(cfg: Config): Future[TorStatus] {.async.} =
-  result.isOnline = await isTorActive(cfg)
-  let bridges = await getBridgesStatus()
+  let
+    torch = await checkTor(cfg)
+    bridges = await getBridgesStatus()
+  if torch.isTor:
+    result.exitNodeGeo = await checkGeoIp(cfg, torch.isTor, torch.ipAddr)
+  result.isOnline = torch.isTor
+  result.exitNodeIp = torch.ipAddr
   result.useObfs4 = bridges.obfs4
   result.useMeekAzure = bridges.meekAzure
   result.useSnowflake = bridges.snowflake
+  
+proc renewTorExitIp*(): Future[bool] {.async.} =
+  const cmd = "sudo -u debian-tor tor-prompt --run 'SIGNAL NEWNYM'"
+  let newIp = execCmdEx(cmd)
+  echo "renewTor IP: ", &"\"{newIp.output}\""
+  if newIp.output == "250 OK":
+    return true
 
 # This function deactivates the bridge relay.
 proc deactivateBridgeRelay*() =
@@ -118,3 +157,5 @@ when isMainModule:
   echo "obfs4: ", bridges.obfs4
   echo "meekAzure: ", bridges.meekAzure
   echo "snowflake: ", bridges.snowflake
+  let check = socks5Req("https://ipinfo.io/products/ip-geolocation-api", "127.0.0.1", 9050.Port, POST, "input=37.228.129.5")
+  echo "result: ", check
