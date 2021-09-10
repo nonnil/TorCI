@@ -1,7 +1,7 @@
 import jester 
 import ../views/[temp, status]
 import ".."/[types, connexion]
-import ".."/libs/[syslib, wirelessManager]
+import ".."/libs/[syslib, torlib, wirelessManager]
 #import sugar
 
 export status
@@ -13,13 +13,13 @@ proc routingStatus*(cfg: Config) =
         #resp renderNode(renderMainMenues(await torStatus(), await displayAboutBridges()), request, cfg)
         # respMainMenu(await showMainMenu(request, cfg))
         let
-          torSt = await isTorActive(cfg)
+          torS = await getTorStatus(cfg)
           iface = await getActiveIface()
           wlan = iface.input
           crNet = await currentNetwork(wlan)
           sysInfo = await getSystemInfo()
         resp renderNode(
-          renderStatusPane(torSt, iface, crNet, sysInfo),
+          renderStatusPane(torS, iface, crNet, sysInfo),
           request,
           cfg
         )

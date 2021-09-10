@@ -12,6 +12,14 @@ type
   UserSession* = object
     token*: string
     req*: Request
+  
+  TorStatus* = object
+    isOnline*: bool
+    useObfs4*: bool
+    useMeekAzure*: bool
+    useSnowflake*: bool
+    bridgeMode*: bool
+    connectedVpn*: bool
 
   Status* = enum
     success 

@@ -1,47 +1,7 @@
 import asyncdispatch, strutils, strformat, re, tables
-import os, osproc, json
+import os, osproc
 import ../types
 import wirelessManager
-import libcurl
-
-proc curlWriteFn(
-  buffer: cstring,
-  size: int,
-  count: int,
-  outstream: pointer): int =
-  
-  let outbuf = cast[ref string](outstream)
-  outbuf[] &= buffer
-  result = size * count
-
-proc socks5Req(url, address: string, port: Port): string =
-  let curl = easy_init()
-  let webData: ref string = new string
-  discard curl.easy_setopt(OPT_USERAGENT,
-    "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0")
-  discard curl.easy_setopt(OPT_HTTPGET, 1)
-  discard curl.easy_setopt(OPT_WRITEDATA, webData)
-  discard curl.easy_setopt(OPT_WRITEFUNCTION, curlWriteFn)
-  discard curl.easy_setopt(OPT_URL, url)
-  discard curl.easy_setopt(OPT_PROXYTYPE, 5)
-  discard curl.easy_setopt(OPT_PROXY, address)
-  discard curl.easy_setopt(OPT_PROXYPORT, port)
-  discard curl.easy_setopt(OPT_TIMEOUT, 5)
-
-  let ret = curl.easy_perform()
-  if ret == E_OK:
-    # echo "Done"
-    result = webData[]
-  else: return
-
-proc torsocks*(url, address: string, port: Port): Future[string] {.async.} = 
-  result = url.socks5Req(address, port)
-  
-proc torsocks*(url: string, cfg: Config): Future[string] {.async.} = 
-  let
-    address = cfg.torAddress
-    port = cfg.torPort.parseInt.Port
-  result = url.socks5Req(address, port)
 
 proc parseRoute(str: string): tuple[inputIo, outputIo, tunIo: string] =
   let lines = str.splitLines()
@@ -117,28 +77,6 @@ proc getActiveIface*(): Future[ActiveIfaceList] {.async.} =
         result.hasVpn = true
   except: return
 
-proc isTorActive*(cfg: Config): Future[bool] {.async.} =
-  try:
-    const
-      userAgent = "\"Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0\""
-      destHost = "https://check.torproject.org/api/ip"
-    # let
-    #   torAddress = cfg.torAddress
-    #   torPort = cfg.torPort
-    let
-      # cmdfull = &"curl --socks5 {torAddress}:{torPort} -A {userAgent} -m 5 -s {destHost} | cat | xargs"
-      # cmdStatus = execCmdEx(cmdfull)
-      torch = await destHost.torsocks(cfg)
-    if torch.len != 0:
-      # if cmdStatus.output.len == 0:
-      let jObj = parseJson(torch)
-      if $jObj["IsTor"] == "true":
-        return true
-    echo "Tor check is fail."
-    return false
-  except:
-    return
-
 proc getOnlineIO*(): Future[tuple[inputIo, outputIo: string]] {.async.} =
   const routeCmd = "sudo timeout 5 sudo route"
   # when defined(debugCi):
@@ -164,12 +102,3 @@ proc changePasswd*(currentPasswd, newPasswd, rnewPasswd: string; username: strin
     cmdCode = execCmd(cmdPasswd)
   if cmdCode == 0:
     result = true
-
-  # discard getSystemInfo()
-
-when isMainModule:
-  const url = "https://check.torproject.org/api/ip"
-  let ret = waitFor url.torsocks("127.0.0.1", 9050.Port)
-  if ret.len != 0:
-    let jObj = parseJson(ret)
-    echo "IsTor: ", jObj{"IsTor"}

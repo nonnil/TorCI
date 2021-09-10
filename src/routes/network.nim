@@ -1,7 +1,7 @@
 import jester, os, strutils
 import ../views/[temp, network]
 import ".."/[types]
-import ".."/libs/[syslib, torboxLib, session, wlan, wifiScanner, wirelessManager]
+import ".."/libs/[syslib, torlib, session, wlan, wifiScanner, wirelessManager]
 
 export network
 template redirectLoginPage*() =

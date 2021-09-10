@@ -30,7 +30,7 @@ proc renderSystemInfo(sys: SystemInfo): VNode =
                 tdiv():
                   text if sys.architecture.len != 0: sys.architecture else: defStr
 
-proc renderTorInfo(isTor: bool): VNode =
+proc renderTorInfo(torS: TorStatus): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="card card-padding card-tor"):
       tdiv(class="card-header"):
@@ -42,7 +42,25 @@ proc renderTorInfo(isTor: bool): VNode =
             td():
               strong():
                 tdiv():
-                  text if isTor: "Online" else: "Offline"
+                  text if torS.isOnline: "Online" else: "Offline"
+          tr():
+            td(): text "Obfs4"
+            td():
+              strong():
+                tdiv():
+                  text if torS.useObfs4: "is On" else: "Off"
+          tr():
+            td(): text "Meek-Azure"
+            td():
+              strong():
+                tdiv():
+                  text if torS.useMeekAzure: "is On" else: "Off"
+          tr():
+            td(): text "Snowflake"
+            td():
+              strong():
+                tdiv():
+                  text if torS.useSnowflake: "is On" else: "Off"
 
 
 proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string]): VNode =
@@ -83,8 +101,8 @@ proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string
                 tdiv():
                   text if iface.hasVpn: "is Up" else: defStr
 
-proc renderStatusPane*(isTor: bool, iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string], sysInfo: SystemInfo): VNode =
+proc renderStatusPane*(torS: TorStatus, iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string], sysInfo: SystemInfo): VNode =
   buildHtml(tdiv(class="cards")):
-    renderTorInfo(isTor)
+    renderTorInfo(torS)
     renderNetworkInfo(iface, crNet)
     renderSystemInfo(sysInfo)
