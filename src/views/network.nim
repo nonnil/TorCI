@@ -28,42 +28,6 @@ proc renderTorConfig*(): VNode =
       tdiv(class="card-table"):
         tdiv(class="card-title"): text ""
 
-# proc renderWlanConfig*(node: TableRef): VNode =
-#   buildHtml(tdiv(class="card")):
-#     tdiv(class="card-header"):
-#       text "WLAN Information"
-#       tdiv(class="edit-button"):
-#         label(): text "Edit"
-#         input(class="opening-button", `type`="radio", name="popout-button", value="open")
-#         input(class="closing-button", `type`="radio", name="popout-button", value="close")
-#         tdiv(class="shadow")
-#         tdiv(class="editable-box"):
-#           form(`method`="post", action="/net/wlan", enctype="multipart/form-data"):
-#             for k, v in node.pairs:
-#               tdiv(class="card-table"):
-#                 label(class="card-title"): text k
-#                 if k == "band":
-#                   select(name=k):
-#                     option(value="g"): text "2.5GHz"
-#                     option(value="a"): text "5GHz"
-#                 else:
-#                   input(`type`="text", name=k, placeholder=v)
-#             button(`type`="submit", class="saveBtn", name="saveBtn"): text "Save change"
-#     tdiv(class="card-body"):
-#       for k, v in node.pairs:
-#         tdiv(class="card-table"):
-#           tdiv(class="card-title"): text k
-#           tdiv(class="card-text", style=style {color: "#444"}):
-#             text v
-  
-# proc renderConf*(wlan: TableRef): VNode =
-  # result = buildCi():
-    # table(mode=editable, subj="WLAN Information", uri="/net/wlan"):
-      # ciEl(name="SSID", msg="test", colour="#444"):
-        # input()
-      # ciEl(name="Country code", msg="test", colour="#444"):
-#         input()
-
 proc renderInterfaces*(): VNode =
   buildHtml(tdiv(class="card")):
     tdiv(class="card-header"):
@@ -186,65 +150,75 @@ proc renderWifiConfig*(wlan: string, wifiInfo: WifiList; currentNetwork: tuple[s
     #       button(`type`="submit", class="btn-join"): text "Join Network"
 
 proc renderWirelessPowerButton*(): VNode =
-  buildHtml(tdiv(class="card")):
-    tdiv(class="card-header"):
-      text "WLAN Power"
-    tdiv(class="card-body"):
-      form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
-        button(`type`="submit", class="btn btn-reload", name="status", value="reload"): text "Restart"
-        button(`type`="submit", class="btn btn-enable", name="status", value="enable"): text "Enable"
-        button(`type`="submit", class="btn btn-disable", name="status", value="disable"): text "Disable"
+  buildHtml(tdiv(class="columns")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "HostAP Control"
+      table():
+        form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
+          button(`type`="submit", class="btn btn-reload", name="status", value="reload"): text "Restart"
+          button(`type`="submit", class="btn btn-enable", name="status", value="enable"): text "Enable"
+          button(`type`="submit", class="btn btn-disable", name="status", value="disable"): text "Disable"
 
 proc renderWirelessConfig*(hostap: HostAp): VNode =
-  buildHtml(tdiv(class="card")):
-    tdiv(class="card-header"):
-      text "Wi-Fi Configuration"
-      tdiv(class="btn edit-button"):
-        label(): text "Edit"
-        input(class="opening-button", `type`="radio", name="popout-button", value="open")
-        input(class="closing-button", `type`="radio", name="popout-button", value="close")
-        tdiv(class="shadow")
-        tdiv(class="editable-box"):
-          form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
-            tdiv(class="card-table"):
-              label(class="card-title"): text "SSID"
-              input(`type`="text", name="ssid", placeholder=hostap.ssid)
-            tdiv(class="card-table"):
-              label(class="card-title"): text "Band"
-              select(name="band"):
-                option(value="g"): text "2.5GHz"
-                option(value="a"): text "5GHz"
-            tdiv(class="card-table"):
-              label(class="card-title"): text "SSID Cloak"
-              select(name="ssidCloak"):
-                option(value="hide"): text "Hide"
-                option(value="unhide"): text "Unhide"
-            button(`type`="submit", class="btn btn-apply saveBtn", name="saveBtn"): text "Save change"
-    tdiv(class="card-body"):
-      tdiv(class="card-table"):
-        tdiv(class="card-title"): text "SSID"
-        tdiv(class="card-text", style=style {color: "#444"}):
-          text hostap.ssid
-      tdiv(class="card-table"):
-        tdiv(class="card-title"): text "Band"
-        tdiv(class="card-text", style=style {color: "#444"}):
-          text case hostap.band
-            of "g":
-              "2.5GHz"
-            of "a":
-              "5GHz"
-            else:
-              "Unknown"
-      tdiv(class="card-table"):
-        tdiv(class="card-title"): text "SSID Cloak"
-        tdiv(class="card-text", style=style {color: "#444"}):
-          text case hostap.ssidCloak
-            of $0:
-              "Visible"
-            of $1:
-              "Hidden"
-            else:
-              "Unknown"
+  buildHtml(tdiv(class="columns")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "HostAP Configuration"
+        tdiv(class="btn edit-button"):
+          svg(`aria-hidden`="true", height="16", viewBox="0 0 16 16", version="1.1", width="16", data-view-component="true", class="octicon octicon-pencil"):
+            path(fill-rule="evenodd", d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25a1.75 1.75 0 01.445-.758l8.61-8.61zm1.414 1.06a.25.25 0 00-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 000-.354l-1.086-1.086zM11.189 6.25L9.75 4.81l-6.286 6.287a.25.25 0 00-.064.108l-.558 1.953 1.953-.558a.249.249 0 00.108-.064l6.286-6.286z")
+          input(class="opening-button", `type`="radio", name="popout-button", value="open")
+          input(class="closing-button", `type`="radio", name="popout-button", value="close")
+          tdiv(class="shadow")
+          tdiv(class="editable-box"):
+            form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
+              tdiv(class="card-table"):
+                label(class="card-title"): text "SSID"
+                input(`type`="text", name="ssid", placeholder=hostap.ssid)
+              tdiv(class="card-table"):
+                label(class="card-title"): text "Band"
+                select(name="band"):
+                  option(value="g"): text "2.5GHz"
+                  option(value="a"): text "5GHz"
+              tdiv(class="card-table"):
+                label(class="card-title"): text "SSID Cloak"
+                select(name="ssidCloak"):
+                  option(value="hide"): text "Hide"
+                  option(value="unhide"): text "Unhide"
+              button(`type`="submit", class="btn btn-apply saveBtn", name="saveBtn"): text "Save change"
+      table(class="full-width box-table"):
+        tbody():
+          tr():
+            td(): text "SSID"
+            td():
+              strong():
+                tdiv():
+                  text hostap.ssid
+          tr():
+            td(): text "Band"
+            td():
+              strong():
+                tdiv():
+                  text case hostap.band
+                    of "g":
+                      "2.5GHz"
+                    of "a":
+                      "5GHz"
+                    else:
+                      "Unknown"
+          tr():
+            td(): text "SSID Cloak"
+            td():
+              strong():
+                tdiv():
+                  text case hostap.ssidCloak
+                    of $0:
+                      "Visible"
+                    of $1:
+                      "Hidden"
+                    else:
+                      "Unknown"
  
 proc renderWirelessPane*(hostap: HostAp): VNode =
   buildHtml(tdiv(class="cards")):

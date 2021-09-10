@@ -1,0 +1,64 @@
+.box {
+  margin-bottom: 16px;
+  border: solid 1px;
+  border-radius: 6px;
+  border-color: #d0d7de;
+}
+
+.box-header {
+  padding: 16px;
+  margin: -1px -1px 0;
+  border: solid 1px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  // relative
+  position: relative;
+  // background color
+  background-color: rgba(234,238,242,0.5);
+  border-color: #d0d7de;
+  color: #000;
+  display: flex;
+  // padding: 8px !important;
+  align-items: center;
+  justify-content: space-between !important;
+}
+
+.box-table {
+  padding: 20px;
+  position: relative;
+}
+
+.edit-btn {
+  float: right;
+  position: relative;
+  padding: 8px !important;
+  margin-left: 5px;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.btn-apply {
+  color: #fff;
+  background: linear-gradient(to bottom, $tor-box-colour, $tor-box-colour) no-repeat;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
+  width: 100%;
+  display: block;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  border-radius: 5px;
+  font-size: 16px;
+  border: hidden;
+  margin: 10px 0 0 0;
+  padding: 0;
+}
+
+.btn-apply:hover {
+  background: linear-gradient(to bottom, $tor-box-shadow-colour, $tor-box-shadow-colour) no-repeat;
+}
+
+.btn-apply:focus {
+  background: linear-gradient(to bottom, $tor-box-shadow-colour $tor-box-shadow-colour) no-repeat;
+}

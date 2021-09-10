@@ -20,9 +20,11 @@ proc routingSys*(cfg: Config) =
         if request.formData["postType"].body == "chgPasswd":
           let code = await changePasswd(request.formData["crPassword"].body, request.formData["newPassword"].body, request.formData["re_newPassword"].body)
           if code:
-            resp renderNode(renderContainer(renderPasswd()), request, cfg, tabForSys, Notice(state: success, message: "TorBox's password had changed."))
+            # resp renderNode(renderContainer(renderPasswd()), request, cfg, tabForSys, Notice(state: success, message: "TorBox's password had changed."))
+            redirect("/login")
           else:
-            resp renderNode(renderContainer(renderPasswd()), request, cfg, tabForSys, Notice(state: failure, message: "Your password doesn't confirmed."))
+            # resp renderNode(renderContainer(renderPasswd()), request, cfg, tabForSys, Notice(state: failure, message: "Your password doesn't confirmed."))
+            redirect("/login")
         elif request.formData["postType"].body == "eraseLogs":
           let erased = await eraseLogs()
           if erased == success:
@@ -32,7 +34,8 @@ proc routingSys*(cfg: Config) =
 
     get "/sys/passwd":
       if await request.isLoggedIn():
-        resp renderNode(renderCard("Change Passwd", renderPasswd()), request, cfg, tabForSys)
+        # resp renderNode(renderCard("Change Passwd", renderPasswd()), request, cfg, tabForSys)
+        resp renderNode(renderChangePasswd(), request, cfg, tabForSys)
       redirect "/login"
     
     get "/sys/eraselogs":

@@ -1,22 +1,92 @@
-// Included from status.scss
-.cards {
-  display: flex;
+.columns {
+  width: 48%;
+  box-sizing: border-box;
+  float: left;
+  margin-left: 4%;
 }
 
-.card {
-  border: 1px solid rgba(0,0,0,.125);
-  border-radius: .25rem;
-  flex-basis: 0;
-  flex-grow: 1;
-  margin: 0 10px;
+.columns:first-child {
+  margin-left: 0;
 }
+
+// .columns:last-child {
+//   width: 100%;
+//   margin-left: 0;
+// }
+
+.card {
+  background-color: #fff;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 0 3px 6px rgba(0,0,0,.16),0 3px 6px rgba(0,0,0,.23);
+}
+
+.card-tor {
+  border-top: 2px solid #7D4698;
+}
+
+.card-sky {
+  border-top: 2px solid #5AEDFA;
+}
+
+.card-blue {
+  border-top: 2px solid #41a4db;
+}
+
 .card-header {
-  background-color: rgba(0,0,0,.03);
-  padding: .75rem 1.25rem;
-  margin-bottom: 0;
-  border-bottom: 1px solid rgba(0,0,0,.125);
+  color: #000;
+  margin-bottom: 2rem;
   font-size: 24px;
 }
+
+.card-header em {
+  font-style: normal;
+  font-weight: 700;
+  padding: 0 5px;
+}
+
+.card-padding {
+  padding: 20px;
+}
+
+.table {
+  box-sizing: border-box;
+  margin-bottom: 2.5rem;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.full-width {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+}
+
+td, th {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+td:first-child, th:first-child {
+  padding-left: 0;
+}
+
+td:last-child, th:last-child {
+  padding-right: 0;
+}
+
+// Included from status.scss
+.cards {
+  // display: flex;
+}
+
+@media screen and (max-width: 800px) {
+  .card-header {
+    width: 100%;
+  }
+}
+
 .card-table {
   display: table-row-group;
   box-sizing: border-box;
@@ -37,15 +107,6 @@
   word-break: break-all;
 }
 // end at status.scss
-
-.edit-button {
-  float: right;
-  font-size: 18px;
-  border: #ccc solid 2px;
-  border-radius: .25rem;
-  padding: 5px 10px;
-  position: relative;
-} 
 
 #editable {
   display: none;
@@ -155,20 +216,20 @@
   outline: none;
 }
 
-.editable-box>form>.saveBtn {
-  width: 100%;
-  display: block;
-  height: 40px;
-  line-height: 40px;
-  text-align: center;
-  border-radius: 5px;
-  font-size: 16px;
-  border: hidden;
-  color: white;
-  background-color: rgb(127, 187, 35);
-  margin: 10px 0 0 0;
-  padding: 0;
-}
+// .editable-box>form>.saveBtn {
+//   width: 100%;
+//   display: block;
+//   height: 40px;
+//   line-height: 40px;
+//   text-align: center;
+//   border-radius: 5px;
+//   font-size: 16px;
+//   border: hidden;
+  // color: white;
+  // background-color: rgb(127, 187, 35);
+//   margin: 10px 0 0 0;
+//   padding: 0;
+// }
 
 .editable-box>form>.saveBtn:focus {
   color: #fff;
@@ -218,23 +279,9 @@
   cursor: pointer;
   display: inline-block;
   // text-shadow: 0 -1px 0 rgba(165, 151, 151, 0.75);
-  text-shadow: 0 1px 1px rgba(255,255,255,0.75);
-  background: linear-gradient(#fff,#fff 25%,#e6e6e6);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
-  border: 1px solid #ccc;
-  border-bottom-color: #bbb;
-}
-
-.btn-apply {
-  color: #fff;
-  background: linear-gradient(to bottom,#7fbb23, #7fbb23) no-repeat;
-  text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
-}
-
-.btn-apply:hover {
-  background: linear-gradient(to bottom,#6ba610, #6ba610) no-repeat;
-}
-
-.btn-apply:focus {
-  background: linear-gradient(to bottom,#6ba610, #6ba610) no-repeat;
+  // text-shadow: 0 1px 1px rgba(255,255,255,0.75);
+  // background: linear-gradient(#fff,#fff 25%,#e6e6e6);
+  // box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
+  // border: 1px solid #ccc;
+  // border-bottom-color: #bbb;
 }

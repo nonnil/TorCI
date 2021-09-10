@@ -6,16 +6,30 @@ proc renderSys*(): VNode =
       button(): text "Reboot TorBox"
       button(): text "Shutdown TorBox"
 
-proc renderPasswd*(): VNode =
-  buildHtml(tdiv(class="")):
-    form(`method`="post", action="/sys", enctype="multipart/form-data", class=""):
-      label(class=""):text "Current Password"
-      input(`type`="password", `required`="", name="crPassword", class="")
-      label(class=""): text "New Password (Admin)"
-      input(`type`="password", `required`="", name="newPassword", class="")
-      label(class=""):text "Retype new password"
-      input(`type`="password", `required`="", name="re_newPassword", class="")
-      button(`type`="submit", name="postType", value="chgPasswrd",class=""): text "Change Password"
+proc renderChangePasswd*(): VNode =
+  buildHtml(tdiv(class="columns")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Change torbox's passwd"
+      form(`method`="post", action="/sys/passwd", enctype="multipart/form-data"):
+        table(class="full-width box-table"):
+          tbody():
+            tr():
+              td(): text "Current password"
+              td():
+                strong():
+                  input(`type`="password", `required`="", name="crPassword")
+            tr():
+              td(): text "New password"
+              td():
+                strong():
+                  input(`type`="password", `required`="", name="newPassword")
+            tr():
+              td(): text "New password (Retype)"
+              td():
+                strong():
+                  input(`type`="password", `required`="", name="re_newPassword")
+        button(class="btn-apply", `type`="submit", name="postType", value="chgPasswd"): text "Change password"
 
 proc renderLogs*(): VNode =
   buildHtml(tdiv(class="")):

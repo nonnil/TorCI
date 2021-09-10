@@ -93,7 +93,7 @@ type
   Cards* = ref object
     subject*: seq[string]
     card*: seq[Card]
-
+  
   Config* = ref object
     address*: string
     port*: int

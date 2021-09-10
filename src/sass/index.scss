@@ -1,3 +1,4 @@
+@import 'colours';
 @import 'menues';
 @import 'nav';
 @import 'notice';
@@ -5,6 +6,7 @@
 @import 'status';
 @import 'sub-menu';
 @import 'card';
+@import 'box';
 @import 'table';
 @import 'network';
 @import 'wireless';
@@ -24,7 +26,7 @@ body {
 
 a {
   text-decoration: none;
-  color: purple;
+  color: $tor-colour;
 }
 a:hover {
   color: #ddd;
