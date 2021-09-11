@@ -36,14 +36,11 @@ proc checker(s, flag: string): tuple[code: bool, msg: string]=
       return (true, "")
     else:
       return (false, "")
-  of "ssidCloak":
-    if s.len == 0: return
-    if s == "hide" or s == "unhide":
+  of "password":
+    if (s.len >= 8) and (s.len <= 64):
       return (true, "")
-    else:
-      return (false, "")
   else:
-    raise newException(Exception, "must be set flag argument.")
+    return
 
 # proc getModule(output: string): NetInterfaces =
 #   case output
@@ -101,36 +98,11 @@ proc getWlanInfo*(): Future[HostAp] {.async.} =
     result = HostAp(
       ssid: tb["ssid"],
       band: tb["hw_mode"],
-      ssidCloak: tb["ignore_broadcast_ssid"]
+      isHidden: if tb["ignore_broadcast_ssid"] == "1": true else: false,
+      password: tb["wpa_passphrase"]
     )
-  except Exception:
-    # result = {"ssid": "TorBox", "band": "2.5GHz", "ssidCloak": "invisible"}.newTable
-    return HostAp(ssid: "test", band: "test", ssidCloak: "test")
-
-# proc actionerWlanVisibility*(): Future[Status] {.async.} =
-#   var 
-#     input: string
-#     switch: int = 0
-#   try:
-#     let status_broadcast = await getWlanInfo()
-#     if status_broadcast.hasKey("ignore_broadcast_ssid"):
-#       input = 
-#         if status_broadcast["ignore_broadcast_ssid"] == "0":
-#           "ignore_broadcast_ssid=1"
-#         else:
-#           "ignore_broadcast_ssid=0"
-#       switch = 1
-
-#       if switch == 1:
-#         discard execshellcmd(&"sudo cp {hostapd} {hostapdBak}")
-#         echo "is a SSID visibility status: " & $status_broadcast["ignore_broadcast_ssid"]
-#         let editStream= execShellCmd(&"sudo sed -i \"s/^ignore_broadcast_ssid=.*{input}\" {hostapd}")
-#         if editstream == 1:
-#           return failure
-#         restartWlan()
-#         return success
-#   except Exception:
-#     return failure 
+  except:
+    return
 
 proc changeSsid*(ssid: string): Future[bool] {.async.} =
   # discard execShellCmd(&"sudo cp {hostapd_path} {hostapd_save}")
@@ -156,23 +128,11 @@ proc setWlanConfig*(hostap: HostAp): Future[bool] {.async.} =
     if checker(hostap.band, "band").code:
       fr = fr.replacef(re"hw_mode=.*", "hw_mode=" & hostap.band)
       fr = fr.replacef(re"channel.*", "channel=36")
-    if checker(hostap.ssidCloak, "ssidCloak").code:
-      let input: int = if hostap.ssidCloak == "hide": 1
-                       else: 0
-      fr = fr.replacef(re"ignore_broadcast_ssid=.*", "ignore_broadcast_ssid=" & $input)
-    if hostap.power.len != 0:
-      if hostap.power == "reload":
-        restartwlan()
-        return true
-      elif hostap.power == "temp_disable":
-        disableap()
-        return true
-      elif hostap.power == "perm_disable":
-        disableap("permanentry")
-        return true
-      elif hostap.power == "enable":
-        enableWlan()
-        return true
+    if checker(hostap.password, "password").code:
+      fr = fr.replacef(re"wpa_passphrase=.*", "wpa_passphrase=" & hostap.password)
+    let input: int = if hostap.isHidden: 1
+                     else: 0
+    fr = fr.replacef(re"ignore_broadcast_ssid=.*", "ignore_broadcast_ssid=" & $input)
     writeFile(hostapd, fr)
     return true
   except:

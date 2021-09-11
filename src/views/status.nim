@@ -54,11 +54,15 @@ proc renderTorInfo(torS: TorStatus): VNode =
                   text if torS.isOnline: "Online" else: "Offline"
           if torS.isOnline:
             tr():
-              td(): text "Exit Node Ip"
+              td(): text "Exit Node IP"
               td():
                 strong(style={display: "flex"}):
                   if torS.exitNodeGeo.len != 0:
-                    img(class="flag", loading="lazy", alt="iso", src=fmt"/images/flags/{torS.exitNodeGeo}.svg")
+                    img(
+                      class="flag", loading="lazy", alt="iso",
+                      src=fmt"/images/flags/{torS.exitNodeGeo}.svg",
+                      title= &"Country: {torS.exitNodeGeo} City: {torS.exitNodeCity}"
+                    )
                   tdiv():
                     text torS.exitNodeIp
                   # img(class="new-circuit", loading="lazy", alt="new circuit", src="/images/assets/new_circuit.svg"):

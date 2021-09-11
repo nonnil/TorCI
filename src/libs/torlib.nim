@@ -69,7 +69,7 @@ proc checkTor*(cfg: Config): Future[tuple[isTor: bool, ipAddr: string]] {.async.
   except:
     return
 
-proc checkGeoIp*(cfg: Config, isTor: bool, ipAddr: string = ""): Future[string] {.async.} =
+proc checkGeoIp*(cfg: Config, isTor: bool, ipAddr: string = ""): Future[tuple[country, city: string]] {.async.} =
   const
     whoer = "https://api.whoer.net/v2/geoip2-city"
     ipinfo = "https://ipinfo.io/products/ip-geolocation-api"
@@ -82,7 +82,8 @@ proc checkGeoIp*(cfg: Config, isTor: bool, ipAddr: string = ""): Future[string] 
   if rawRes.len != 0:
     let jObj = parseJson(rawRes)
     echo "result of api.whoer: ", $jObj
-    result = jObj{jsonKey}.getStr()
+    result.country = jObj{jsonKey}.getStr()
+    result.city = jObj{"city"}.getStr()
 
 proc getBridgesStatus*(): Future[tuple[obfs4, meekAzure, snowflake: bool]] {.async.} =
   var
@@ -111,7 +112,9 @@ proc getTorStatus*(cfg: Config): Future[TorStatus] {.async.} =
     torch = await checkTor(cfg)
     bridges = await getBridgesStatus()
   if torch.isTor:
-    result.exitNodeGeo = await checkGeoIp(cfg, torch.isTor, torch.ipAddr)
+    let geo = await checkGeoIp(cfg, torch.isTor, torch.ipAddr)
+    result.exitNodeGeo = geo.country
+    result.exitNodeCity = geo.city
   result.isOnline = torch.isTor
   result.exitNodeIp = torch.ipAddr
   result.useObfs4 = bridges.obfs4

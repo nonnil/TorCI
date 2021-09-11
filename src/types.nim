@@ -21,6 +21,7 @@ type
     isOnline*: bool
     exitNodeIp*: string
     exitNodeGeo*: string
+    exitNodeCity*: string
     useObfs4*: bool
     useMeekAzure*: bool
     useSnowflake*: bool
@@ -46,7 +47,7 @@ type
     password*: string
     band*: string
     channel*: string
-    ssidCloak*: string
+    isHidden*: bool 
     power*: string
 
   CardKind* = enum

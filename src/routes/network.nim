@@ -18,6 +18,7 @@ proc routingNet*(cfg: Config) =
       anker: @[crPath & "/tor", crPath & "/interfaces", crPath & "/wireless"]
     )
     var net: Network = new Network
+
     get "/tor":
       if await request.isLoggedIn():
         resp renderNode(renderTorPane(), request, cfg, tab)
@@ -56,10 +57,12 @@ proc routingNet*(cfg: Config) =
 
     post "/wireless":
       if await request.isLoggedIn():
+        let cloak = request.formData.getOrDefault("ssidCloak").body
         let wlan: HostAp = HostAp(
           ssid: request.formData.getOrDefault("ssid").body,
           band: request.formData.getOrDefault("band").body,
-          ssidCloak: request.formData.getOrDefault("ssidCloak").body
+          isHidden: if cloak == "1": true else: false,
+          password: request.formData.getOrDefault("password").body
         )
         if await setWlanConfig(wlan):
           resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: success, message: "Complete WLAN Setting."))

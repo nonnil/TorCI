@@ -193,8 +193,11 @@ proc renderWirelessConfig*(hostap: HostAp): VNode =
               tdiv(class="card-table"):
                 label(class="card-title"): text "SSID Cloak"
                 select(name="ssidCloak"):
-                  option(value="hide"): text "Hide"
-                  option(value="unhide"): text "Unhide"
+                  option(value="1"): text "Hide"
+                  option(value="0"): text "Unhide"
+              tdiv(class="card-table"):
+                label(class="card-title"): text "Password"
+                input(`type`="password", name="password") 
               button(`type`="submit", class="btn btn-apply saveBtn", name="saveBtn"): text "Save change"
       table(class="full-width box-table"):
         tbody():
@@ -221,13 +224,13 @@ proc renderWirelessConfig*(hostap: HostAp): VNode =
             td():
               strong():
                 tdiv():
-                  text case hostap.ssidCloak
-                    of $0:
-                      "Visible"
-                    of $1:
-                      "Hidden"
-                    else:
-                      "Unknown"
+                  text if hostAp.isHidden: "Hidden" else: "Visible"
+          tr():
+            td(): text "Password"
+            td():
+              strong():
+                tdiv():
+                  text if hostap.password.len != 0: "?????" else: ""
  
 proc renderWirelessPane*(hostap: HostAp): VNode =
   buildHtml(tdiv(class="cards")):
@@ -237,4 +240,3 @@ proc renderWirelessPane*(hostap: HostAp): VNode =
 proc renderTorPane*(): VNode =
   buildHtml(tdiv(class="cards")):
     renderTorConfig()
-    renderTorPane()

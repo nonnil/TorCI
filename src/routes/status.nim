@@ -33,15 +33,5 @@ proc routingStatus*(cfg: Config) =
         let renewIp = request.formData.getOrDefault("new_circuit").body
         if renewIp == "0":
           discard renewTorExitIp()
-        let
-          torS = await getTorStatus(cfg)
-          iface = await getActiveIface()
-          wlan = iface.input
-          crNet = await currentNetwork(wlan)
-          sysInfo = await getSystemInfo()
-        resp renderNode(
-          renderStatusPane(torS, iface, crNet, sysInfo),
-          request,
-          cfg
-        )
+        redirect "/is"
       redirect "/login"
