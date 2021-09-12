@@ -12,3 +12,15 @@ proc getSubmenuClass*(path: string; text: string): string =
     return "menu-item active"
   else:
     return "menu-item"
+
+proc icon*(icon: string; text=""; title=""; class=""; href=""): VNode =
+  var c = "icon-" & icon
+  if class.len > 0: c = c & " " & class
+  buildHtml(tdiv(class="icon-container")):
+    if href.len > 0:
+      a(class=c, title=title, href=href)
+    else:
+      span(class=c, title=title)
+
+    if text.len > 0:
+      text " " & text
