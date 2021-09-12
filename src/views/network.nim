@@ -2,7 +2,7 @@ import karax/[karaxdsl, vdom, vstyles]
 import jester
 import strformat, tables
 import ".."/[types]
-import temp 
+import temp, renderutils
 import ../libs/wifiScanner
 
 proc renderTorLogs*(logs: string): VNode =
@@ -229,8 +229,18 @@ proc renderWirelessConfig*(hostap: HostAp): VNode =
             td(): text "Password"
             td():
               strong():
-                tdiv():
-                  text if hostap.password.len != 0: "?????" else: ""
+                if hostAp.password.len != 0:
+                  tdiv(class="password_field_container"):
+                    tdiv(class="black_circle")
+                    icon "eye"
+                    input(class="btn show_password", `type`="radio", name="password_visibility", value="show")
+                    input(class="btn hide_password", `type`="radio", name="password_visibility", value="hide")
+                    tdiv(class="shadow")
+                    tdiv(class="password_preview_field"):
+                      tdiv(class="shown_password"): text hostAp.password
+                else:
+                  tdiv():
+                    text "No password has been set"
  
 proc renderWirelessPane*(hostap: HostAp): VNode =
   buildHtml(tdiv(class="cards")):

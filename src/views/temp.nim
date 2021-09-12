@@ -16,6 +16,7 @@ var currentColour: string
 proc renderHead(cfg: Config): VNode =
   buildHtml(head):
     link(rel="stylesheet", `type`="text/css", href="/css/style.css")
+    link(rel="stylesheet", type="text/css", href="/css/fontello.css?v=2")
     title: 
       text cfg.title
     meta(name="viewport", content="width=device-width, initial-scale=1.0")

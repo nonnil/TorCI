@@ -278,6 +278,7 @@ td:last-child, th:last-child {
 .btn {
   cursor: pointer;
   display: inline-block;
+  position: relative;
   // text-shadow: 0 -1px 0 rgba(165, 151, 151, 0.75);
   // text-shadow: 0 1px 1px rgba(255,255,255,0.75);
   // background: linear-gradient(#fff,#fff 25%,#e6e6e6);
