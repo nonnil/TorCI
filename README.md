@@ -11,7 +11,7 @@ TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbo
 To compile the scss files, you need to install `libsass`. On Ubuntu and Debian, you can use `libsass-dev`.
 
 ```bash
-$ git clone https://github.com/Nil0x0/torci
+$ git clone https://github.com/nilnill/torci
 $ cd torci
 $ nimble build
 $ nimble scss
