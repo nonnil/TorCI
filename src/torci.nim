@@ -21,7 +21,7 @@ settings:
 routes:
   get "/":
     if await request.isLoggedIn():
-      redirect "/is"
+      redirect "/io"
     redirect "/login"
   
   get "/login":

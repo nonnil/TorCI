@@ -111,12 +111,7 @@ proc getTorStatus*(cfg: Config): Future[TorStatus] {.async.} =
   let
     torch = await checkTor(cfg)
     bridges = await getBridgesStatus()
-  if torch.isTor:
-    let geo = await checkGeoIp(cfg, torch.isTor, torch.ipAddr)
-    result.exitNodeGeo = geo.country
-    result.exitNodeCity = geo.city
   result.isOnline = torch.isTor
-  result.exitNodeIp = torch.ipAddr
   result.useObfs4 = bridges.obfs4
   result.useMeekAzure = bridges.meekAzure
   result.useSnowflake = bridges.snowflake

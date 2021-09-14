@@ -19,9 +19,6 @@ type
   
   TorStatus* = object
     isOnline*: bool
-    exitNodeIp*: string
-    exitNodeGeo*: string
-    exitNodeCity*: string
     useObfs4*: bool
     useMeekAzure*: bool
     useSnowflake*: bool

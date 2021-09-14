@@ -8,10 +8,10 @@ export status
 
 proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
   router status:
-    before "/is":
+    before "/io":
       resp "Loading"
 
-    get "/is":
+    get "/io":
       if await request.isLoggedIn():
         # resp renderNode(renderMainMenues(await torStatus(), await displayAboutBridges()), request, cfg)
         # respMainMenu(await showMainMenu(request, cfg))
@@ -28,10 +28,11 @@ proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
         )
       else:
         redirect "/login"
-    post "/is":
+
+    post "/io":
       if await request.isLoggedIn():
         let renewIp = request.formData.getOrDefault("new_circuit").body
         if renewIp == "0":
           discard renewTorExitIp()
-        redirect "/is"
+        redirect "/io"
       redirect "/login"

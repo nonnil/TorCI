@@ -43,7 +43,7 @@ proc renderNav(cfg: Config; req: Request; menu = Menu()): VNode =
         tdiv(class="service-name"):text cfg.title
       tdiv(class="caracteres-version"):text "v" & cfg.torboxVer
       tdiv(class="controle"):
-        a(class=getNavClass(req.pathInfo, "/is"), href="/is"): text "Status"
+        a(class=getNavClass(req.pathInfo, "/io"), href="/io"): text "Status"
         a(class=getNavClass(req.pathInfo, "/net"), href="/net"): text "Network"
         # a(class=getNavClass(req.pathInfo, "/confs"), href="/confs"): text "Configurations"
         # a(class=getNavClass(req.pathInfo, "/docs"), href="/docs"): text "Documents"
