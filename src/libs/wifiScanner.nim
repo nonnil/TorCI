@@ -34,7 +34,7 @@ import ../types
 
   # WifiList* = seq[Wifi]
   # WifiData = OrderedTable[seq[string]]
-
+  
 let channelFreq: Table[int, int] = {
   2: 2417,
   3: 2422,
@@ -128,9 +128,11 @@ proc zip[A, B](t1: Table[A, B]; t2: Table[A, B]): Table[A, B] =
 let channels: Table[int, int] = zip(channelFreq, channelFreq5ghz)
 
 proc searchChannel(ch: int): bool =
-  for v in channels.values:
-    if ch == v:
-      return true
+  # for v in channels.values:
+  #   if ch == v:
+  #     return true
+  if ch in channels:
+    return true
     
 proc exclusion(s: string): bool =
   case s

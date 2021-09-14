@@ -1,7 +1,7 @@
-import jester, os, strutils
+import jester, strutils
 import ../views/[temp, network]
 import ".."/[types]
-import ".."/libs/[syslib, torlib, session, wlan, wifiScanner, wirelessManager]
+import ".."/libs/[syslib, torlib, session, hostAp, wifiScanner, wirelessManager]
 
 export network
 template redirectLoginPage*() =
@@ -10,7 +10,7 @@ template redirectLoginPage*() =
 template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notice: Notice = new Notice) =
   resp renderNode(renderWifiConfig(@"interface", wifiList, curNet), request, cfg, tab, notice)
 
-proc routingNet*(cfg: Config) =
+proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
   router network:
     const crPath = "/net"
     let tab = Menu(
@@ -31,8 +31,8 @@ proc routingNet*(cfg: Config) =
     
     get "/wireless":
       if await request.isLoggedIn():
-        let wlan = await getWlanInfo()
-        resp renderNode(renderWirelessPane(wlan), request, cfg, tab)
+        let conf = await getHostApConf()
+        resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab)
       redirectLoginPage()
 
     get "/interfaces/join/@interface":
@@ -58,15 +58,18 @@ proc routingNet*(cfg: Config) =
     post "/wireless":
       if await request.isLoggedIn():
         let cloak = request.formData.getOrDefault("ssidCloak").body
-        let wlan: HostAp = HostAp(
+        let conf: HostApConf = HostApConf(
           ssid: request.formData.getOrDefault("ssid").body,
           band: request.formData.getOrDefault("band").body,
+          channel: request.formData.getOrDefault("channel").body,
           isHidden: if cloak == "1": true else: false,
           password: request.formData.getOrDefault("password").body
         )
-        if await setWlanConfig(wlan):
-          resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: success, message: "Complete WLAN Setting."))
-        resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: "Failed WLAN Setting."))
+        # if await setHostApConf(conf):
+        #   resp renderNode(renderHostApPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: success, message: "Complete WLAN Setting."))
+        # resp renderNode(renderHostApPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: "Failed WLAN Setting."))
+        discard await setHostApConf(conf)
+        redirect "wireless"
       else:
         redirect "/login"
 
@@ -90,7 +93,7 @@ proc routingNet*(cfg: Config) =
               let con = await connect(net, (essid: essid, bssid: bssid, password: password))
               if con.code:
                 redirect "/"
-              resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: con.msg))
+              # resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: con.msg))
               net = new Network
             redirect crPath & "/interfaces/join/" & @"wlan"
           redirect crPath & "/interfaces/join/" & @"wlan"

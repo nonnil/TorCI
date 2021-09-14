@@ -1,9 +1,61 @@
 import karax/[karaxdsl, vdom, vstyles]
 import jester
-import strformat, tables
+import tables, strformat
 import ".."/[types]
 import temp, renderutils
-import ../libs/wifiScanner
+# import ../libs/wifiScanner
+
+const model3 = "Raspberry Pi 3 Model B Rev"
+
+proc renderChannelSelect(hd: SystemInfo, band: string): VNode =
+  buildHtml(select(name="channel")):
+    option(selected="selected"): text "-- Select a channel --"
+    if hd.model == model3:
+      option(value="ga"): text "1 at 20 MHz"
+      option(value="gc"): text "2 at 20 MHz"
+      option(value="ge"): text "3 at 20 MHz"
+      option(value="gg"): text "4 at 20 MHz"
+      option(value="gi"): text "5 at 20 MHz"
+      option(value="gk"): text "6 at 20 MHz (default)"
+      option(value="gm"): text "7 at 20 MHz"
+      option(value="go"): text "8 at 20 MHz"
+      option(value="gq"): text "9 at 20 MHz"
+      option(value="gs"): text "10 at 20 MHz"
+      option(value="gu"): text "11 at 20 MHz"
+
+    elif band == "g":
+      option(value="ga"): text "1 at 20 MHz"
+      option(value="gb"): text "1 at 40 MHz"
+      option(value="gc"): text "2 at 20 MHz"
+      option(value="gd"): text "2 at 40 MHz"
+      option(value="ge"): text "3 at 20 MHz"
+      option(value="gf"): text "3 at 40 MHz"
+      option(value="gg"): text "4 at 20 MHz"
+      option(value="gh"): text "4 at 40 MHz"
+      option(value="gi"): text "5 at 20 MHz"
+      option(value="gj"): text "5 at 40 MHz"
+      option(value="gk"): text "6 at 20 MHz (default)"
+      option(value="gl"): text "6 at 40 MHz"
+      option(value="gm"): text "7 at 20 MHz"
+      option(value="gn"): text "7 at 40 MHz"
+      option(value="go"): text "8 at 20 MHz"
+      option(value="gp"): text "8 at 40 MHz"
+      option(value="gq"): text "9 at 20 MHz"
+      option(value="gr"): text "9 at 40 MHz"
+      option(value="gs"): text "10 at 20 MHz"
+      option(value="gt"): text "10 at 40 MHz"
+      option(value="gu"): text "11 at 20 MHz"
+      option(value="gv"): text "11 at 40 MHz"
+
+    elif band == "a":
+      option(value="aa"): text "36 at 40 MHz (default)"
+      option(value="ab"): text "36 at 80 MHz"
+      option(value="ac"): text "40 at 40 MHz"
+      option(value="ad"): text "40 at 80 MHz"
+      option(value="ae"): text "44 at 40 MHz"
+      option(value="af"): text "44 at 80 MHz"
+      option(value="ag"): text "48 at 40 MHz"
+      option(value="ah"): text "48 at 80 MHz"
 
 proc renderTorLogs*(logs: string): VNode =
   buildHtml(tdiv(class="logs-container")):
@@ -35,7 +87,6 @@ proc renderInputObfs4Bridges*(): VNode =
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Add Obfs4 Bridges"
-      
 
 proc renderInterfaces*(): VNode =
   buildHtml(tdiv(class="card")):
@@ -158,7 +209,7 @@ proc renderWifiConfig*(wlan: string, wifiInfo: WifiList; currentNetwork: tuple[s
     #         input(`type`="password", name="wifi-password")
     #       button(`type`="submit", class="btn-join"): text "Join Network"
 
-proc renderWirelessPowerButton*(): VNode =
+proc renderHostApControl(): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="box"):
       tdiv(class="box-header"):
@@ -169,7 +220,7 @@ proc renderWirelessPowerButton*(): VNode =
           button(`type`="submit", class="btn btn-enable", name="status", value="enable"): text "Enable"
           button(`type`="submit", class="btn btn-disable", name="status", value="disable"): text "Disable"
 
-proc renderWirelessConfig*(hostap: HostAp): VNode =
+proc renderHostApConf(conf: HostApConf, sysInfo: SystemInfo): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="box"):
       tdiv(class="box-header"):
@@ -184,21 +235,28 @@ proc renderWirelessConfig*(hostap: HostAp): VNode =
             form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
               tdiv(class="card-table"):
                 label(class="card-title"): text "SSID"
-                input(`type`="text", name="ssid", placeholder=hostap.ssid)
+                input(`type`="text", name="ssid", placeholder=conf.ssid)
               tdiv(class="card-table"):
                 label(class="card-title"): text "Band"
-                select(name="band"):
-                  option(value="g"): text "2.5GHz"
-                  option(value="a"): text "5GHz"
+                input(`type`="radio", name="band", value="g"): text "2.5GHz"
+                input(`type`="radio", name="band", value="a"): text "5GHz"
               tdiv(class="card-table"):
-                label(class="card-title"): text "SSID Cloak"
-                select(name="ssidCloak"):
-                  option(value="1"): text "Hide"
-                  option(value="0"): text "Unhide"
+                label(class="card-title"): text "channel"
+                renderChannelSelect(sysInfo, conf.band)
+                  # select(name="channel"):
+                  #   option(value="")
+              tdiv(class="card-table"):
+                if conf.isHidden:
+                  label(class="card-title"): text "Unhide SSID"
+                  input(`type`="checkbox", name="ssidCloak", value="0")
+                else:
+                  label(class="card-title"): text "Hide SSID"
+                  input(`type`="checkbox", name="ssidCloak", value="1")
               tdiv(class="card-table"):
                 label(class="card-title"): text "Password"
-                input(`type`="password", name="password") 
-              button(`type`="submit", class="btn btn-apply saveBtn", name="saveBtn"): text "Save change"
+                input(`type`="password", name="password", placeholder="Please enter 8 to 64 characters") 
+              button(`type`="submit", class="btn btn-apply saveBtn", name="saveBtn"):
+                text "Save change"
       table(class="full-width box-table"):
         tbody():
           tr():
@@ -206,13 +264,13 @@ proc renderWirelessConfig*(hostap: HostAp): VNode =
             td():
               strong():
                 tdiv():
-                  text hostap.ssid
+                  text conf.ssid
           tr():
             td(): text "Band"
             td():
               strong():
                 tdiv():
-                  text case hostap.band
+                  text case conf.band
                     of "g":
                       "2.5GHz"
                     of "a":
@@ -220,32 +278,38 @@ proc renderWirelessConfig*(hostap: HostAp): VNode =
                     else:
                       "Unknown"
           tr():
+            td(): text "Channel"
+            td():
+              strong():
+                tdiv():
+                  text conf.channel
+          tr():
             td(): text "SSID Cloak"
             td():
               strong():
                 tdiv():
-                  text if hostAp.isHidden: "Hidden" else: "Visible"
+                  text if conf.isHidden: "Hidden" else: "Visible"
           tr():
             td(): text "Password"
             td():
               strong():
-                if hostAp.password.len != 0:
+                if conf.password.len != 0:
                   tdiv(class="password_field_container"):
                     tdiv(class="black_circle")
-                    icon "eye"
+                    icon "eye-off"
                     input(class="btn show_password", `type`="radio", name="password_visibility", value="show")
                     input(class="btn hide_password", `type`="radio", name="password_visibility", value="hide")
                     tdiv(class="shadow")
                     tdiv(class="password_preview_field"):
-                      tdiv(class="shown_password"): text hostAp.password
+                      tdiv(class="shown_password"): text conf.password
                 else:
                   tdiv():
                     text "No password has been set"
  
-proc renderWirelessPane*(hostap: HostAp): VNode =
+proc renderHostApPane*(conf: HostApConf, sysInfo: SystemInfo): VNode =
   buildHtml(tdiv(class="cards")):
-    renderWirelessConfig(hostap)
-    renderWirelessPowerButton()
+    renderHostApConf(conf, sysInfo)
+    renderHostApControl()
     
 proc renderTorPane*(): VNode =
   buildHtml(tdiv(class="cards")):

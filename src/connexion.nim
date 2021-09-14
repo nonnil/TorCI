@@ -2,11 +2,11 @@
 import re, asyncdispatch, osproc, strutils, strformat, sequtils, re
 import httpclient, json
 import types
-import libs/[wlan, syslib, session, wifiScanner]
+import libs/[hostAp, syslib, session, wifiScanner]
 #import net, nativesockets, httpclient
 
 export asyncdispatch
-export wlan, syslib, session, wifiScanner
+export hostAp, syslib, session, wifiScanner
 
 const torrc = "/etc/tor/torrc"
 

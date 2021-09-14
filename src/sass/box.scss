@@ -134,6 +134,10 @@ input[name="password_visibility"][value="show"]:checked ~ .shadow {
   margin-left: 5px;
 }
 
+.icon-eye-off {
+  margin-left: 5px;
+}
+
 .password_preview_field {
   width: auto;
   height: auto;
@@ -162,4 +166,11 @@ input[name="password_visibility"][value="show"]:checked ~ .shadow {
   overflow-x: hidden;
   text-transform: none;
   line-height: 1;
+}
+
+.card-table > input[type="radio"] {
+  width: auto;
+}
+.card-table > input[type="checkbox"] {
+  width: auto;
 }

@@ -25,7 +25,7 @@ proc parseCpuinfo(source, kind: string): string =
       if v.match(re"Model.*"):
         result = v.split(":")[1]
 
-proc getSystemInfo*(): Future[SystemInfo] {.async.} = 
+proc getSystemInfo*(): SystemInfo = 
   const
     procDir = "/proc"
     procVersion = procDir / "version"
@@ -72,27 +72,9 @@ proc getActiveIface*(): Future[ActiveIfaceList] {.async.} =
         result.input = vv[^1].parseIface
       of "192.168.42.0":
         result.output = vv[^1].parseIface
-      case vv[0]
       of "tun0":
         result.hasVpn = true
   except: return
-
-proc getOnlineIO*(): Future[tuple[inputIo, outputIo: string]] {.async.} =
-  const routeCmd = "sudo timeout 5 sudo route"
-  # when defined(debugCi):
-    # return "wlan1"
-  try:
-    let routeRes = execCmdEx(routeCmd)
-    let lines = routeRes.output.splitLines()
-    for v in lines:
-      let vv = v.splitwhitespace()
-      case vv[0]
-      of "default":
-        result.inputIo = vv[^1]
-      of "192.168.42.0":
-        result.outputIo = vv[^1]
-  except:
-    return
 
 # proc hasVpn*(): Future[bool] {.async.} =
 

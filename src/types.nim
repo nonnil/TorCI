@@ -42,7 +42,8 @@ type
     state*: Status
     message*: string
   
-  HostAp* = object
+  HostApConf* = object
+    iface*: IfaceKind
     ssid*: string
     password*: string
     band*: string

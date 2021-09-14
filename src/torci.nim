@@ -2,14 +2,15 @@ import jester
 import views/[temp, login]
 import routes/[status, network, sys]
 import connexion, types, config
-import asyncdispatch, strutils
+import asyncdispatch 
 import libs/[syslib, torlib, wifiScanner, wirelessManager]
 
 const configPath {.strdefine.} = "./torci.conf"
 let (cfg, fullCfg) = getConfig(configpath)
+let sysInfo = getSystemInfo()
 
-routingStatus(cfg)
-routingNet(cfg)
+routingStatus(cfg, sysInfo)
+routingNet(cfg, sysInfo)
 routingSys(cfg)
 
 settings:
@@ -44,9 +45,6 @@ routes:
     
   get "/net":
     redirect "/net/interfaces"
-
-  get "/confs":
-    redirect "/confs/wlan"
 
   extend status, ""
   extend network, "/net"
