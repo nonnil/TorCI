@@ -5,8 +5,9 @@ import os
 
 #proc getModuleName*(net: NetInterfaces; name: NetInterKind): Future[string] {.async.} =
 const
-  hostapd = "/etc/hostapd/hostapd.conf"
-  hostapdBak = "/etc/hostapd/hostapd.conf.tbx"
+  hostapd = "/etc" / "hostapd" / "hostapd.conf"
+  hostapdBak = "/etc" / "hostapd" / "hostapd.conf.tbx"
+  crda = "/etc" / "default" / "crda"
 
 const
   channels = {
@@ -63,6 +64,25 @@ proc checker(s, flag: string): tuple[code: bool, msg: string]=
       return (true, "")
 
   else:
+    return
+
+proc getCrda(): string =
+  try:
+    let f = readFile(crda)
+    for v in f.splitLines():
+      if v.startsWith("REGDOMAIN="):
+        let vv = v.split("=")
+        return vv[1]
+  except:
+    return
+
+proc changeCrda() =
+  try:
+    var country: string
+    var f = readFile(crda)
+    f = f.replace(re"REGDOMAIN=.*", "REGDOMAIN=" & country)
+    crda.writeFile(f)
+  except:
     return
 
 proc restartHostAp*() =
@@ -148,10 +168,6 @@ proc setHostApConf*(conf: HostApConf): Future[bool] {.async.} =
     if checker(conf.ssid, "ssid").code:
       fr = fr.replace(re"ssid=.*", "ssid=" & conf.ssid)
 
-    if checker(conf.band, "band").code:
-      fr = fr.replace(re"hw_mode=.*", "hw_mode=" & conf.band)
-      fr = fr.replace(re"channel.*", "channel=36")
-
     if checker(conf.channel, "channel").code:
       let (channel, hf) = channels[conf.channel]
       fr = fr.replace(re"channel=.*", "channel=" & $channel)
@@ -163,6 +179,20 @@ proc setHostApConf*(conf: HostApConf): Future[bool] {.async.} =
       else:
         fr = fr.replace("#vht_oper_chwidth=1", "vht_oper_chwidth=1")
         fr = fr.replace("#vht_oper_centr_freq_seg0_idx=42", "vht_oper_centr_freq_seg0_idx=42")
+
+    if checker(conf.band, "band").code:
+      if conf.band == "a":
+        let coCode = getCrda()
+        if coCode == "00":
+          changeCrda()
+        fr = fr.replace("hw_mode=g", "hw_mode=" & conf.band)
+        fr = fr.replace(re"channel.*", "channel=36")
+        fr = fr.replace("#ht_capab=[HT40-][HT40+][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40]", "ht_capab=[HT40-][HT40+][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40]")
+      else:
+        fr = fr.replace("hw_mode=a", "hw_mode=g")
+        fr = fr.replace(re"channel.*", "channel=6")
+        fr = fr.replace("vht_oper_chwidth=1", "#vht_oper_chwidth=1")
+        fr = fr.replace("vht_oper_centr_freq_seg0_idx=42", "#vht_oper_centr_freq_seg0_idx=42")
         
     if checker(conf.password, "password").code:
       fr = fr.replace(re"wpa_passphrase=.*", "wpa_passphrase=" & conf.password)

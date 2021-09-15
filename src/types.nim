@@ -118,3 +118,5 @@ type
     staticDir*: string
     torAddress*: string
     torPort*: string
+
+const model3* = "Raspberry Pi 3 Model B Rev"

@@ -5,8 +5,6 @@ import ".."/[types]
 import temp, renderutils
 # import ../libs/wifiScanner
 
-const model3 = "Raspberry Pi 3 Model B Rev"
-
 proc renderChannelSelect(hd: SystemInfo, band: string): VNode =
   buildHtml(select(name="channel")):
     option(selected="selected"): text "-- Select a channel --"

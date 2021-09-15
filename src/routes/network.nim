@@ -58,9 +58,10 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
     post "/wireless":
       if await request.isLoggedIn():
         let cloak = request.formData.getOrDefault("ssidCloak").body
+        let band = request.formData.getOrDefault("band").body
         let conf: HostApConf = HostApConf(
           ssid: request.formData.getOrDefault("ssid").body,
-          band: request.formData.getOrDefault("band").body,
+          band: if (sysInfo.model == model3) and (band == "a"): "" else: band,
           channel: request.formData.getOrDefault("channel").body,
           isHidden: if cloak == "1": true else: false,
           password: request.formData.getOrDefault("password").body
