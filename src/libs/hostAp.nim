@@ -36,7 +36,7 @@ proc parseConf*(s: seq[string]): Future[TableRef[string, string]] {.async.} =
         table[parsedStr[0]] = parsedStr[1]
   return table
 
-proc checker(s, flag: string): tuple[code: bool, msg: string]=
+proc isValid(s, flag: string): tuple[ret: bool, msg: string]=
   case flag
   of "ssid":
     if s.len == 0: return
@@ -85,11 +85,18 @@ proc changeCrda() =
   except:
     return
 
+proc getHostApStatus*(): Future[bool] {.async.} =
+  const cmd = "sudo systemctl is-active hostapd"
+  let ret = execCmdEx(cmd)
+  let sta = ret.output.splitLines()[0]
+  echo "Service status: ", sta
+  if sta == "active":
+    return true
+
 proc restartHostAp*() =
   const
     ipCmd = "ip addr show wlan1 | grep -w \"192.168.42.1\""
     restartCmd = "sudo systemctl restart hostapd"
-    statusCmd = "sudo systemctl is-active hostapd"
   try:
     discard execShellCmd("(nohup /home/torbox/torbox/./hostapd_fallback) 2> /dev/null")
     discard execShellCmd("rm /home/torbox/torbox/nohup.out")
@@ -106,9 +113,10 @@ proc restartHostAp*() =
       var f = readFile hostapd
       f = f.replace("interface=wlan1", "interface=wlan0")
       writeFile hostapd, f
-    let status = execCmdEx(statusCmd).output
 
-    if status == "activating" or status == "inactive":
+    let isActive = waitFor getHostApStatus()
+
+    if not isActive:
       copyFile hostapdBak, hostapd
 
       if ip.output.len != 0:
@@ -144,6 +152,7 @@ proc enableWlan*() =
 proc getHostApConf*(): Future[HostApConf] {.async.} =
     #const copyFile = &"cp {hostapd_path} {hostapd_save}"
   try:
+    let apSta = waitFor getHostApStatus()
     var fr = splitLines(readFile(hostapd))
     # fr.delete(0, 5)
     # echo "Splited file lines: " & fr
@@ -151,6 +160,7 @@ proc getHostApConf*(): Future[HostApConf] {.async.} =
     # let crBand = await currentBand()
     # result = {"ssid": tb["ssid"], "band": crBand, "ssidCloak": tb["ignore_broadcast_ssid"]}.newTable
     result = HostApConf(
+      isActive: apSta,
       ssid: tb["ssid"],
       band: tb["hw_mode"],
       channel: tb["channel"],
@@ -165,10 +175,10 @@ proc setHostApConf*(conf: HostApConf): Future[bool] {.async.} =
     copyFile(hostapd, hostapdBak)
     var fr = readFile(hostapd)
 
-    if checker(conf.ssid, "ssid").code:
+    if isValid(conf.ssid, "ssid").ret:
       fr = fr.replace(re"ssid=.*", "ssid=" & conf.ssid)
 
-    if checker(conf.channel, "channel").code:
+    if isValid(conf.channel, "channel").ret:
       let (channel, hf) = channels[conf.channel]
       fr = fr.replace(re"channel=.*", "channel=" & $channel)
 
@@ -180,7 +190,7 @@ proc setHostApConf*(conf: HostApConf): Future[bool] {.async.} =
         fr = fr.replace("#vht_oper_chwidth=1", "vht_oper_chwidth=1")
         fr = fr.replace("#vht_oper_centr_freq_seg0_idx=42", "vht_oper_centr_freq_seg0_idx=42")
 
-    if checker(conf.band, "band").code:
+    if isValid(conf.band, "band").ret:
       if conf.band == "a":
         let coCode = getCrda()
         if coCode == "00":
@@ -194,7 +204,7 @@ proc setHostApConf*(conf: HostApConf): Future[bool] {.async.} =
         fr = fr.replace("vht_oper_chwidth=1", "#vht_oper_chwidth=1")
         fr = fr.replace("vht_oper_centr_freq_seg0_idx=42", "#vht_oper_centr_freq_seg0_idx=42")
         
-    if checker(conf.password, "password").code:
+    if isValid(conf.password, "password").ret:
       fr = fr.replace(re"wpa_passphrase=.*", "wpa_passphrase=" & conf.password)
 
     let input: int = if conf.isHidden: 1

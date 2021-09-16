@@ -40,6 +40,7 @@ type
     message*: string
   
   HostApConf* = object
+    isActive*: bool
     iface*: IfaceKind
     ssid*: string
     password*: string

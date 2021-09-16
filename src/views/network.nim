@@ -207,16 +207,18 @@ proc renderWifiConfig*(wlan: string, wifiInfo: WifiList; currentNetwork: tuple[s
     #         input(`type`="password", name="wifi-password")
     #       button(`type`="submit", class="btn-join"): text "Join Network"
 
-proc renderHostApControl(): VNode =
+proc renderHostApControl(conf: HostApConf): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "HostAP Control"
       table():
         form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
-          button(`type`="submit", class="btn btn-reload", name="status", value="reload"): text "Restart"
-          button(`type`="submit", class="btn btn-enable", name="status", value="enable"): text "Enable"
-          button(`type`="submit", class="btn btn-disable", name="status", value="disable"): text "Disable"
+          if conf.isActive:
+            button(`type`="submit", class="btn btn-reload", name="status", value="reload"): text "Restart"
+            button(`type`="submit", class="btn btn-disable", name="status", value="disable"): text "Disable"
+          else:
+            button(`type`="submit", class="btn btn-enable", name="status", value="enable"): text "Enable"
 
 proc renderHostApConf(conf: HostApConf, sysInfo: SystemInfo): VNode =
   buildHtml(tdiv(class="columns")):
@@ -307,7 +309,7 @@ proc renderHostApConf(conf: HostApConf, sysInfo: SystemInfo): VNode =
 proc renderHostApPane*(conf: HostApConf, sysInfo: SystemInfo): VNode =
   buildHtml(tdiv(class="cards")):
     renderHostApConf(conf, sysInfo)
-    renderHostApControl()
+    renderHostApControl(conf)
     
 proc renderTorPane*(): VNode =
   buildHtml(tdiv(class="cards")):
