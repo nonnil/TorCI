@@ -208,11 +208,11 @@ proc renderWifiConfig*(wlan: string, wifiInfo: WifiList; currentNetwork: tuple[s
     #       button(`type`="submit", class="btn-join"): text "Join Network"
 
 proc renderHostApControl(conf: HostApConf): VNode =
-  buildHtml(tdiv(class="columns")):
+  buildHtml(tdiv(class="columns width-38")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "HostAP Control"
-      table():
+      tdiv(class="card-padding"):
         form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
           if conf.isActive:
             button(`type`="submit", class="btn btn-reload", name="status", value="reload"): text "Restart"
@@ -221,7 +221,7 @@ proc renderHostApControl(conf: HostApConf): VNode =
             button(`type`="submit", class="btn btn-enable", name="status", value="enable"): text "Enable"
 
 proc renderHostApConf(conf: HostApConf, sysInfo: SystemInfo): VNode =
-  buildHtml(tdiv(class="columns")):
+  buildHtml(tdiv(class="columns width-58")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "HostAP Configuration"

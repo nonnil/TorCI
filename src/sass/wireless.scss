@@ -1,29 +1,45 @@
 .btn-reload {
-  color: #fc0;
-  // color: #fff;
-  width: 150px;
-  height: 40px;
-  border-radius: .9rem;
-  border-color: #fc0;
+  // color: #fc0;
+  color: #fff;
+  font-size: 18px;
+  width: auto;
+  padding: 0 10px;
+  line-height: 42px;
+  margin: 10px 0;
+  margin-right: 10px;
+  text-align: center;
+  border-radius: .4rem;
+  vertical-align: middle;
+  background-color: $blue-btn-colour;
 }
-
 
 .btn-enable {
-  color: #339900;
-  // color: #fff;
-  width: 150px;
-  height: 40px;
-  border-radius: .9rem;
-  border-color: #339900;
+  // color: #339900;
+  color: #fff;
+  font-size: 18px;
+  width: auto;
+  padding: 0 10px;
+  line-height: 42px;
+  margin: 10px 0;
+  text-align: center;
+  border-radius: .4rem;
+  vertical-align: middle;
+  border-radius: .4rem;
+  background-color: $green-btn-colour;
 }
-
 
 .btn-disable{
   // background-color: #cc3300;
-  color: #cc3300;
-  // color: #fff;
-  width: 150px;
-  height: 40px;
-  border-radius: .9rem;
-  border-color: #cc3300;
+  // color: #cc3300;
+  color: #fff;
+  font-size: 18px;
+  width: auto;
+  padding: 0 10px;
+  line-height: 42px;
+  margin: 10px 0;
+  text-align: center;
+  border-radius: .4rem;
+  vertical-align: middle;
+  border-radius: .4rem;
+  background-color: $red-btn-colour;
 }

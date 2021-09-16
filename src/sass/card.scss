@@ -279,10 +279,19 @@ td:last-child, th:last-child {
   cursor: pointer;
   display: inline-block;
   position: relative;
+  font-family: Arial;
   // text-shadow: 0 -1px 0 rgba(165, 151, 151, 0.75);
   // text-shadow: 0 1px 1px rgba(255,255,255,0.75);
   // background: linear-gradient(#fff,#fff 25%,#e6e6e6);
   // box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
   // border: 1px solid #ccc;
   // border-bottom-color: #bbb;
+}
+
+.width-58 {
+  width: 58%;
+}
+
+.width-38 {
+  width: 38%;
 }
