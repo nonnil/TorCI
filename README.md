@@ -1,6 +1,6 @@
-# TorCI
+# TorCi
 
-TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbox). It is implemented in the [Nim](https://nim-lang.org) programming language.
+TorCi is a Configuration Interface for [TorBox](https://github.com/radio24/torbox). It is implemented in the [Nim](https://nim-lang.org) programming language.
 
 <b>WARNING: THIS IS A BETA VERSION, THEREFORE YOU MAY ENCOUNTER BUGS. IF YOU DO, OPEN AN ISSUE VIA OUR GITHUB REPOSITORY.</b>
 
@@ -23,10 +23,14 @@ and Run:
 $ sudo ./torci
 ```
 
+Then access the following address with a browser:
+```
+http://0.0.0.0:1984
+
 ## SystemD
 You can use the SystemD service (install it on `/etc/systemd/system/torci.service`)
 
-To run TorCI via SystemD you can use this service file:
+To run TorCi via SystemD you can use this service file:
 
 ```ini
 [Unit]
