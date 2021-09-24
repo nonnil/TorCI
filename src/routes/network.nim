@@ -1,9 +1,10 @@
 import jester, strutils
 import ../views/[temp, network]
-import ".."/[types]
-import ".."/libs/[syslib, torlib, session, hostAp, wifiScanner, wirelessManager]
+import ".."/[types, query, utils]
+import ".."/libs/[syslib, torLib, torboxLib, session, hostAp, fallbacks, wifiScanner, wirelessManager]
 
 export network
+
 template redirectLoginPage*() =
   redirect "/login"
 
@@ -13,10 +14,12 @@ template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: str
 proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
   router network:
     const crPath = "/net"
+
     let tab = Menu(
       text: @["Tor", "Interfaces", "Wireless"],
       anker: @[crPath & "/tor", crPath & "/interfaces", crPath & "/wireless"]
     )
+
     var net: Network = new Network
 
     get "/tor":
@@ -35,24 +38,57 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab)
       redirectLoginPage()
 
-    get "/interfaces/join/@interface":
+    get "/interfaces/set/@iface":
       if await request.isLoggedIn():
-        # discard execShellCmd("(nohup ./hostapd_fallback_komplex wlan0 eth0) 2>/dev/null")
-        # discard execShellCmd("rm nohup.out")
-        # deactivateBridgeRelay()
-        if (@"interface" == "wlan0") or (@"interface" == "wlan1"):
+        
+        let iface = @"iface".parseIface()
+
+        var clientWln, clientEth: IfaceKind
+        # let query = initQuery(params(request))
+        
+        if not ifaceExists(iface):
+          redirect crPath & "/interfaces"
+
+        case iface
+        of wlan0, wlan1:
+
+          case iface
+          of wlan0:
+            clientWln = wlan1
+            clientEth = eth0
+
+          of wlan1:
+            clientWln = wlan0
+            clientEth = eth0
+
+          else: redirect crPath & "/interfaces"
           
-          var wpa = await newWpa(@"interface".parseIface)
+          hostapdFallbackKomplex(clientWln, clientEth)
+          editTorrc(iface, clientWln, clientEth)
+          restartDhcpServer()
+
+          # net.scanned = true
+          # if wifiScanResult.code:
+          # resp renderNode(renderWifiConfig(@"interface", wifiScanResult, currentNetwork), request, cfg, tab)
+          redirect crPath & "/interfaces/join/" & $iface
+          # else: resp renderNode(renderInterfaces(), request, cfg, tab, notice=Notice(state: failure, message: wifiScanResult.msg))
+        else: redirect crPath & "/interfaces"
+      redirectLoginPage()
+    
+    get "/interfaces/join/@iface":
+      if await request.isLoggedIn():
+        let iface = @"iface".parseIface()
+        case iface
+        of wlan0, wlan1:
+          var wpa = await newWpa(iface)
           let
             wifiScanResult = await networkList(wpa)
             currentNetwork = await currentNetwork(wpa.wlan)
           net = wpa
-          # net.scanned = true
-          # if wifiScanResult.code:
-          # resp renderNode(renderWifiConfig(@"interface", wifiScanResult, currentNetwork), request, cfg, tab)
           respNetworkManager(wifiScanResult, currentNetwork)
-          # else: resp renderNode(renderInterfaces(), request, cfg, tab, notice=Notice(state: failure, message: wifiScanResult.msg))
-        else: redirect crPath & "/interfaces"
+        
+        else:
+          redirect crPath & "/interfaces"
       redirectLoginPage()
 
     post "/wireless":
@@ -70,34 +106,70 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         #   resp renderNode(renderHostApPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: success, message: "Complete WLAN Setting."))
         # resp renderNode(renderHostApPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: "Failed WLAN Setting."))
         discard await setHostApConf(conf)
+        hostapdFallback()
         redirect "wireless"
       else:
         redirect "/login"
 
-    post "/interfaces/join/@wlan":
+    post "/interfaces/join":
       if await request.isLoggedIn():
-        if (@"wlan" == "wlan0") or (@"wlan" == "wlan1"):
-          if net.scanned:
-            let
-              essid = request.formData.getOrDefault("essid").body
-              bssid = request.formData.getOrDefault("bssid").body
-              password = request.formData.getOrDefault("password").body
-              # sec = request.formData.getOrDefault("security").body
-              cloak = request.formData.getOrDefault("cloak").body
-              ess = request.formData.getOrDefault("ess").body
-            net.isHidden = if cloak == "0": true else: false
-            net.isEss = if ess == "0": true else: false
-            if not net.isEss:
-              if password.len == 0:
-                redirect crPath & "/interfaces/join/" & @"wlan"
-            if (essid.len != 0) or (bssid.len != 0):
-              let con = await connect(net, (essid: essid, bssid: bssid, password: password))
-              if con.code:
-                redirect "/"
-              # resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: con.msg))
-              net = new Network
-            redirect crPath & "/interfaces/join/" & @"wlan"
-          redirect crPath & "/interfaces/join/" & @"wlan"
+        var clientWln, clientEth: IfaceKind
+        let
+          iface = parseIface(request.formData.getOrDefault("iface").body)
+          captive = request.formData.getOrDefault("captive").body
+          isCaptive = if captive == "1": true else: false
+
+        if not ifaceExists(iface):
+          redirect crPath & "/interfaces"
+
+        elif not net.scanned:
+          redirect crPath & "/interfaces"
+
+        case iface
+        of wlan0, wlan1:
+
+          case iface
+          of wlan0:
+            clientWln = wlan1
+            clientEth = eth0
+
+          of wlan1:
+            clientWln = wlan0
+            clientEth = eth0
+
+          else: redirect crPath & "/interfaces"
+
+          let
+            essid = request.formData.getOrDefault("essid").body
+            bssid = request.formData.getOrDefault("bssid").body
+            password = request.formData.getOrDefault("password").body
+            # sec = request.formData.getOrDefault("security").body
+            cloak = request.formData.getOrDefault("cloak").body
+            ess = request.formData.getOrDefault("ess").body
+
+          net.isHidden = if cloak == "0": true else: false
+          net.isEss = if ess == "0": true else: false
+
+          if not net.isEss:
+            if password.len == 0:
+              redirect crPath & "/interfaces"
+
+          if (essid.len != 0) or (bssid.len != 0):
+            let con = await connect(net, (essid: essid, bssid: bssid, password: password))
+
+            if con.code:
+              if isCaptive:
+                setCaptive(iface, clientWln, clientEth)
+              setInterface(iface, clientWln, clientEth)
+              saveIptables()
+              redirect crPath & "/interfaces"
+              redirect "/"
+            # resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: con.msg))
+            net = new Network
+
+          redirect crPath & "/interfaces"
+        else:
+          redirect crPath & "/interfaces"
         # newConnect()
       redirectLoginPage
 

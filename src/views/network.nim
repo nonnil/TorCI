@@ -108,7 +108,7 @@ proc renderInterfaces*(): VNode =
       tdiv(class="table-row", style={display: "table-row"}):
         tdiv(class="table-item"): text "wlan0"
         tdiv(class="buttons"):
-          a(href="/net/interfaces/join/wlan0"):
+          a(href="/net/interfaces/join/?i=wlan0&t=open"):
             button(): text "Scan"
       tdiv(class="table-row", style={display: "table-row"}):
         tdiv(class="table-item"): text "wlan1"

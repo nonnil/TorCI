@@ -1,7 +1,7 @@
 import jester 
 import ../views/[temp, status]
 import ".."/[types, connexion]
-import ".."/libs/[syslib, torlib, wirelessManager]
+import ".."/libs/[syslib, torLib, wirelessManager]
 #import sugar
 
 export status

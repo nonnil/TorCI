@@ -1,13 +1,13 @@
 import asyncdispatch, tables, osproc, sequtils, strutils, strformat
-import re
-import ../types
-import os
+import re, os
+import ".."/[types, utils]
+import syslib
 
 #proc getModuleName*(net: NetInterfaces; name: NetInterKind): Future[string] {.async.} =
-const
-  hostapd = "/etc" / "hostapd" / "hostapd.conf"
-  hostapdBak = "/etc" / "hostapd" / "hostapd.conf.tbx"
-  crda = "/etc" / "default" / "crda"
+# const
+#   hostapd = "/etc" / "hostapd" / "hostapd.conf"
+#   hostapdBak = "/etc" / "hostapd" / "hostapd.conf.tbx"
+#   crda = "/etc" / "default" / "crda"
 
 const
   channels = {
@@ -89,63 +89,36 @@ proc getHostApStatus*(): Future[bool] {.async.} =
   const cmd = "sudo systemctl is-active hostapd"
   let ret = execCmdEx(cmd)
   let sta = ret.output.splitLines()[0]
-  echo "Service status: ", sta
   if sta == "active":
     return true
 
-proc restartHostAp*() =
-  const
-    ipCmd = "ip addr show wlan1 | grep -w \"192.168.42.1\""
-    restartCmd = "sudo systemctl restart hostapd"
-  try:
-    discard execShellCmd("(nohup /home/torbox/torbox/./hostapd_fallback) 2> /dev/null")
-    discard execShellCmd("rm /home/torbox/torbox/nohup.out")
-    let ip = execCmdEx(ipCmd)
+proc restartHostApd*() =
+  const cmd = "sudo systemctl restart hostapd"
+  discard execCmd(cmd)
 
-    if ip.output.len != 0:
-      var f = readFile hostapd
-      f = f.replace("interface=wlan0", "interface=wlan1")
-      writeFile hostapd, f
-
-    discard execCmdEx(restartCmd)
-
-    if ip.output.len != 0:
-      var f = readFile hostapd
-      f = f.replace("interface=wlan1", "interface=wlan0")
-      writeFile hostapd, f
-
-    let isActive = waitFor getHostApStatus()
-
-    if not isActive:
-      copyFile hostapdBak, hostapd
-
-      if ip.output.len != 0:
-        var f = readFile hostapd
-        f = f.replace("interface=wlan1", "interface=wlan0")
-        writeFile hostapd, f
-
-      discard execCmdEx(restartCmd)
-
-      if ip.output.len != 0:
-        var f = readFile hostapd
-        f = f.replace("interface=wlan1", "interface=wlan0")
-        writeFile hostapd, f
-      
-  except:
-    return
+  
+  # # This last part resets the dhcp server and opens the iptables to access TorBox
+  # # This fundtion has to be used after an ifup command
+  # # Important: the right iptables rules to use Tor have to configured afterward
+  # discard execCmd("sudo systemctl restart isc-dhcp-server")
+  # discard execCmd("sudo /sbin/iptables -F")
+  # discard execCmd("sudo /sbin/iptables -t nat -F")
+  # discard execCmd("sudo /sbin/iptables -P FORWARD DROP")
+  # discard execCmd("sudo /sbin/iptables -P INPUT ACCEPT")
+  # discard execCmd("sudo /sbin/iptables -P OUTPUT ACCEPT")
 
 proc disableAp*(flag: string = "") =
   try:
-    discard execShellCmd("sudo systemctl stop hostapd")
+    discard execCmd("sudo systemctl stop hostapd")
     if flag == "permanentry":
-      discard execShellCmd("sudo systemctl disable hostapd")
+      discard execCmd("sudo systemctl disable hostapd")
   except:
     return
 
 proc enableWlan*() =
   try:
-    discard execShellCmd("sudo systemctl enable hostapd")
-    discard execShellCmd("sudo systemctl start hostapd")
+    discard execCmd("sudo systemctl enable hostapd")
+    discard execCmd("sudo systemctl start hostapd")
   except:
     return
 
@@ -161,6 +134,7 @@ proc getHostApConf*(): Future[HostApConf] {.async.} =
     # result = {"ssid": tb["ssid"], "band": crBand, "ssidCloak": tb["ignore_broadcast_ssid"]}.newTable
     result = HostApConf(
       isActive: apSta,
+      iface: tb["interface"].parseIface(),
       ssid: tb["ssid"],
       band: tb["hw_mode"],
       channel: tb["channel"],
@@ -212,9 +186,17 @@ proc setHostApConf*(conf: HostApConf): Future[bool] {.async.} =
 
     fr = fr.replacef(re"ignore_broadcast_ssid=.*", "ignore_broadcast_ssid=" & $input)
     writeFile(hostapd, fr)
-    restartHostAp()
 
     return true
 
   except:
     return false
+
+when isMainModule:
+  const cmd = "ps -ax | grep \"[d]hclient.wlan1\""
+  let ps = execCmdEx(cmd)
+  for v in ps.output.splitLines():
+    let m = v.splitWhitespace(maxsplit = 4)
+    let app = m[4]
+    echo "app: ", app
+    echo "line: ", m

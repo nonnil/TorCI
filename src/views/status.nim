@@ -18,7 +18,7 @@ proc renderSystemInfo(sys: SystemInfo): VNode =
                 tdiv():
                   text if sys.model.len != 0: sys.model else: defStr
           tr():
-            td(): text "KernelVer"
+            td(): text "Kernel"
             td():
               strong():
                 tdiv():
@@ -90,13 +90,13 @@ proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string
             td():
               strong():
                 tdiv():
-                  text if iface.input != none: $iface.input else: defStr
+                  text if iface.input != unkwnIface: $iface.input else: defStr
           tr():
             td(): text "Output"
             td():
               strong():
                 tdiv():
-                  text if iface.output != none: $iface.output else: defStr
+                  text if iface.output != unkwnIface: $iface.output else: defStr
           tr():
             td(): text "SSID"
             td():

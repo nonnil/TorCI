@@ -1,10 +1,6 @@
 import os, osproc, asyncdispatch, re, json, strutils, strformat
 import libcurl
 import ".."/[types]
-const
-  torrc = "/etc" / "tor" / "torrc"
-  torrcBak = "/etc" / "tor" / "torrc.bak"
-  tmp = "/tmp" / "torrc.tmp"
 
 proc curlWriteFn(
   buffer: cstring,
@@ -69,22 +65,6 @@ proc checkTor*(cfg: Config): Future[tuple[isTor: bool, ipAddr: string]] {.async.
   except:
     return
 
-proc checkGeoIp*(cfg: Config, isTor: bool, ipAddr: string = ""): Future[tuple[country, city: string]] {.async.} =
-  const
-    whoer = "https://api.whoer.net/v2/geoip2-city"
-    ipinfo = "https://ipinfo.io/products/ip-geolocation-api"
-  let
-    destHost = if isTor: ipinfo else: whoer
-    jsonKey = if isTor: "country" else: "country_code"
-  # echo "dest host: ", destHost
-  let rawRes = if isTor: await destHost.torsocksPost(cfg, "input=" & ipAddr) else: await destHost.torsocksGet(cfg)
-  echo "raw data: ", rawRes
-  if rawRes.len != 0:
-    let jObj = parseJson(rawRes)
-    echo "result of api.whoer: ", $jObj
-    result.country = jObj{jsonKey}.getStr()
-    result.city = jObj{"city"}.getStr()
-
 proc getBridgesStatus*(): Future[tuple[obfs4, meekAzure, snowflake: bool]] {.async.} =
   var
     obfs4: bool
@@ -112,6 +92,7 @@ proc getTorStatus*(cfg: Config): Future[TorStatus] {.async.} =
     torch = await checkTor(cfg)
     bridges = await getBridgesStatus()
   result.isOnline = torch.isTor
+  result.exitIp = torch.ipAddr
   result.useObfs4 = bridges.obfs4
   result.useMeekAzure = bridges.meekAzure
   result.useSnowflake = bridges.snowflake

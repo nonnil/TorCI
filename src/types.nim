@@ -1,5 +1,5 @@
 import jester
-import times
+import times, os
 
 type
   Session* = object
@@ -19,6 +19,7 @@ type
   
   TorStatus* = object
     isOnline*: bool
+    exitIp*: string
     useObfs4*: bool
     useMeekAzure*: bool
     useSnowflake*: bool
@@ -48,7 +49,11 @@ type
     channel*: string
     isHidden*: bool 
     power*: string
-
+  
+  Query* = object
+    iface*: IfaceKind
+    isCaptive*: bool
+  
   CardKind* = enum
     nord, editable
 
@@ -57,7 +62,7 @@ type
     anker*: seq[string]
   
   IfaceKind* = enum
-    none = "none"
+    unkwnIface = "unkwnIface"
     eth0 = "eth0"
     eth1 = "eth1"
     wlan0 = "wlan0"
@@ -84,6 +89,17 @@ type
     model*: string
     uptime*: int
     localtime*: int
+
+  Network* = ref object of Wifi
+    # wifiList: WifiList
+    wlan*: IfaceKind
+    networkId*: int
+    password*: string
+    hasNetworkId*: bool
+    connected*: bool
+    scanned*: bool
+    logFile*: string
+    configFile*: string
 
   ActiveIfaceList* = tuple
     input, output: IfaceKind
@@ -120,4 +136,12 @@ type
     torAddress*: string
     torPort*: string
 
-const model3* = "Raspberry Pi 3 Model B Rev"
+const
+  model3* = "Raspberry Pi 3 Model B Rev"
+  torrc* = "/etc" / "tor" / "torrc"
+  torrcBak* = "/etc" / "tor" / "torrc.bak"
+  tmp* = "/tmp" / "torrc.tmp"
+  runfile* = "/home" / "torbox" / "torbox" / "run" / "torbox.run"
+  hostapd* = "/etc" / "hostapd" / "hostapd.conf"
+  hostapdBak* = "/etc" / "hostapd" / "hostapd.conf.tbx"
+  crda* = "/etc" / "default" / "crda"

@@ -1,20 +1,7 @@
 import strformat, strutils
 import os, osproc, asyncdispatch
 import wifiScanner
-import ".."/[types]
-
-type
-
-  Network* = ref object of Wifi
-    # wifiList: WifiList
-    wlan*: IfaceKind
-    networkId*: int
-    password: string
-    hasNetworkId*: bool
-    connected*: bool
-    scanned*: bool
-    logFile*: string
-    configFile*: string
+import ".."/[types, utils]
 
 # var network: Network = new Network
 
@@ -24,9 +11,6 @@ template debugWpa(msg: string) =
 
 template checkExitCode(res: tuple[output: TaintedString, exitCode: int]) =
   if res.exitcode != 0: return (code: false, msg: res.output)
-
-proc parseIface*(iface: string): IfaceKind =
-  parseEnum[IfaceKind](iface, none) 
 
 proc inWlan*(iface: IfaceKind): bool = 
   if iface in {wlan0, wlan1}:
@@ -86,12 +70,11 @@ proc disconnect*(wlan: IfaceKind) =
 proc newConnect(wpa: Network, data: tuple[essid, bssid, password : string]): tuple[code: bool, msg: string] =
   var network = wpa
   if not network.wlan.inWlan():
-    echo "network.wlan: " & &"\"{$network.wlan}\""
     return
   
   network.essid = data.essid
   network.bssid = data.bssid
-  network.password = data.password
+  # network.password = data.password
   # network.isHidden = if data.essid == "-HIDDEN-": true else: false
   
   # we need to disconnect 1st If we are connected and trying to connect
@@ -123,9 +106,9 @@ proc newConnect(wpa: Network, data: tuple[essid, bssid, password : string]): tup
   if network.isEss:
     discard execCmdEx(&"wpa_cli -i {$network.wlan} set_network {$network.networkId}, key_mgmt NONE")
 
-  elif network.password != "":
+  elif data.password != "":
     # Set the password
-    cmdRes = execCmdEx(&"wpa_cli -i {$network.wlan} set_network {$network.networkId} psk \'\"{network.password}\"\'")
+    cmdRes = execCmdEx(&"wpa_cli -i {$network.wlan} set_network {$network.networkId} psk \'\"{data.password}\"\'")
     debugWpa "[wpa] set_network psk: " & cmdRes.output
 
   
@@ -179,13 +162,13 @@ proc newConnect(wpa: Network, data: tuple[essid, bssid, password : string]): tup
     return (code: false, msg: "Password wrong.")
 
   # run dhcp for getting ip
-  debugWpa "before run dhclient"
+  debugWpa "Trying run dhclient"
   cmdRes = execCmdEx(&"sudo dhclient {$network.wlan}")
   debugWpa "[dhclient] sudo dhclient: " & cmdRes.output
   checkExitCode cmdRes
 
   # Save wpa_supplicant config
-  debugWpa "before save config"
+  debugWpa "Trying save config"
   cmdRes = execCmdEx(&"wpa_cli -i {$network.wlan} save_config")
   debugWpa "[wpa] save_config: " & cmdRes.output
   return (true, "")
@@ -204,6 +187,7 @@ proc connect*(wlan: Network, data: tuple[essid, bssid, password: string]): Futur
     network.networkId = networkId.parseInt
     network.hasNetworkId = true
     disconnect network.wlan
+
   except: network.hasNetworkId = false
   
   result = newConnect(network, data)

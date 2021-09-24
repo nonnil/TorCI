@@ -1,9 +1,9 @@
 import jester
 import views/[temp, login]
 import routes/[status, network, sys]
-import connexion, types, config
+import connexion, types, config, query, utils
 import asyncdispatch 
-import libs/[syslib, torlib, wifiScanner, wirelessManager]
+import libs/[syslib, torLib, torboxLib, fallbacks, wifiScanner, wirelessManager]
 
 const configPath {.strdefine.} = "./torci.conf"
 let (cfg, fullCfg) = getConfig(configpath)

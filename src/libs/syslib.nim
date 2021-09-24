@@ -1,7 +1,80 @@
-import asyncdispatch, strutils, strformat, re, tables
+import asyncdispatch, strutils, sequtils, strformat, re, tables
 import os, osproc
-import ../types
-import wirelessManager
+import ".."/[types, utils]
+
+proc startService*(s: string) =
+  const cmd = "sudo systemctl start "
+  discard execCmd(cmd & &"\"{s}\"")
+  
+proc stopService*(s: string) =
+  const cmd = "sudo systemctl stop "
+  discard execCmd(cmd & &"\"{s}\"")
+
+proc restartService*(s: string) =
+  const cmd = "sudo systemctl restart "
+  discard execCmd(cmd & &"\"{s}\"")
+
+proc restartDhcpServer*() =
+  const cmd = "sudo systemctl restart isc-dhcp-server"
+  discard execCmd(cmd)
+  
+proc refreshDhclient*() =
+  const cmd = "sudo dhclient -r"
+  discard execCmd(cmd)
+
+proc ifup*(iface: IfaceKind) =
+  const cmd = "sudo ifup "
+  discard execCmd(cmd & $iface)
+
+proc ifdown*(iface: IfaceKind) =
+  const cmd = "sudo ifdown "
+  discard execCmd(cmd & $iface)
+
+proc flush*(iface: IfaceKind) =
+  const cmd = "ip addr flush dev "
+  discard execCmd(cmd & $iface)
+
+proc ifaceExists*(iface: IfaceKind): bool =
+  const cmd = "ip link"
+  let o = execCmdEx(cmd).output
+  for line in o.splitLines():
+    if line.contains($iface):
+      return true
+  
+proc hasStaticIp*(iface: IfaceKind): bool =
+  const cmd = "sudo ip addr show "
+  let ret = execCmdEx(cmd & $iface).output
+  for line in ret.splitLines:
+    if line.startsWith(re"^(\s|\t){0,4}inet"):
+      return true
+
+proc isStateup*(iface: IfaceKind): bool =
+  let cmd = execCmdEx("ip link").output
+  for v in cmd.splitLines():
+    if v.contains($iface):
+      if v.contains("state UP"):
+        return true
+
+proc isRouter*(iface: IfaceKind): bool =
+  let cmd = execCmdEx("ip addr show " & $iface).output
+  case iface:
+  of wlan0, wlan1:
+    if cmd.contains("192.168.42.1"):
+      return true
+
+  of eth0, eth1:
+    if cmd.contains("192.168.43.1"):
+      return true
+
+  else: return
+
+proc dhclientWork*(iface: IfaceKind): bool =
+  const prefix =  "ps -ax | grep \"[d]hclient."
+  let
+    cmd = prefix & $iface & "\""
+    ps = execCmdEx(cmd).output
+  if ps.len != 0:
+    return true
 
 proc parseRoute(str: string): tuple[inputIo, outputIo, tunIo: string] =
   let lines = str.splitLines()
