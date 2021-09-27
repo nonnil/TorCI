@@ -86,13 +86,13 @@ proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string
       table(class="table full-width"):
         tbody():
           tr():
-            td(): text "Input"
+            td(): text "Internet"
             td():
               strong():
                 tdiv():
                   text if iface.input != unkwnIface: $iface.input else: defStr
           tr():
-            td(): text "Output"
+            td(): text "Host AP"
             td():
               strong():
                 tdiv():

@@ -92,11 +92,6 @@ proc getHostApStatus*(): Future[bool] {.async.} =
   if sta == "active":
     return true
 
-proc restartHostApd*() =
-  const cmd = "sudo systemctl restart hostapd"
-  discard execCmd(cmd)
-
-  
   # # This last part resets the dhcp server and opens the iptables to access TorBox
   # # This fundtion has to be used after an ifup command
   # # Important: the right iptables rules to use Tor have to configured afterward
@@ -107,18 +102,19 @@ proc restartHostApd*() =
   # discard execCmd("sudo /sbin/iptables -P INPUT ACCEPT")
   # discard execCmd("sudo /sbin/iptables -P OUTPUT ACCEPT")
 
-proc disableAp*(flag: string = "") =
+proc disableAp*(flag: string = "") {.async.} =
   try:
-    discard execCmd("sudo systemctl stop hostapd")
     if flag == "permanentry":
-      discard execCmd("sudo systemctl disable hostapd")
+      discard execCmd("sudo systemctl mask --now hostapd")
+    stopService("hostapd")
+    discard execCmd("sudo systemctl daemon-reload")
   except:
     return
 
-proc enableWlan*() =
+proc enableWlan*() {.async.} =
   try:
     discard execCmd("sudo systemctl enable hostapd")
-    discard execCmd("sudo systemctl start hostapd")
+    startService("hostapd")
   except:
     return
 

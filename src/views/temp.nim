@@ -150,7 +150,7 @@ proc renderContainer*(v: VNode): VNode =
 
 var noticeColor: string
 
-proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu(); notice = Notice(message: "")): string =
+proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu(); notice = Notice(msg: "")): string =
   let node = buildHtml(html(lang="en")):
     renderHead(cfg)
     body:
@@ -158,20 +158,20 @@ proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu(); notice = No
         renderNav(cfg, req, menu)
       else:
         renderNav(cfg, req)
-      if notice.message.len > 0:
+      if notice.msg.len > 0:
         noticeColor =
-          if notice.state == success:
+          if notice.status== success:
             colourGreen
-          elif notice.state == warn:
+          elif notice.status== warn:
             colourYellow
-          elif notice.state == failure:
+          elif notice.status== failure:
             colourRed
           else:
             colourGray
         tdiv(class="notice-bar"):
           input(id="ignoreNotice", `type`="radio", name="ignoreNotice")
           tdiv(class="notice-message", style={backgroundColor: noticeColor}):
-            text notice.message
+            text notice.msg
       tdiv(class="container"):
         v
   result = doctype & $node
@@ -180,19 +180,19 @@ proc renderFlat*(node: VNode, cfg: Config, notice: Notice = new Notice): string 
   let rNode= buildHtml(html(lang="en")):
     renderHead(cfg)
     body:
-      if notice.message.len > 0:
+      if notice.msg.len > 0:
         noticeColor =
-          if notice.state == success:
+          if notice.status == success:
             colourGreen
-          elif notice.state == warn:
+          elif notice.status == warn:
             colourYellow
-          elif notice.state == failure:
+          elif notice.status == failure:
             colourRed
           else:
             colourGray
         tdiv(class="notice-bar"):
           input(id="ignoreNotice", `type`="radio", name="ignoreNotice")
           tdiv(class="notice-message", style={backgroundColor: noticeColor}):
-            text notice.message
+            text notice.msg
       node
   result = doctype & $rNode

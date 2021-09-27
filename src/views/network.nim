@@ -62,14 +62,6 @@ proc renderTorLogs*(logs: string): VNode =
     else:
       pre(class="logs-text"): text logs
 
-proc renderControlePanel*(label:array[0..1, string]; card:array[0..1, Card]): VNode =
-  buildHtml(tdiv(class="controle-panel")):
-    for i, v in card:
-      renderCard(label[i], v)
-
-proc collectComponent*(r:Request; cfg:Config; label:array[0..1, string]; card:array[0..1, Card]; tab:Menu):string =
-  result = renderNode(renderControlePanel(label, card), r, cfg, menu=tab)
-
 proc renderTorConfig*(): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="box"):
@@ -126,7 +118,7 @@ proc renderInterfaces*(): VNode =
           a(href="/net/interfaces/join/tun0"):
             button(): text "Scan"
 
-proc renderWifiConfig*(wlan: string, wifiInfo: WifiList; currentNetwork: tuple[ssid, ipAddr: string]): VNode =
+proc renderWifiConfig*(wlan: IfaceKind, withCaptive: bool; wifiInfo: WifiList; currentNetwork: tuple[ssid, ipAddr: string]): VNode =
   buildHtml(tdiv(class="card")):
     tdiv(class="card-header"):
       text "Nearby APs"
@@ -139,7 +131,6 @@ proc renderWifiConfig*(wlan: string, wifiInfo: WifiList; currentNetwork: tuple[s
           tdiv(class="table-header bssid"): text "BSSID"
           tdiv(class="table-header security"): text "Security"
       tdiv(class="tbody"):
-        # form(`method`="post", action="/net/wifi", enctype="multipart/form-data"):
         for i, v in wifiInfo:
             # tdiv(class="ap-table"):
           tdiv(class="table-row", style={display: "table-row"}):
@@ -155,31 +146,42 @@ proc renderWifiConfig*(wlan: string, wifiInfo: WifiList; currentNetwork: tuple[s
               input(class="popout-button", `type`="radio", name="select-network", value="close")
               tdiv(class="shadow")
               tdiv(class="editable-box"):
-                form(`method`="post", action="/net/interfaces/join/" & wlan, enctype="multipart/form-data"):
+                form(`method`="post", action="/net/interfaces/join/" & $wlan, enctype="multipart/form-data"):
                   # tdiv(class="card-table", style=style {visibility: "hidden"}):
                     # label(class="card-title"): text "Interface"
                     # select(name="wlan"):
                       # option(value=wlan): text wlan
+                     
                   tdiv(class="card-table bssid"):
                     input(`type`="hidden", name="bssid", value=v.bssid)
+
                   tdiv(class="card-table essid"):
                     label(class="card-title"): text "SSID"
                     if v.isHidden:
                       input(`type`="text", name="essid", placeholder="ESSID of a Hidden Access Point")
-                      input(`type`="hidden", name="cloak", value="0")
+                      input(`type`="hidden", name="cloak", value="1")
                     else:
                       tdiv(): text v.essid
                       input(`type`="hidden", name="essid", value=v.essid)
-                      input(`type`="hidden", name="cloak", value="1")
+                      input(`type`="hidden", name="cloak", value="0")
+
                   tdiv(class="card-table"):
                     label(class="card-title"): text "Password"
                     if v.isEss:
                       tdiv(): text "ESS does not require a password"
                       input(`type`="hidden", name="password", value="")
-                      input(`type`="hidden", name="ess", value="0")
+                      input(`type`="hidden", name="ess", value="1")
                     else:
                       input(`type`="password", name="password")
-                      input(`type`="hidden", name="ess", value="1")
+                      input(`type`="hidden", name="ess", value="0")
+
+                  tdiv(class="card-table", style={display: "none"}):
+                    label(class="card-title"): text "Connect to with a Captive portal or not"
+                    if withCaptive:
+                      input(`type`="checkbox", name="captive", value="1", checked="")
+                    else:
+                      input(`type`="checkbox", name="captive", value="1")
+
                   button(`type`="submit", class="btn-join"): text "Join Network"
     if currentNetwork.ssid != "":
       tdiv(class="current-network"):
@@ -213,12 +215,12 @@ proc renderHostApControl(conf: HostApConf): VNode =
       tdiv(class="box-header"):
         text "HostAP Control"
       tdiv(class="card-padding"):
-        form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
+        form(`method`="post", action="/net/apctl", enctype="multipart/form-data"):
           if conf.isActive:
-            button(`type`="submit", class="btn btn-reload", name="status", value="reload"): text "Restart"
-            button(`type`="submit", class="btn btn-disable", name="status", value="disable"): text "Disable"
+            button(`type`="submit", class="btn btn-reload", name="ctl", value="reload"): text "Restart"
+            button(`type`="submit", class="btn btn-disable", name="ctl", value="disable"): text "Disable"
           else:
-            button(`type`="submit", class="btn btn-enable", name="status", value="enable"): text "Enable"
+            button(`type`="submit", class="btn btn-enable", name="ctl", value="enable"): text "Enable"
 
 proc renderHostApConf(conf: HostApConf, sysInfo: SystemInfo): VNode =
   buildHtml(tdiv(class="columns width-58")):

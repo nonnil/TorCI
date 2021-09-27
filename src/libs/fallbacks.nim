@@ -1,21 +1,21 @@
-import os, osproc, re, strutils, strformat
+import os, osproc, re, strutils, strformat, logging
 import asyncdispatch
 import ".."/[types]
 import syslib, hostAp
 
-proc hostapdFallback*() =
+proc hostapdFallback*() {.async.} =
   try:
-    # discard execShellCmd("(nohup /home/torbox/torbox/./hostapd_fallback) 2> /dev/null")
-    # discard execShellCmd("rm /home/torbox/torbox/nohup.out")
-
-    if hasStaticIp(wlan1):
+    echo("Start hostapd fallback")
+    if isRouter(wlan1):
+      echo($wlan1 & " is router")
       var f = readFile hostapd
       f = f.replace("interface=wlan0", "interface=wlan1")
       writeFile hostapd, f
 
     restartService("hostapd")
 
-    if hasStaticIp(wlan1):
+    if isRouter(wlan1):
+      echo($wlan1 & " is router")
       var f = readFile hostapd
       f = f.replace("interface=wlan1", "interface=wlan0")
       writeFile hostapd, f
@@ -23,9 +23,11 @@ proc hostapdFallback*() =
     let isActive = waitFor getHostApStatus()
 
     if not isActive:
+      echo("hostapd is not active")
       copyFile hostapdBak, hostapd
 
       if hasStaticIp(wlan1):
+        echo("wlan1 has static ip")
         var f = readFile hostapd
         f = f.replace("interface=wlan0", "interface=wlan0")
         writeFile hostapd, f
@@ -33,9 +35,11 @@ proc hostapdFallback*() =
       restartService("hostapd")
 
       if hasStaticIp(wlan1):
+        echo("wlan1 has static ip")
         var f = readFile hostapd
         f = f.replace("interface=wlan1", "interface=wlan0")
         writeFile hostapd, f
+    echo("end hostapd fallback")
       
   except:
     return
@@ -92,7 +96,7 @@ proc hostapdFallbackKomplex*(wlan, eth: IfaceKind) =
     try:
       var f = readFile(hostapd)
       f = f.replace(re"interface=.*", "interface=" & $wlan)
-      restartHostApd()
+      restartService("hostapd")
       sleep 5
       if not waitFor getHostApStatus():
         f = f.multiReplace(
@@ -105,7 +109,7 @@ proc hostapdFallbackKomplex*(wlan, eth: IfaceKind) =
           ]
         )
       writeFile(hostapd, f)
-      restartHostApd()
+      restartService("hostapd")
 
     except:
       return

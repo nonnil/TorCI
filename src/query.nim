@@ -7,6 +7,6 @@ template `@`(param: string): untyped =
 
 proc initQuery*(pms: Table[string, string]): Query =
   result = Query(
-    iface: parseIface(@"i"),
-    isCaptive: if @"t" == "captive": true else: false
+    iface: parseIface(@"iface"),
+    withCaptive: if @"captive" == "1": true else: false
   )

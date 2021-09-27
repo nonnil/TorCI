@@ -9,6 +9,7 @@ proc startService*(s: string) =
 proc stopService*(s: string) =
   const cmd = "sudo systemctl stop "
   discard execCmd(cmd & &"\"{s}\"")
+  discard execCmd("sudo systemctl daemon-reload")
 
 proc restartService*(s: string) =
   const cmd = "sudo systemctl restart "

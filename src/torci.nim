@@ -1,8 +1,8 @@
 import jester
-import views/[temp, login]
-import routes/[status, network, sys]
+import views/[temp, login, renderutils]
+import routes/[status, network, sys, routerutils]
 import connexion, types, config, query, utils
-import asyncdispatch 
+import asyncdispatch, logging
 import libs/[syslib, torLib, torboxLib, fallbacks, wifiScanner, wirelessManager]
 
 const configPath {.strdefine.} = "./torci.conf"
@@ -41,10 +41,23 @@ routes:
         # echo "Set token: ", tLogin.token
         setCookie("token", tLogin.token, expires = expireTime, httpOnly = true)
         redirect "/"
-    resp renderFlat(renderLogin(), cfg, notice = Notice(state: failure, message: "Invalid username or password"))
+
+    resp renderFlat(renderLogin(), cfg, notice = Notice(status: failure, msg: "Invalid username or password"))
+    # redirectEx "/login", renderFlat(renderLogin(), cfg, notice=Notice(status: failure, msg: "Invalid username or password"))
     
   get "/net":
     redirect "/net/interfaces"
+  
+  error Http404:
+    if await request.isLoggedIn():
+      resp Http404, renderNode(render404(), request, cfg)
+    # redirect "/login"
+    resp renderFlat(render404(), cfg)
+
+  # error Exception:
+  #   if await request.isLoggedIn():
+  #     resp Http505, renderNode(render404(), request, cfg)
+  #   redirect "/login"
 
   extend status, ""
   extend network, "/net"

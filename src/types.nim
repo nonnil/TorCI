@@ -37,8 +37,8 @@ type
     offline
 
   Notice* = ref object
-    state*: Status
-    message*: string
+    status*: Status
+    msg*: string
   
   HostApConf* = object
     isActive*: bool
@@ -52,7 +52,7 @@ type
   
   Query* = object
     iface*: IfaceKind
-    isCaptive*: bool
+    withCaptive*: bool
   
   CardKind* = enum
     nord, editable

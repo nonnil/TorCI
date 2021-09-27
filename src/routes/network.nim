@@ -1,4 +1,4 @@
-import jester, strutils
+import jester, strutils, strformat
 import ../views/[temp, network]
 import ".."/[types, query, utils]
 import ".."/libs/[syslib, torLib, torboxLib, session, hostAp, fallbacks, wifiScanner, wirelessManager]
@@ -9,7 +9,13 @@ template redirectLoginPage*() =
   redirect "/login"
 
 template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notice: Notice = new Notice) =
-  resp renderNode(renderWifiConfig(@"interface", wifiList, curNet), request, cfg, tab, notice)
+  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, tab, notice)
+  
+template respWifiConf*(notice: Notice = new Notice) =
+  let conf = await getHostApConf()
+  if notice.msg.len != 0:
+    resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab, notice)
+  resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab)
 
 proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
   router network:
@@ -34,14 +40,16 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
     
     get "/wireless":
       if await request.isLoggedIn():
-        let conf = await getHostApConf()
-        resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab)
+        # let conf = await getHostApConf()
+        # resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab)
+        respWifiConf()
       redirectLoginPage()
 
-    get "/interfaces/set/@iface":
+    get "/interfaces/set/?":
       if await request.isLoggedIn():
-        
-        let iface = @"iface".parseIface()
+        let
+          query = initQuery(request.params)
+          iface = query.iface
 
         var clientWln, clientEth: IfaceKind
         # let query = initQuery(params(request))
@@ -70,14 +78,21 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
           # net.scanned = true
           # if wifiScanResult.code:
           # resp renderNode(renderWifiConfig(@"interface", wifiScanResult, currentNetwork), request, cfg, tab)
-          redirect crPath & "/interfaces/join/" & $iface
+          if query.withCaptive:
+            redirect crPath & "/interfaces/join/?iface=" & $iface & "&captive=1"
+
+          redirect crPath & "/interfaces/join/?iface=" & $iface
           # else: resp renderNode(renderInterfaces(), request, cfg, tab, notice=Notice(state: failure, message: wifiScanResult.msg))
         else: redirect crPath & "/interfaces"
       redirectLoginPage()
     
-    get "/interfaces/join/@iface":
+    get "/interfaces/join/?":
       if await request.isLoggedIn():
-        let iface = @"iface".parseIface()
+        let
+          query = initQuery(request.params)
+          iface = query.iface
+          withCaptive = query.withCaptive
+
         case iface
         of wlan0, wlan1:
           var wpa = await newWpa(iface)
@@ -89,12 +104,15 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         
         else:
           redirect crPath & "/interfaces"
+
       redirectLoginPage()
 
     post "/wireless":
       if await request.isLoggedIn():
-        let cloak = request.formData.getOrDefault("ssidCloak").body
-        let band = request.formData.getOrDefault("band").body
+        let
+          cloak = request.formData.getOrDefault("ssidCloak").body
+          band = request.formData.getOrDefault("band").body
+
         let conf: HostApConf = HostApConf(
           ssid: request.formData.getOrDefault("ssid").body,
           band: if (sysInfo.model == model3) and (band == "a"): "" else: band,
@@ -105,17 +123,39 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         # if await setHostApConf(conf):
         #   resp renderNode(renderHostApPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: success, message: "Complete WLAN Setting."))
         # resp renderNode(renderHostApPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: "Failed WLAN Setting."))
-        discard await setHostApConf(conf)
-        hostapdFallback()
-        redirect "wireless"
-      else:
-        redirect "/login"
+        let ret = await setHostApConf(conf)
+        if ret:
+          respWifiConf(Notice(status: success, msg: "Configuration successful. Please restart this Access Point to apply the changes"))
+        else:
+          respWifiConf(Notice(status: failure, msg: "Invalid config"))
+        # hostapdFallback()
+        # redirect "wireless"
+      redirect "/login"
+    
+    post "/apctl":
+      if await request.isLoggedIn():
+        let ctl = request.formData.getOrDefault("ctl").body
+        
+        case ctl
+        of "reload":
+          await hostapdFallback()
 
-    post "/interfaces/join":
+        of "disable":
+          await disableAp()
+
+        of "enable":
+          await enableWlan()
+
+        else:
+          redirect "wireless"
+        
+        redirect "wireless"
+
+    post "/interfaces/join/@wlan":
       if await request.isLoggedIn():
         var clientWln, clientEth: IfaceKind
         let
-          iface = parseIface(request.formData.getOrDefault("iface").body)
+          iface = parseIface(@"wlan")
           captive = request.formData.getOrDefault("captive").body
           isCaptive = if captive == "1": true else: false
 
@@ -163,7 +203,6 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
               setInterface(iface, clientWln, clientEth)
               saveIptables()
               redirect crPath & "/interfaces"
-              redirect "/"
             # resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: con.msg))
             net = new Network
 

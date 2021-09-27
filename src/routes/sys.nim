@@ -28,9 +28,9 @@ proc routingSys*(cfg: Config) =
         elif request.formData["postType"].body == "eraseLogs":
           let erased = await eraseLogs()
           if erased == success:
-            resp renderNode(renderCard("Erase Logs", renderLogs()), request, cfg, tabForSys, Notice(state: success, message: "Complete erased logs"))
+            resp renderNode(renderCard("Erase Logs", renderLogs()), request, cfg, tabForSys, Notice(status: success, msg: "Complete erased logs"))
           elif erased == failure:
-            resp renderNode(renderCard("Erase Logs", renderLogs()), request, cfg, tabForSys, Notice(state: failure, message: "Failure erased logs"))
+            resp renderNode(renderCard("Erase Logs", renderLogs()), request, cfg, tabForSys, Notice(status: failure, msg: "Failure erased logs"))
 
     get "/sys/passwd":
       if await request.isLoggedIn():
