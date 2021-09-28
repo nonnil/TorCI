@@ -17,6 +17,7 @@ proc renderHead(cfg: Config): VNode =
   buildHtml(head):
     link(rel="stylesheet", `type`="text/css", href="/css/style.css")
     link(rel="stylesheet", type="text/css", href="/css/fontello.css?v=2")
+    link(rel="stylesheet", type="text/css", href="/css/status.css?v=2")
     title: 
       text cfg.title
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
@@ -59,6 +60,14 @@ proc renderError*(e: string): VNode =
           img(class="logo", src="/images/torbox.png", alt="TorBox")
         tdiv(class="error-panel"):
           span(): text e
+          
+proc renderClose*(): VNode =
+  buildHtml():
+    tdiv(class="warn-panel"):
+      icon "attention", class="warn-icon"
+      tdiv(class="warn-subject"): text "Sorry..."
+      tdiv(class="warn-description"):
+        text "This feature is currently closed as it is under development and can cause bugs"
 
 proc renderPanel*(v: VNode): VNode =
   buildHtml(tdiv(class="main-panel")):

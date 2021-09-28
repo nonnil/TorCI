@@ -100,13 +100,17 @@ proc renderInterfaces*(): VNode =
       tdiv(class="table-row", style={display: "table-row"}):
         tdiv(class="table-item"): text "wlan0"
         tdiv(class="buttons"):
-          a(href="/net/interfaces/join/?i=wlan0&t=open"):
-            button(): text "Scan"
+          a(href="/net/interfaces/join/?iface=wlan0"):
+            button(): text "Open Access"
+          a(href="/net/interfaces/join/?iface=wlan0&captive=1"):
+            button(): text "Captive Access"
       tdiv(class="table-row", style={display: "table-row"}):
         tdiv(class="table-item"): text "wlan1"
         tdiv(class="buttons"):
-          a(href="/net/interfaces/join/wlan1"):
-            button(): text "Scan"
+          a(href="/net/interfaces/set/?iface=wlan1"):
+            button(): text "Open Access"
+          a(href="/net/interfaces/join/?iface=wlan1&captive=1"):
+            button(): text "Captive Access"
       tdiv(class="table-row", style={display: "table-row"}):
         tdiv(class="table-item"): text "ppp0 or usb0"
         tdiv(class="buttons"):
@@ -180,7 +184,7 @@ proc renderWifiConfig*(wlan: IfaceKind, withCaptive: bool; wifiInfo: WifiList; c
                     if withCaptive:
                       input(`type`="checkbox", name="captive", value="1", checked="")
                     else:
-                      input(`type`="checkbox", name="captive", value="1")
+                      input(`type`="checkbox", name="captive", value="0")
 
                   button(`type`="submit", class="btn-join"): text "Join Network"
     if currentNetwork.ssid != "":
