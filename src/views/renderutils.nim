@@ -24,10 +24,3 @@ proc icon*(icon: string; text=""; title=""; class=""; href=""): VNode =
 
     if text.len > 0:
       text " " & text
-
-proc render404*(): VNode =
-  buildHtml(tdiv(class="content")):
-    tdiv(class="login-header"):
-      img(class="logo", src="/images/torbox.png", alt="TorBox")
-    tdiv(class="error-panel"):
-      span(): text "404 Not Found"

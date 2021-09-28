@@ -1,9 +1,20 @@
-.error-panel {
-  padding: 12px;
-  border-radius: 4px;
-  display: flex;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+.panel-container {
   margin: auto;
-  margin-top: -50px;
+  font-size: 130%;
+  padding: 120px 0;
+}
+
+.logo-container {
   text-align: center;
+}
+
+.error-panel {
+  padding: 14px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+  margin: auto;
+  margin-top: 50px;
+  text-align: center;
+  width: 396px;
 }

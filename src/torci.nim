@@ -1,6 +1,6 @@
 import jester
 import views/[temp, login, renderutils]
-import routes/[status, network, sys, routerutils]
+import routes/[status, network, sys]
 import connexion, types, config, query, utils
 import asyncdispatch, logging
 import libs/[syslib, torLib, torboxLib, fallbacks, wifiScanner, wirelessManager]
@@ -49,10 +49,10 @@ routes:
     redirect "/net/interfaces"
   
   error Http404:
-    if await request.isLoggedIn():
-      resp Http404, renderNode(render404(), request, cfg)
-    # redirect "/login"
-    resp renderFlat(render404(), cfg)
+    resp renderFlat(renderError("404 Not Found"), cfg)
+    
+  error Exception:
+    resp renderFlat(renderError("Something went wrong"), cfg)
 
   # error Exception:
   #   if await request.isLoggedIn():

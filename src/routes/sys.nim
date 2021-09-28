@@ -11,6 +11,7 @@ proc routingSys*(cfg: Config) =
       text: @["Password", "Erase logs", "Update"],
       anker: @["/sys/passwd", "/sys/eraselogs", "/sys/update"]
     )
+
     get "/sys":
       redirect "/sys/passwd"
       #resp renderNode(renderPasswd(), request, cfg, menu=menu)
@@ -28,9 +29,9 @@ proc routingSys*(cfg: Config) =
         elif request.formData["postType"].body == "eraseLogs":
           let erased = await eraseLogs()
           if erased == success:
-            resp renderNode(renderCard("Erase Logs", renderLogs()), request, cfg, tabForSys, Notice(status: success, msg: "Complete erased logs"))
+            resp renderNode(renderLogs(), request, cfg, tabForSys, Notice(status: success, msg: "Complete erased logs"))
           elif erased == failure:
-            resp renderNode(renderCard("Erase Logs", renderLogs()), request, cfg, tabForSys, Notice(status: failure, msg: "Failure erased logs"))
+            resp renderNode(renderLogs(), request, cfg, tabForSys, Notice(status: failure, msg: "Failure erased logs"))
 
     get "/sys/passwd":
       if await request.isLoggedIn():
@@ -40,5 +41,5 @@ proc routingSys*(cfg: Config) =
     
     get "/sys/eraselogs":
       if await request.isLoggedIn():
-        resp renderNode(renderCard("Erase Logs", renderLogs()), request, cfg, tabForSys)
+        resp renderNode(renderLogs(), request, cfg, tabForSys)
       redirect "/login"

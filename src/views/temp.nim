@@ -51,93 +51,14 @@ proc renderNav(cfg: Config; req: Request; menu = Menu()): VNode =
     if menu.text.len != 0:
       renderSubMenu(req, menu)
 
-proc renderCard*(subject: string; element: Card): VNode =
-  buildHtml(tdiv(class="card")):
-    var 
-      body: VNode
-      texv: VNode
-      tex: string
-    tdiv(class="card-header"):
-      text subject
-      if element.kind == editable:
-        tdiv(class="edit-button"):
-          label(): text "Edit"
-          input(class="opening-button", `type`="radio", name="popout-button", value="open") 
-          input(class="closing-button", `type`="radio", name="popout-button", value="close")
-          tdiv(class="shadow")
-          tdiv(class="editable-box"):
-            form(`method`="post", action=element.path, enctype="multipart/form-data",class=""):
-              for i, v in element.str:
-                tdiv(class="card-table"):
-                  label(class="card-title"): text v
-                  input(`type`="text", name=v, placeholder=element.message[i])
-              button(`type`="submit", class="saveBtn", name="saveBtn"): text "Save change"
-              #[
-              tdiv(class="inp"):
-                label(): text "SSID"
-                input(`type`="text", name="ssid")
-              tdiv(class="inp"):
-                label(): text "Interface"
-                input(`type`="text", name="interface")
-              ]#
-
-    tdiv(class="card-body"):
-      for i, v in element.str:
-        tdiv(class="card-table"):
-          tdiv(class="card-title"): text v
-          currentColour = 
-            if element.status[i] == active or element.status[i] == online:
-              colourGreen
-            elif element.status[i] == deactive or element.status[i] == failure:
-              colourRed
-            else:
-              colourGray
-
-          if element.message[i].len > 0:
-            tex = element.message[i]
-          else:  tex = "test"
-          texv = tree VNodeKind.text
-          texv.text = tex
-          body = tree(VNodeKind.tdiv, kids=texv)
-          body.class = "card-text"
-          body.style = style {color: currentColour}
-          #add(body, texv)
-          #texv.text = $tex
-          #add(body, text "tex")
-          #body.kids = @[texv]
-          body
-   
-          # old setup for vdom
-          #[
-          else:
-            tdiv(class="card-text", style={color: "#afafaf"}):
-              text element.message[i]
-          ]#
-        #[
-        if state[i] == active or state[i] == success:
-          tdiv(class="status-text", style={color: "green"}):
-            text message[i]
-        elif state[i] == deactive:
-          tdiv(class="status-text", style={color: "red"}):
-            text message[i]
-        ]#
-
-proc renderCard*(subject: string; vnode: VNode; `type`: CardKind=nord): VNode =
-  buildHtml(tdiv(class="card")):
-    tdiv(class = "card-header"):
-      text subject
-      if `type` == editable:
-        button(class = "edit-button"):
-          text "Edit"
-    tdiv(class="card-body"):
-      vnode
-
-proc renderCards*(elements: Cards): VNode =
-  buildHtml(tdiv(class="cards")):
-    var e: Card
-    for i, v in elements.subject:
-      e = elements.card[i]
-      renderCard(v, e)
+proc renderError*(e: string): VNode =
+  buildHtml():
+    tdiv(class="content"):
+      tdiv(class="panel-container"):
+        tdiv(class="logo-container"):
+          img(class="logo", src="/images/torbox.png", alt="TorBox")
+        tdiv(class="error-panel"):
+          span(): text e
 
 proc renderPanel*(v: VNode): VNode =
   buildHtml(tdiv(class="main-panel")):
@@ -148,9 +69,19 @@ proc renderContainer*(v: VNode): VNode =
     tdiv(class="container-inside")
     renderPanel(v)
 
-var noticeColor: string
+proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu()): string =
+  let node = buildHtml(html(lang="en")):
+    renderHead(cfg)
+    body:
+      if menu.text.len != 0:
+        renderNav(cfg, req, menu)
+      else:
+        renderNav(cfg, req)
+      tdiv(class="container"):
+        v
+  result = doctype & $node
 
-proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu(); notice = Notice(msg: "")): string =
+proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu(); notice: Notice): string =
   let node = buildHtml(html(lang="en")):
     renderHead(cfg)
     body:
@@ -159,40 +90,57 @@ proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu(); notice = No
       else:
         renderNav(cfg, req)
       if notice.msg.len > 0:
-        noticeColor =
-          if notice.status== success:
+        let colour =
+          case notice.status
+          of success:
             colourGreen
-          elif notice.status== warn:
+
+          of warn:
             colourYellow
-          elif notice.status== failure:
+
+          of failure:
             colourRed
+
           else:
             colourGray
+
         tdiv(class="notice-bar"):
           input(id="ignoreNotice", `type`="radio", name="ignoreNotice")
-          tdiv(class="notice-message", style={backgroundColor: noticeColor}):
+          tdiv(class="notice-message", style={backgroundColor: colour}):
             text notice.msg
       tdiv(class="container"):
         v
   result = doctype & $node
 
-proc renderFlat*(node: VNode, cfg: Config, notice: Notice = new Notice): string =
-  let rNode= buildHtml(html(lang="en")):
+proc renderFlat*(v: VNode, cfg: Config): string =
+  let ret = buildHtml(html(lang="en")):
+    renderHead(cfg)
+    body:
+      v
+  result = doctype & $ret
+
+proc renderFlat*(v: VNode, cfg: Config, notice: Notice): string =
+  let ret = buildHtml(html(lang="en")):
     renderHead(cfg)
     body:
       if notice.msg.len > 0:
-        noticeColor =
-          if notice.status == success:
+        let colour =
+          case notice.status
+          of success:
             colourGreen
-          elif notice.status == warn:
+
+          of warn:
             colourYellow
-          elif notice.status == failure:
+
+          of failure:
             colourRed
+
           else:
             colourGray
+
         tdiv(class="notice-bar"):
           input(id="ignoreNotice", `type`="radio", name="ignoreNotice")
-          tdiv(class="notice-message", style={backgroundColor: noticeColor}):
+          tdiv(class="notice-message", style={backgroundColor: colour}):
             text notice.msg
-      node
-  result = doctype & $rNode
+      v
+  result = doctype & $ret
