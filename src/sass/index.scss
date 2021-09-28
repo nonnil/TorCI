@@ -11,10 +11,17 @@
 @import 'network';
 @import 'wireless';
 @import 'error';
+@import 'warn';
 
 * {
   outline: none;
 }
+
+*::selection {
+  background-color: $torbox-green;
+  color: #fff;
+}
+
 body {
   color: #4a4a4a;
   //background-color: #fafafa;
@@ -27,7 +34,7 @@ body {
 
 a {
   text-decoration: none;
-  color: $tor-colour;
+  color: $tor-purple;
 }
 a:hover {
   color: #ddd;

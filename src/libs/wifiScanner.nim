@@ -127,7 +127,7 @@ proc zip[A, B](t1: Table[A, B]; t2: Table[A, B]): Table[A, B] =
 
 let channels: Table[int, int] = zip(channelFreq, channelFreq5ghz)
 
-proc searchChannel(ch: int): bool =
+proc isChannels(ch: int): bool =
   # for v in channels.values:
   #   if ch == v:
   #     return true
@@ -153,7 +153,7 @@ proc sort(strs: seq[string]): WifiList =
       quality = 2 * (lines[2].parseInt + 100)
     result.add Wifi(
       bssid: lines[0],
-      channel: if searchChannel(lines[1].parseInt): $lines[1] else: "?",
+      channel: if isChannels(lines[1].parseInt): $lines[1] else: "?",
       dbmSignal: $lines[2],
       quality: if quality > 100: $100 else: $quality,
       security: try: lines[3].findAll(re"\[(.*?)\]")[0] except: "unknown",

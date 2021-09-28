@@ -4,9 +4,9 @@ import ../types
 
 const defStr = "None"
 
-proc renderSystemInfo(sys: SystemInfo): VNode =
+proc renderSystemInfo(cfg: Config, sys: SystemInfo): VNode =
   buildHtml(tdiv(class="columns full-width")):
-    tdiv(class="card card-padding card-blue"):
+    tdiv(class="card card-padding card-sys"):
       tdiv(class="card-header"):
         text "System"
       table(class="table full-width"):
@@ -29,6 +29,18 @@ proc renderSystemInfo(sys: SystemInfo): VNode =
               strong():
                 tdiv():
                   text if sys.architecture.len != 0: sys.architecture else: defStr
+          tr():
+            td(): text "TorBox Version"
+            td():
+              strong():
+                tdiv():
+                  text cfg.torboxVer
+          tr():
+            td(): text "TorCi Version"
+            td():
+              strong():
+                tdiv():
+                  text cfg.torciVer
 
 proc renderTorInfo(torS: TorStatus): VNode =
   buildHtml(tdiv(class="columns")):
@@ -116,8 +128,8 @@ proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string
                 tdiv():
                   text if iface.hasVpn: "is Up" else: defStr
 
-proc renderStatusPane*(torS: TorStatus, iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string], sysInfo: SystemInfo): VNode =
+proc renderStatusPane*(cfg: Config, torS: TorStatus, iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string], sysInfo: SystemInfo): VNode =
   buildHtml(tdiv(class="cards")):
     renderTorInfo(torS)
     renderNetworkInfo(iface, crNet)
-    renderSystemInfo(sysInfo)
+    renderSystemInfo(cfg, sysInfo)

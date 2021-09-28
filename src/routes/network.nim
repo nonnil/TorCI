@@ -1,4 +1,4 @@
-import jester, strutils, strformat
+import jester, strutils
 import ../views/[temp, network]
 import ".."/[types, query, utils]
 import ".."/libs/[syslib, torLib, torboxLib, session, hostAp, fallbacks, wifiScanner, wirelessManager]
@@ -11,11 +11,14 @@ template redirectLoginPage*() =
 template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notice: Notice = new Notice) =
   resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, tab, notice)
   
-template respWifiConf*(notice: Notice = new Notice) =
+template respApConf*(notice: Notice = new Notice) =
   let conf = await getHostApConf()
   if notice.msg.len != 0:
     resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab, notice)
   resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab)
+  
+template respRefuse*() =
+  resp renderNode(renderClose(), request, cfg, tab)
 
 proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
   router network:
@@ -30,23 +33,24 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
 
     get "/tor":
       if await request.isLoggedIn():
+        respRefuse()
         resp renderNode(renderTorPane(), request, cfg, tab)
       redirectLoginPage()
 
     get "/interfaces":
       if await request.isLoggedIn():
+        respRefuse()
         resp renderNode(renderInterfaces(), request, cfg, tab)
       redirectLoginPage()
     
     get "/wireless":
       if await request.isLoggedIn():
-        # let conf = await getHostApConf()
-        # resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab)
-        respWifiConf()
+        respApConf()
       redirectLoginPage()
 
     get "/interfaces/set/?":
       if await request.isLoggedIn():
+        respRefuse()
         let
           query = initQuery(request.params)
           iface = query.iface
@@ -83,7 +87,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
 
           redirect crPath & "/interfaces/join/?iface=" & $iface
           # else: resp renderNode(renderInterfaces(), request, cfg, tab, notice=Notice(state: failure, message: wifiScanResult.msg))
-        else: redirect crPath & "/interfaces"
+        else: redirect "interfaces"
       redirectLoginPage()
     
     get "/interfaces/join/?":
@@ -103,7 +107,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
           respNetworkManager(wifiScanResult, currentNetwork)
         
         else:
-          redirect crPath & "/interfaces"
+          redirect "interfaces"
 
       redirectLoginPage()
 
@@ -120,14 +124,11 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
           isHidden: if cloak == "1": true else: false,
           password: request.formData.getOrDefault("password").body
         )
-        # if await setHostApConf(conf):
-        #   resp renderNode(renderHostApPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: success, message: "Complete WLAN Setting."))
-        # resp renderNode(renderHostApPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: "Failed WLAN Setting."))
         let ret = await setHostApConf(conf)
         if ret:
-          respWifiConf(Notice(status: success, msg: "Configuration successful. Please restart this Access Point to apply the changes"))
+          respApConf(Notice(status: success, msg: "Configuration successful. Please restart this Access Point to apply the changes"))
         else:
-          respWifiConf(Notice(status: failure, msg: "Invalid config"))
+          respApConf(Notice(status: failure, msg: "Invalid config"))
         # hostapdFallback()
         # redirect "wireless"
       redirect "/login"
@@ -157,7 +158,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         let
           iface = parseIface(@"wlan")
           captive = request.formData.getOrDefault("captive").body
-          isCaptive = if captive == "1": true else: false
+          withCaptive = if captive == "1": true else: false
 
         if not ifaceExists(iface):
           redirect crPath & "/interfaces"
@@ -198,7 +199,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
             let con = await connect(net, (essid: essid, bssid: bssid, password: password))
 
             if con.code:
-              if isCaptive:
+              if withCaptive:
                 setCaptive(iface, clientWln, clientEth)
               setInterface(iface, clientWln, clientEth)
               saveIptables()
@@ -214,54 +215,3 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
 
     get "/bridge":
       redirect "/"
-
-    # proc createCard(): Future[Card] {.async.} =
-    #   let
-    #     wlan = await getWlanInfo()
-    #     card = Card(
-    #       kind: editable,
-    #       path: crPath & "/wlan",
-    #       status: @[normal, normal, normal, normal, normal],
-    #       str: @["SSID", "Country code", "Channel", "Input Device", "Output Device"],
-    #       message: @[wlan["ssid"], wlan["interface"], wlan.getOrDefault("channel"),  wlan.getOrDefault("input"), wlan.getOrDefault("output") ],
-    #       editType: @[text, box, text, text, text, text]
-    #     )
-    #   result = card
-
-    # get "/wlan":
-    #   if await request.loggedIn():
-    #     let wlan = await getWlanInfo()
-    #     let card = Card(
-    #       kind: editable,
-    #       path: crPath & "/wlan",
-    #       status: @[normal, normal, normal, normal, normal],
-    #       str: @["SSID", "Country code", "Channel", "Input Device", "Output Device"],
-    #       message: @[wlan["ssid"], wlan["interface"], wlan.getOrDefault("channel"),  wlan.getOrDefault("input"), wlan.getOrDefault("output") ]
-    #     )
-    #     # resp renderNode(renderCard("WLAN Information", card), request, cfg, tab)
-    #     resp renderNode(renderWlanCOnfig(wlan), request, cfg, tab)
-    #   redirect "/login"
-    # post "/wlan":
-    #   if await request.loggedIn():
-    #     echo $request.formData
-    #     let
-    #       ssid = request.formData.getOrDefault("SSID").body
-    #       countryCode = request.formData.getOrDefault("Country code").body
-    #       channel = request.formData.getOrDefault("band").body
-    #       inputDevice = request.formData.getOrDefault("Input Device").body
-    #       outputDevice = request.formData.getOrDefault("Output Device").body
-    #     if await changeSsid(ssid):
-    #       # resp renderNode(renderCard("WLAN Information", await createCard()), request, cfg, tab, Notice(state: success, message: "Success config WLAN"))
-    #       let
-    #         wlan = await getWlanInfo()
-    #         card = Card(
-    #           kind: editable,
-    #           path: crPath & "wlan",
-    #           status: @[normal, normal, normal, normal, normal],
-    #           str: @["SSID", "Country Code", "Channel", "Input Device", "Output Device"], 
-    #           message: @[wlan["ssid"], wlan["interface"], wlan.getOrDefault("channel"), wlan.getOrDefault("input"), wlan.getOrDefault("output") ]
-    #         )
-    #       resp renderNode(renderWlanConfig(wlan), request, cfg, tab, Notice(state: success, message: "Saved config of WLAN"))
-    #     resp renderNode(renderWlanConfig(waitFor getWlanInfo()), request, cfg, tab, Notice(state: failure, message: "Failed config"))
-    #   redirect "/net/wlan"
-

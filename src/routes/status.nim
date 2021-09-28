@@ -22,7 +22,7 @@ proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
           crNet = await currentNetwork(wlan)
           # sysInfo = await getSystemInfo()
         resp renderNode(
-          renderStatusPane(torS, iface, crNet, sysInfo),
+          renderStatusPane(cfg, torS, iface, crNet, sysInfo),
           request,
           cfg
         )

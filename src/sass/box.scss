@@ -41,7 +41,7 @@
 
 .btn-apply {
   color: #fff;
-  background: linear-gradient(to bottom, $tor-box-colour, $tor-box-colour) no-repeat;
+  background: linear-gradient(to bottom, $torbox-green, $torbox-green) no-repeat;
   text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
   width: 100%;
   display: block;
@@ -56,11 +56,11 @@
 }
 
 .btn-apply:hover {
-  background: linear-gradient(to bottom, $tor-box-shadow-colour, $tor-box-shadow-colour) no-repeat;
+  background: linear-gradient(to bottom, $torbox-dark-green, $torbox-dark-green) no-repeat;
 }
 
 .btn-apply:focus {
-  background: linear-gradient(to bottom, $tor-box-shadow-colour $tor-box-shadow-colour) no-repeat;
+  background: linear-gradient(to bottom, $torbox-dark-green $torbox-dark-green) no-repeat;
 }
 
 .password_field_container {

@@ -51,10 +51,10 @@ proc newWpa*(wlan: IfaceKind, autoconnect: bool = false): Future[Network] {.asyn
   
   if autoconnect == true:
     # Disable dhcp connection from current interface
-    discard execCmdEx(&"dhclient -r {network.wlan}")
+    discard execCmdEx(&"dhclient -r {$network.wlan}")
     # Check if we got connect by wpa_supplicant
     # run dhcp for getting ip
-    discard execCmdEx(&"dhclient {network.wlan}")
+    discard execCmdEx(&"dhclient {$network.wlan}")
     sleep(5)
     network.connected = checkConnected(network)
   result = network

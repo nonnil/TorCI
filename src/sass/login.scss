@@ -93,7 +93,7 @@ button {
 
 .login-btn>button {
   border: none;
-  background-color: $tor-box-colour;
+  background-color: $torbox-green;
   border-radius: 6px;
   font-size: 20px;
   line-height: 48px;
@@ -108,5 +108,5 @@ button {
 }
 
 .login-btn>button:hover {
-  background-color: $tor-box-shadow-colour;
+  background-color: $torbox-dark-green;
 }
