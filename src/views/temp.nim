@@ -42,7 +42,6 @@ proc renderNav(cfg: Config; req: Request; menu = Menu()): VNode =
       a(class="linker-root", href="/"):
         img(class="logo-file", src="/images/torbox.png")
         tdiv(class="service-name"):text cfg.title
-      tdiv(class="caracteres-version"):text "v" & cfg.torboxVer
       tdiv(class="controle"):
         a(class=getNavClass(req.pathInfo, "/io"), href="/io"): text "Status"
         a(class=getNavClass(req.pathInfo, "/net"), href="/net"): text "Network"
