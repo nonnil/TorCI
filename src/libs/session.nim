@@ -48,8 +48,8 @@ template initUserSession*() =
     checkLoggedIn(crSession)
 
 proc isLoggedIn*(r: Request): Future[bool] {.async.} =
-  if not r.cookies.hasKey("token"): return
-  let userToken = r.cookies["token"]
+  if not r.cookies.hasKey("torci"): return
+  let userToken = r.cookies["torci"]
   try:
     for i, v in sessionList:
       if v.token == userToken:
@@ -86,9 +86,6 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
         newSession = Session(token: token, expireTime: expireTime)
       sessionList.add newSession 
       result = (token: token, msg: "", res: true)
-    else:
-      echo "spawned password: ", crypted
-      echo "shadow password: ", pwdp
   except OSError:
       return (token: "", msg: "Invalid username.", res: false)
   except:
@@ -97,8 +94,8 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
     echo "Msg of Exception: ", error.msg
 
 proc logout*(r: Request): Future[bool] {.async.} =
-  if not r.cookies.hasKey("token"): return
-  let uToken = r.cookies["token"]
+  if not r.cookies.hasKey("torci"): return
+  let uToken = r.cookies["torci"]
   for i, v in sessionList:
     if uToken == v.token:
       sessionList.delete(i)

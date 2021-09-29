@@ -36,10 +36,9 @@ routes:
         username = request.formData.getOrDefault("username").body
         password = request.formData.getOrDefault("password").body
         expireTime = await getExpireTime()
-        tLogin = await login(username, password, expireTime)
-      if tLogin.res:
-        # echo "Set token: ", tLogin.token
-        setCookie("token", tLogin.token, expires = expireTime, httpOnly = true)
+        ret = await login(username, password, expireTime)
+      if ret.res:
+        setCookie("torci", ret.token, expires = expireTime, httpOnly = true)
         redirect "/"
 
     resp renderFlat(renderLogin(), cfg, notice = Notice(status: failure, msg: "Invalid username or password"))
