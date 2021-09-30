@@ -11,13 +11,10 @@ const
   colourGray = "#afafaf"
   colourRed = "#E74C3C"
 
-var currentColour: string
-
 proc renderHead(cfg: Config): VNode =
   buildHtml(head):
     link(rel="stylesheet", `type`="text/css", href="/css/style.css")
     link(rel="stylesheet", type="text/css", href="/css/fontello.css?v=2")
-    link(rel="stylesheet", type="text/css", href="/css/status.css?v=2")
     title: 
       text cfg.title
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
@@ -48,6 +45,19 @@ proc renderNav(cfg: Config; req: Request; menu = Menu()): VNode =
         # a(class=getNavClass(req.pathInfo, "/confs"), href="/confs"): text "Configurations"
         # a(class=getNavClass(req.pathInfo, "/docs"), href="/docs"): text "Documents"
         a(class=getNavClass(req.pathInfo, "/sys"), href="/sys"): text "System"
+      tdiv(class="user-drop"):
+        tdiv(class="user-status"):
+          icon "user-circle"
+          tdiv(class="username"): text "torbox"
+          icon "down-open"
+        tdiv(class="dropdown"):
+          tdiv(class="panel"):
+            form(`method`="post", action="/logout", enctype="multipart/form-data"):
+              button(`type`="submit", name="signout", value="1"):
+                icon "logout"
+                tdiv(class="logout-text"): text "Log out"
+        # tdiv(class="logout-button"):
+        #   icon "logout"
     if menu.text.len != 0:
       renderSubMenu(req, menu)
 

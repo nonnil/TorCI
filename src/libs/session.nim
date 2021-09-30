@@ -57,19 +57,20 @@ proc isLoggedIn*(r: Request): Future[bool] {.async.} =
           sessionList.delete(i)
           return false
         return true
-    return false
+
   except:
     return false
 
 proc login*(username, password: string, expireTime: DateTime): Future[tuple[token, msg: string, res: bool]] {.async.} =
 
-  #### Generate password hash using openssl cli ####
+  # Generate password hash using openssl cli
   # let 
   #   shadowCmd = &"sudo cat /etc/shadow | grep \"{username}\""
   #   shadowOut = execCmdEx(shadowCmd).output
   #   shadowV = splitShadow(shadowOut)
   #   passwdCmd = &"openssl passwd -{shadowV[1]} -salt \"{shadowV[2]}\" \"{password}\""
   #   spawnPasswd = execCmdEx(passwdCmd).output
+  
   try:
     let
       crypt = pyImport("crypt")
@@ -80,14 +81,17 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
       crypted: string = crypt.crypt(password, &"${shadowV[1]}${shadowV[2]}").to(string)
     # var passwdV = spawnPasswd.split("$")
     # passwdV[3] = passwdV[3].splitWhitespace[0]
+    
     if pwdp == crypted:
       let
         token = hmac_sha256("test", username & password & $epochTime()).toHex
         newSession = Session(token: token, expireTime: expireTime)
       sessionList.add newSession 
       result = (token: token, msg: "", res: true)
+
   except OSError:
       return (token: "", msg: "Invalid username.", res: false)
+
   except:
     let error = getCurrentException()
     echo "Type of Exception: ", error.name

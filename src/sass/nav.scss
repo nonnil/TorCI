@@ -53,7 +53,71 @@
 }
 
 .controle > .active {
-  color: #7fbb23;
+  color: $torbox-green;
+}
+
+.user-drop {
+  right: 10%;
+  position: absolute;
+  cursor: pointer;
+}
+
+.user-drop > .user-status {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  margin-left: 30px;
+  font-size: 1.3rem;
+}
+
+.user-drop > .user-status > .username {
+  letter-spacing: 1px;
+  margin-left: 5px;
+  font-size: 1rem;
+}
+
+.user-drop > .user-status > .icon-container:last-child {
+  margin-left: 50px;
+}
+
+.user-drop > .dropdown {
+  display: none;
+  width: 200px;
+  position: absolute;
+  top: 100%;
+  padding-top: 10px;
+}
+
+.user-drop > .dropdown > .panel {
+  display: block;
+  width: 100%;
+  background-color: #fff;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px 0 rgb(0, 0, 0 / 20%);
+  // box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.user-drop > .dropdown > .panel > form > button {
+  display: flex;
+  border: none;
+  background-color: #fff;
+  color: #000;
+  height: 40px;
+  line-height: 40px;
+  font-size: 14px;
+  width: 100%;
+  padding: 0 15px 0 15px;
+}
+
+.user-drop > .dropdown:hover, .user-drop > .user-status:hover ~
+.dropdown {
+  display: block;
+}
+
+.dropdown > .panel > form > button:hover {
+  color: #fff;
+  background-color: $torbox-green;
 }
 
 @media (max-width: 600px) {

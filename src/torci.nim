@@ -43,6 +43,15 @@ routes:
 
     resp renderFlat(renderLogin(), cfg, notice = Notice(status: failure, msg: "Invalid username or password"))
     # redirectEx "/login", renderFlat(renderLogin(), cfg, notice=Notice(status: failure, msg: "Invalid username or password"))
+  
+  post "/logout":
+    if await request.isLoggedIn():
+      let signout = request.formData.getOrDefault("signout").body
+      if signout == "1":
+        if await logout(request):
+          redirect "/login"
+
+      redirect "/"
     
   get "/net":
     redirect "/net/interfaces"
