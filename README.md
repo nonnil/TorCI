@@ -18,6 +18,8 @@ TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbo
 -	[ ] All TorBox features support
 -	[ ] HTTPS support
 
+## Screenshots
+
 ## Installation
 
 ### Nimble
