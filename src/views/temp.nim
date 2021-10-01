@@ -10,7 +10,7 @@ const
   colourYellow = ""
   colourGray = "#afafaf"
   colourRed = "#E74C3C"
-
+  
 proc renderHead(cfg: Config): VNode =
   buildHtml(head):
     link(rel="stylesheet", `type`="text/css", href="/css/style.css")
@@ -33,7 +33,7 @@ proc renderSubMenu*(req: Request; menu: Menu): VNode =
             a(class="menu-link", href=menu.anker[i]):
               text v
 
-proc renderNav(cfg: Config; req: Request; menu = Menu()): VNode =
+proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNode =
   result = buildHtml(header(class="headers")):
     nav(class="nav-container"):
       a(class="linker-root", href="/"):
@@ -48,7 +48,7 @@ proc renderNav(cfg: Config; req: Request; menu = Menu()): VNode =
       tdiv(class="user-drop"):
         tdiv(class="user-status"):
           icon "user-circle"
-          tdiv(class="username"): text "torbox"
+          tdiv(class="username"): text username
           icon "down-open"
         tdiv(class="dropdown"):
           tdiv(class="panel"):
@@ -87,26 +87,26 @@ proc renderContainer*(v: VNode): VNode =
     tdiv(class="container-inside")
     renderPanel(v)
 
-proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu()): string =
+proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; menu = Menu()): string =
   let node = buildHtml(html(lang="en")):
     renderHead(cfg)
     body:
       if menu.text.len != 0:
-        renderNav(cfg, req, menu)
+        renderNav(cfg, req, username, menu)
       else:
-        renderNav(cfg, req)
+        renderNav(cfg, req, username)
       tdiv(class="container"):
         v
   result = doctype & $node
 
-proc renderNode*(v: VNode; req: Request; cfg: Config; menu = Menu(); notice: Notice): string =
+proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; menu = Menu(); notice: Notice): string =
   let node = buildHtml(html(lang="en")):
     renderHead(cfg)
     body:
       if menu.text.len != 0:
-        renderNav(cfg, req, menu)
+        renderNav(cfg, req, username, menu)
       else:
-        renderNav(cfg, req)
+        renderNav(cfg, req, username)
       if notice.msg.len > 0:
         let colour =
           case notice.status

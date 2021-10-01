@@ -9,16 +9,16 @@ template redirectLoginPage*() =
   redirect "/login"
 
 template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notice: Notice = new Notice) =
-  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, tab, notice)
+  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, tab, notice)
   
 template respApConf*(notice: Notice = new Notice) =
   let conf = await getHostApConf()
   if notice.msg.len != 0:
-    resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab, notice)
-  resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, tab)
+    resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, user.uname, tab, notice)
+  resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, user.uname, tab)
   
 template respRefuse*() =
-  resp renderNode(renderClose(), request, cfg, tab)
+  resp renderNode(renderClose(), request, cfg, user.uname, tab)
 
 proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
   router network:
@@ -32,24 +32,28 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
     var net: Network = new Network
 
     get "/tor":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         respRefuse()
-        resp renderNode(renderTorPane(), request, cfg, tab)
+        resp renderNode(renderTorPane(), request, cfg, user.uname, tab)
       redirectLoginPage()
 
     get "/interfaces":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         respRefuse()
-        resp renderNode(renderInterfaces(), request, cfg, tab)
+        resp renderNode(renderInterfaces(), request, cfg, user.uname, tab)
       redirectLoginPage()
     
     get "/wireless":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         respApConf()
       redirectLoginPage()
 
     get "/interfaces/set/?":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         respRefuse()
         let
           query = initQuery(request.params)
@@ -91,7 +95,8 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
       redirectLoginPage()
     
     get "/interfaces/join/?":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         let
           query = initQuery(request.params)
           iface = query.iface
@@ -112,7 +117,8 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
       redirectLoginPage()
 
     post "/wireless":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         let
           cloak = request.formData.getOrDefault("ssidCloak").body
           band = request.formData.getOrDefault("band").body
@@ -134,7 +140,8 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
       redirect "/login"
     
     post "/apctl":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         let ctl = request.formData.getOrDefault("ctl").body
         
         case ctl
@@ -153,7 +160,8 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         redirect "wireless"
 
     post "/interfaces/join/@wlan":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         var clientWln, clientEth: IfaceKind
         let
           iface = parseIface(@"wlan")

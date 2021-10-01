@@ -1,4 +1,4 @@
-import times, strutils, strformat, sequtils, osproc
+import times, strutils, strformat
 import jester
 import hmac, nimpy
 import ".."/[ types ]
@@ -7,18 +7,6 @@ var sessionList: SessionList
 
 proc getExpireTime*(): Future[DateTime] {.async.} =
   result = getTime().utc + initTimeInterval(hours = 1)
-
-# proc init(session: Sessiondb) =
-#   session.token = ""
-  
-#[
-proc checkLoggedIn*(session: Session) =
-  if not session.req.cookies.hasKey("token"): return
-  let userToken = session.req.cookies["token"]
-  for v in userSession:
-    if v.token == userToken:
-      session.token
-]#
 
 proc isExpired(dt: DateTime): bool = 
   let
@@ -47,7 +35,7 @@ template initUserSession*() =
   if request.cookies.len > 0:
     checkLoggedIn(crSession)
 
-proc isLoggedIn*(r: Request): Future[bool] {.async.} =
+proc getUser*(r: Request): Future[tuple[isLoggedIn: bool, uname: string]] {.async.} =
   if not r.cookies.hasKey("torci"): return
   let userToken = r.cookies["torci"]
   try:
@@ -55,11 +43,21 @@ proc isLoggedIn*(r: Request): Future[bool] {.async.} =
       if v.token == userToken:
         if v.expireTime.isExpired():
           sessionList.delete(i)
-          return false
-        return true
+          return (false, "")
+        return (true, v.uname)
 
   except:
-    return false
+    return (false, "")
+  
+proc getUsername*(r: Request): Future[string] {.async.} =
+  let token = r.cookies["torci"]
+  try:
+    for v in sessionList:
+      if v.token == token:
+        return v.uname
+  
+  except:
+    return
 
 proc login*(username, password: string, expireTime: DateTime): Future[tuple[token, msg: string, res: bool]] {.async.} =
 
@@ -75,6 +73,7 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
     let
       crypt = pyImport("crypt")
       spwd = pyImport("spwd")
+
       shadow = spwd.getspnam(username)
       pwdp = shadow[1].to string
       shadowV = pwdp.splitShadow()
@@ -85,7 +84,7 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
     if pwdp == crypted:
       let
         token = hmac_sha256("test", username & password & $epochTime()).toHex
-        newSession = Session(token: token, expireTime: expireTime)
+        newSession = Session(token: token, expireTime: expireTime, uname: username)
       sessionList.add newSession 
       result = (token: token, msg: "", res: true)
 

@@ -5,6 +5,7 @@ type
   Session* = object
     token*: string
     expireTime*: DateTime
+    uname*: string
     # createdTime*: DateTime
   
   SessionList* = seq[Session]

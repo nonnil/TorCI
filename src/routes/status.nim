@@ -12,7 +12,8 @@ proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
       resp "Loading"
 
     get "/io":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         # resp renderNode(renderMainMenues(await torStatus(), await displayAboutBridges()), request, cfg)
         # respMainMenu(await showMainMenu(request, cfg))
         let
@@ -24,13 +25,15 @@ proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
         resp renderNode(
           renderStatusPane(cfg, torS, iface, crNet, sysInfo),
           request,
-          cfg
+          cfg,
+          user.uname
         )
       else:
         redirect "/login"
 
     post "/io":
-      if await request.isLoggedIn():
+      let user = await getUser(request)
+      if user.isLoggedIn:
         let renewIp = request.formData.getOrDefault("new_circuit").body
         if renewIp == "0":
           discard renewTorExitIp()

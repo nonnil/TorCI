@@ -20,18 +20,21 @@ settings:
 
 routes:
   get "/":
-    if await request.isLoggedIn():
+    let user = await getUser(request)
+    if user.isLoggedIn:
       redirect "/io"
     redirect "/login"
   
   get "/login":
-    if not await request.isLoggedIn():
+    let user = await getUser(request)
+    if not user.isLoggedIn:
       # resp renderNode(renderPanel(renderLoginPanel()), request, cfg)
       resp renderFlat(renderLogin(), cfg)
     redirect "/"
   
   post "/login":
-    if not await request.isLoggedIn():
+    let user = await getUser(request)
+    if not user.isLoggedIn:
       let
         username = request.formData.getOrDefault("username").body
         password = request.formData.getOrDefault("password").body
@@ -42,10 +45,10 @@ routes:
         redirect "/"
 
     resp renderFlat(renderLogin(), cfg, notice = Notice(status: failure, msg: "Invalid username or password"))
-    # redirectEx "/login", renderFlat(renderLogin(), cfg, notice=Notice(status: failure, msg: "Invalid username or password"))
   
   post "/logout":
-    if await request.isLoggedIn():
+    let user = await getUser(request)
+    if user.isLoggedIn:
       let signout = request.formData.getOrDefault("signout").body
       if signout == "1":
         if await logout(request):
@@ -61,11 +64,6 @@ routes:
     
   error Exception:
     resp renderFlat(renderError("Something went wrong"), cfg)
-
-  # error Exception:
-  #   if await request.isLoggedIn():
-  #     resp Http505, renderNode(render404(), request, cfg)
-  #   redirect "/login"
 
   extend status, ""
   extend network, "/net"
