@@ -11,12 +11,15 @@ const
   colourGray = "#afafaf"
   colourRed = "#E74C3C"
   
-proc renderHead(cfg: Config): VNode =
+proc renderHead(cfg: Config, title: string = ""): VNode =
   buildHtml(head):
     link(rel="stylesheet", `type`="text/css", href="/css/style.css")
     link(rel="stylesheet", type="text/css", href="/css/fontello.css?v=2")
     title: 
-      text cfg.title
+      if title.len > 0:
+        text title & " | " & cfg.title
+      else:
+        text cfg.title
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
 
 
@@ -87,9 +90,9 @@ proc renderContainer*(v: VNode): VNode =
     tdiv(class="container-inside")
     renderPanel(v)
 
-proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; menu = Menu()): string =
+proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: string = "", menu = Menu()): string =
   let node = buildHtml(html(lang="en")):
-    renderHead(cfg)
+    renderHead(cfg, title)
     body:
       if menu.text.len != 0:
         renderNav(cfg, req, username, menu)
@@ -99,9 +102,9 @@ proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; menu = M
         v
   result = doctype & $node
 
-proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; menu = Menu(); notice: Notice): string =
+proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: string = "", menu = Menu(); notice: Notice): string =
   let node = buildHtml(html(lang="en")):
-    renderHead(cfg)
+    renderHead(cfg, title)
     body:
       if menu.text.len != 0:
         renderNav(cfg, req, username, menu)
@@ -130,16 +133,16 @@ proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; menu = M
         v
   result = doctype & $node
 
-proc renderFlat*(v: VNode, cfg: Config): string =
+proc renderFlat*(v: VNode, cfg: Config, title: string = ""): string =
   let ret = buildHtml(html(lang="en")):
-    renderHead(cfg)
+    renderHead(cfg, title)
     body:
       v
   result = doctype & $ret
 
-proc renderFlat*(v: VNode, cfg: Config, notice: Notice): string =
+proc renderFlat*(v: VNode, cfg: Config, notice: Notice, title: string = ""): string =
   let ret = buildHtml(html(lang="en")):
-    renderHead(cfg)
+    renderHead(cfg, title)
     body:
       if notice.msg.len > 0:
         let colour =

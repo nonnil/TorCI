@@ -30,19 +30,19 @@ proc routingSys*(cfg: Config) =
         elif request.formData["postType"].body == "eraseLogs":
           let erased = await eraseLogs()
           if erased == success:
-            resp renderNode(renderLogs(), request, cfg, user.uname, tabForSys, Notice(status: success, msg: "Complete erased logs"))
+            resp renderNode(renderLogs(), request, cfg, user.uname, "", tabForSys, Notice(status: success, msg: "Complete erased logs"))
           elif erased == failure:
-            resp renderNode(renderLogs(), request, cfg, user.uname, tabForSys, Notice(status: failure, msg: "Failure erased logs"))
+            resp renderNode(renderLogs(), request, cfg, user.uname, "", tabForSys, Notice(status: failure, msg: "Failure erased logs"))
 
     get "/sys/passwd":
       let user = await getUser(request)
       if user.isLoggedIn:
         # resp renderNode(renderCard("Change Passwd", renderPasswd()), request, cfg, tabForSys)
-        resp renderNode(renderChangePasswd(), request, cfg, user.uname, tabForSys)
+        resp renderNode(renderChangePasswd(), request, cfg, user.uname, "", tabForSys)
       redirect "/login"
     
     get "/sys/eraselogs":
       let user = await getUser(request)
       if user.isLoggedIn:
-        resp renderNode(renderLogs(), request, cfg, user.uname, tabForSys)
+        resp renderNode(renderLogs(), request, cfg, user.uname, "", tabForSys)
       redirect "/login"

@@ -26,7 +26,8 @@ proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
           renderStatusPane(cfg, torS, iface, crNet, sysInfo),
           request,
           cfg,
-          user.uname
+          user.uname,
+          "Status"
         )
       else:
         redirect "/login"

@@ -8,17 +8,20 @@ export network
 template redirectLoginPage*() =
   redirect "/login"
 
-template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notice: Notice = new Notice) =
-  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, tab, notice)
+template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string]) =
+  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, menu=tab)
+
+template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notice: Notice) =
+  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, menu=tab, notice = notice)
   
-template respApConf*(notice: Notice = new Notice) =
+template respApConf*(n: Notice = new Notice) =
   let conf = await getHostApConf()
-  if notice.msg.len != 0:
-    resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, user.uname, tab, notice)
-  resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, user.uname, tab)
+  if n.msg.len > 0:
+    resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, user.uname, menu=tab, notice=n)
+  resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, user.uname, menu=tab)
   
 template respRefuse*() =
-  resp renderNode(renderClose(), request, cfg, user.uname, tab)
+  resp renderNode(renderClose(), request, cfg, user.uname, menu=tab)
 
 proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
   router network:
@@ -35,14 +38,14 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
       let user = await getUser(request)
       if user.isLoggedIn:
         respRefuse()
-        resp renderNode(renderTorPane(), request, cfg, user.uname, tab)
+        resp renderNode(renderTorPane(), request, cfg, user.uname, "Tor", menu=tab)
       redirectLoginPage()
 
     get "/interfaces":
       let user = await getUser(request)
       if user.isLoggedIn:
         respRefuse()
-        resp renderNode(renderInterfaces(), request, cfg, user.uname, tab)
+        resp renderNode(renderInterfaces(), request, cfg, user.uname, menu=tab)
       redirectLoginPage()
     
     get "/wireless":

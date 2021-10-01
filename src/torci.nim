@@ -29,7 +29,7 @@ routes:
     let user = await getUser(request)
     if not user.isLoggedIn:
       # resp renderNode(renderPanel(renderLoginPanel()), request, cfg)
-      resp renderFlat(renderLogin(), cfg)
+      resp renderFlat(renderLogin(), cfg, "Login")
     redirect "/"
   
   post "/login":
