@@ -15,6 +15,10 @@ proc renderHead(cfg: Config, title: string = ""): VNode =
   buildHtml(head):
     link(rel="stylesheet", `type`="text/css", href="/css/style.css")
     link(rel="stylesheet", type="text/css", href="/css/fontello.css?v=2")
+    link(rel="apple-touch-icon", sizes="180x180", href="/apple-touch-icon.png")
+    link(rel="icon", type="image/png", sizes="32x32", href="/favicon-32x32.png")
+    link(rel="icon", type="image/png", sizes="16x16", href="/favicon-16x16.png")
+    link(rel="manifest", href="/site.webmanifest")
     title: 
       if title.len > 0:
         text title & " | " & cfg.title
