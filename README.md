@@ -19,6 +19,8 @@ TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbo
 -	[ ] HTTPS support
 
 ## Screenshots
+![Login](login.png)
+![Status](status.png)
 
 ## Installation
 
