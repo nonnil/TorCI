@@ -10,3 +10,4 @@ nimcache/
 /dokman.nim
 /src/views/confs.nim
 /src/routes/confs.nim
+*.bak
