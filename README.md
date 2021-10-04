@@ -24,6 +24,21 @@ TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbo
 
 ## Installation
 
+### Docker
+
+To build and run TorCI in Docker
+
+```bash
+$ docker build -t torci:beta .
+$ docker run --rm -d -p 1984:1984 torci:beta
+# See debug logs
+$ docker logs `CONTAINER_ID`
+```
+
+Reach the TorCI: `127.0.0.1:1984`
+
+(The default username and password : `torbox`)
+
 ### Nimble
 
 To compile the scss files, you need to install `libsass`. On Ubuntu and Debian, you can use `libsass-dev`.
@@ -46,7 +61,6 @@ Then access the following address with a browser:
 ```
 http://0.0.0.0:1984
 ```
-
 ## SystemD
 You can use the SystemD service (install it on `/etc/systemd/system/torci.service`)
 
