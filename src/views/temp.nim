@@ -59,10 +59,14 @@ proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNod
           icon "down-open"
         tdiv(class="dropdown"):
           tdiv(class="panel"):
+            form(`method`="post", action="/net/torctl", enctype="multipart/form-data"):
+              button(`type`="submit", name="restartTor", value="1"):
+                icon "reload"
+                tdiv(class="btn-text"): text "Restart Tor"
             form(`method`="post", action="/logout", enctype="multipart/form-data"):
               button(`type`="submit", name="signout", value="1"):
                 icon "logout"
-                tdiv(class="logout-text"): text "Log out"
+                tdiv(class="btn-text"): text "Log out"
         # tdiv(class="logout-button"):
         #   icon "logout"
     if menu.text.len != 0:

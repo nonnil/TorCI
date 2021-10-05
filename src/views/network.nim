@@ -55,15 +55,16 @@ proc renderChannelSelect(hd: SystemInfo, band: string): VNode =
       option(value="ag"): text "48 at 40 MHz"
       option(value="ah"): text "48 at 80 MHz"
 
-proc renderTorLogs*(logs: string): VNode =
-  buildHtml(tdiv(class="logs-container")):
-    if logs == "":
-      tdiv(class="logs-text"): text "Tor logs, no exist."
-    else:
-      pre(class="logs-text"): text logs
+proc renderTorLog*(log: string): VNode =
+  buildHtml(tdiv(class="columns width-50")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Tor Log"
+      tdiv(class="card-padding"):
+        tdiv(class="log-text"): text if log.len > 0: log else: "No Tor log exists"
 
 proc renderTorConfig*(): VNode =
-  buildHtml(tdiv(class="columns")):
+  buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Tor Configuration"
@@ -71,6 +72,28 @@ proc renderTorConfig*(): VNode =
         tbody():
           tr():
             td(): text ""
+            
+proc renderBridgesCtl*(): VNode =
+  buildHtml(tdiv(class="columns width-50")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Bridges Control"
+      form(`method`="post", action="/net/bridgesctl", enctype="multipart/form-data"):
+        table(class="box-table"):
+          tbody():
+            tr():
+              td(): text "Obfs4"
+              td():
+                strong():
+                  button(`type`="submit", name="obfs4", value="1")
+              td(): text "Meek-Azure"
+              td():
+                strong():
+                  button(`type`="submit", name="meek-azure", value="1")
+              td(): text "Snowflake"
+              td():
+                strong():
+                  button(`type`="submit", name="snowflake", value="1")
           
 proc renderInputObfs4Bridges*(): VNode =
   buildHtml(tdiv(class="columns")):
@@ -317,6 +340,7 @@ proc renderHostApPane*(conf: HostApConf, sysInfo: SystemInfo): VNode =
     renderHostApConf(conf, sysInfo)
     renderHostApControl(conf)
     
-proc renderTorPane*(): VNode =
+proc renderTorPane*(torlog: string): VNode =
   buildHtml(tdiv(class="cards")):
     renderTorConfig()
+    renderTorLog(torlog)
