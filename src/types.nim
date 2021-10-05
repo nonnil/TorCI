@@ -146,3 +146,4 @@ const
   hostapd* = "/etc" / "hostapd" / "hostapd.conf"
   hostapdBak* = "/etc" / "hostapd" / "hostapd.conf.tbx"
   crda* = "/etc" / "default" / "crda"
+  torlog* = "/var" / "log" / "tor" / "notices.log"

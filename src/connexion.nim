@@ -35,24 +35,6 @@ proc torStatus*(cfg: Config): Future[Status] {.async.} =
     return
   #result = status.output
 
-proc torLogs*():Future[string] {.async.} =
-  if system.hostCPU != "arm":
-    let f = readFile("notices.log")
-  else:
-    const cmdStr: string = "sudo tail -f -n 25 /var/log/tor/notices.log"
-    let cmd = execCmdEx(cmdStr)
-    if cmd.exitcode == 0:
-      result = cmd.output
-    else:
-      return
-  
-proc restartTor*(): Future[Status] {.async.} =
-  let cmd = execCmd("sudo systemctl restart tor &")
-  if cmd == 0:
-    return success
-  else:
-    return failure
-
 proc displayAboutBridges*(): Future[string] {.async.} =
   # for Debugs.
   const temp = """
@@ -113,28 +95,28 @@ proc displayBridgesDoc*(code: int): Future[string] {.async.} =
     let doc = readFile(path[1])
     result = doc
 
-proc actionerTorBridge*(code: int = 0): Future[Status] {.async.} =
-  # Activer bridge
-  if code == 1:
-    let cmd = execCmdex(&"""sudo sed -i \"s/^#UseBridges/UseBridges/g\"{torrc} && 
-sudo sed -i \"s/^#UpdateBridgesFromAuthority/UpdateBridgesFromAuthority/g\" {torrc} && 
-sudo sed -i \"s/^#ClientTransport/ClientTransport/g\" {torrc}""")
-    if cmd.exitcode == 0:
-      return success
-    else:
-      return failure
-  # désactiver bridge
-  else:
-    #let cmdTemp = "sudo sed -i \"s/^UseBridges/#UseBridges/g\"" & torrc
-    let _ = execCmdex(&"""sudo sed -i \"s/^UseBridges/#UseBridges/g\"{torrc} && 
-sudo sed -i \"s/^UpdateBridgesFromAuthority/#UpdateBridgesFromAuthority/g\" {torrc} && 
-sudo sed -i \"s/^ClientTransport/#ClientTransport/g\" {torrc} && 
-sudo sed -i \"s/^Bridge /#Bridge /g\" {torrc}""")
-    let rt = await restartTor()
-    if rt == success:
-      return success
-    else:
-      return failure
+# proc actionerTorBridge*(code: int = 0): Future[Status] {.async.} =
+#   # Activer bridge
+#   if code == 1:
+#     let cmd = execCmdex(&"""sudo sed -i \"s/^#UseBridges/UseBridges/g\"{torrc} && 
+# sudo sed -i \"s/^#UpdateBridgesFromAuthority/UpdateBridgesFromAuthority/g\" {torrc} && 
+# sudo sed -i \"s/^#ClientTransport/ClientTransport/g\" {torrc}""")
+#     if cmd.exitcode == 0:
+#       return success
+#     else:
+#       return failure
+#   # désactiver bridge
+#   else:
+#     #let cmdTemp = "sudo sed -i \"s/^UseBridges/#UseBridges/g\"" & torrc
+#     let _ = execCmdex(&"""sudo sed -i \"s/^UseBridges/#UseBridges/g\"{torrc} && 
+# sudo sed -i \"s/^UpdateBridgesFromAuthority/#UpdateBridgesFromAuthority/g\" {torrc} && 
+# sudo sed -i \"s/^ClientTransport/#ClientTransport/g\" {torrc} && 
+# sudo sed -i \"s/^Bridge /#Bridge /g\" {torrc}""")
+#     let rt = await restartTor()
+#     if rt == success:
+#       return success
+#     else:
+#       return failure
   
 proc loadBridgeList(): Future[array[2, seq[string]]] {.async.} =
   when system.hostCPU != "arm":

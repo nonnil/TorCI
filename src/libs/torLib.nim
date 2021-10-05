@@ -1,6 +1,7 @@
 import os, osproc, asyncdispatch, re, json, strutils, strformat
 import libcurl
 import ".."/[types]
+import syslib, bridges
 
 proc curlWriteFn(
   buffer: cstring,
@@ -65,28 +66,6 @@ proc checkTor*(cfg: Config): Future[tuple[isTor: bool, ipAddr: string]] {.async.
   except:
     return
 
-proc getBridgesStatus*(): Future[tuple[obfs4, meekAzure, snowflake: bool]] {.async.} =
-  var
-    obfs4: bool
-    meekAzure: bool
-    snowflake: bool
-  try:
-    let rc = readFile(torrc)
-    for line in rc.splitLines():
-      if line.startsWith("Bridge obfs4 "):
-        if not obfs4: obfs4 = true
-        continue
-      elif line.startsWith("Bridge meek_lite "):
-        if not meekAzure: meekAzure = true
-        continue
-      elif line.startsWith("Bridge snowflake "):
-        if not snowflake: snowflake = true
-        continue
-  except: return
-  result.obfs4 = obfs4
-  result.meekAzure = meekAzure
-  result.snowflake = snowflake
-  
 proc getTorStatus*(cfg: Config): Future[TorStatus] {.async.} =
   let
     torch = await checkTor(cfg)
@@ -103,38 +82,29 @@ proc renewTorExitIp*(): Future[bool] {.async.} =
   echo "renewTor IP: ", &"\"{newIp.output}\""
   if newIp.output == "250 OK":
     return true
-
-# This function deactivates the bridge relay.
-proc deactivateBridgeRelay*() =
-  try:
-    let
-      torrc = readFile(torrc)
-      bridge = torrc.findAll(re"BridgeRelay.\d+")[0]
-    when defined(debugCi):
-      echo "BridgeRelay in Torrc: ", bridge
-    if bridge == "BridgeRelay 1":
-      let
-        orPort = torrc.findAll(re"^ORPort.*")[0].splitWhitespace()[1]
-        obfs4Port = torrc.findAll(re"^ServerTransportListenAddr.*")[0].split(":")[1]
-      var nTorrc: string
-      nTorrc = torrc.multiReplace(@[
-        (re"BridgeRelay", "#BridgeRelay"),
-        (re"ORPort", "#ORPort"),
-        (re"ExtORPort", "#ExtORPort"),
-        (re"ServerTransportPlugin", "#ServerTransportPlugin"), 
-        (re"ServerTransportListenAddr", "#ServerTransportListenAddr"),
-        (re"ContactInfo", "#ContactInfo"),
-        (re"Nickname", "#Nickname")
-      ])
-      discard execShellCmd("sudo iptables -D INPUT -p tcp --dport $sORPORT -j ACCEPT")
-      discard execShellCmd("sudo iptables -D INPUT -p tcp --dport $sOBFS4PORT -j ACCEPT")
-  except:
+  
+proc restartTor*() {.async.} =
+  restartService("tor")
+  
+proc getTorLog*(): Future[string] {.async.} =
+  if not fileExists(torlog):
     return
+  let f = readFile(torlog)
+  result = f
+  
+proc spawnTorrc*() =
+  const
+    torrcOrig = "/home" / "torbox" / "torbox" / "etc" / "tor" / "torrc"
+  if not fileExists(torrcOrig):
+    return
+  copyFile torrcOrig, torrc
+  
+# proc activateBridges*()
   
 when isMainModule:
-  let bridges = waitFor getBridgesStatus()
-  echo "obfs4: ", bridges.obfs4
-  echo "meekAzure: ", bridges.meekAzure
-  echo "snowflake: ", bridges.snowflake
+  let bridgesS = waitFor getBridgesStatus()
+  echo "obfs4: ", bridgesS.obfs4
+  echo "meekAzure: ", bridgesS.meekAzure
+  echo "snowflake: ", bridgesS.snowflake
   let check = socks5Req("https://ipinfo.io/products/ip-geolocation-api", "127.0.0.1", 9050.Port, POST, "input=37.228.129.5")
   echo "result: ", check
