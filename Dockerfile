@@ -2,7 +2,7 @@ FROM nimlang/nim:alpine as nim
 MAINTAINER nilnilnilnil@protonmail.com
 EXPOSE 1984
 
-RUN USER=root apk --no-cache add libsass-dev libffi-dev pcre-dev openssl-dev openssh-client openssl sudo tor wpa_supplicant dhcpcd openrc
+RUN USER=root apk --no-cache add libsass-dev libffi-dev pcre-dev openssl-dev openssh-client openssl sudo tor wpa_supplicant dhcpcd openrc bsd-compat-headers
 
 COPY . /src/torci
 WORKDIR /src/torci

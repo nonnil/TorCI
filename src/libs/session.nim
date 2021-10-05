@@ -1,9 +1,52 @@
 import times, strutils, strformat
 import jester
-import hmac, nimpy
+import random, bcrypt 
+import nimpy
 import ".."/[ types ]
 
 var sessionList: SessionList
+
+# Here's code taken from [https://github.com/nim-lang/nimforum/blob/master/src/auth.nim]
+proc randomSalt(): string =
+  result = ""
+  for i in 0..127:
+    var r = rand(225)
+    if r >= 32 and r <= 126:
+      result.add(chr(rand(225)))
+
+proc devRandomSalt(): string =
+  when defined(posix):
+    result = ""
+    var f = open("/dev/urandom")
+    var randomBytes: array[0..127, char]
+    discard f.readBuffer(addr(randomBytes), 128)
+    for i in 0..127:
+      if ord(randomBytes[i]) >= 32 and ord(randomBytes[i]) <= 126:
+        result.add(randomBytes[i])
+    f.close()
+  else:
+    result = randomSalt()
+
+proc makeSalt*(): string =
+  ## Creates a salt using a cryptographically secure random number generator.
+  ##
+  ## Ensures that the resulting salt contains no ``\0``.
+  try:
+    result = devRandomSalt()
+  except IOError:
+    result = randomSalt()
+
+  var newResult = ""
+  for i in 0 ..< result.len:
+    if result[i] != '\0':
+      newResult.add result[i]
+  return newResult
+
+proc makeSessionKey*(): string =
+  ## Creates a random key to be used to authorize a session.
+  let random = makeSalt()
+  return bcrypt.hash(random, genSalt(8))
+# The end of [https://github.com/nim-lang/nimforum/blob/master/src/auth.nim] code
 
 proc getExpireTime*(): Future[DateTime] {.async.} =
   result = getTime().utc + initTimeInterval(hours = 1)
@@ -15,25 +58,11 @@ proc isExpired(dt: DateTime): bool =
   if crTime > expireTime:
     return true
 
-proc comparePasswd(shadow, passwd: seq[string]): bool =
-  for i in 1..3:
-    if shadow[i] != passwd[i]:
-      return false
-  return true
-
 proc splitShadow(str: string): seq[string] =
   let one = str.split("$")
   let two = one[3].split(":")
   result = one
   result[3] = two[0]
-
-template initUserSession*() =
-  var crSession {.inject.}: UserSession
-  new(crSession)
-  init(crSession)
-  crSession.req = request
-  if request.cookies.len > 0:
-    checkLoggedIn(crSession)
 
 proc getUser*(r: Request): Future[tuple[isLoggedIn: bool, uname: string]] {.async.} =
   if not r.cookies.hasKey("torci"): return
@@ -83,7 +112,7 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
     
     if pwdp == crypted:
       let
-        token = hmac_sha256("test", username & password & $epochTime()).toHex
+        token = makeSessionKey()
         newSession = Session(token: token, expireTime: expireTime, uname: username)
       sessionList.add newSession 
       result = (token: token, msg: "", res: true)

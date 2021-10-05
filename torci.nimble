@@ -13,11 +13,10 @@ skipDirs = @["tests"]
 requires "nim >= 1.4.0"
 requires "jester >= 0.5.0"
 requires "karax >= 1.2.1"
-#requires "shell >= 0.4.3"
 requires "sass"
-requires "hmac"
 requires "libcurl >= 1.0.0"
 requires "nimpy >= 0.1.1"
+requires "bcrypt >= 0.2.1"
 
 task scss, "Generate css":
   exec "nim r tools/gencss"
