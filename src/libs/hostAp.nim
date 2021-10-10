@@ -187,12 +187,55 @@ proc setHostApConf*(conf: HostApConf): Future[bool] {.async.} =
 
   except:
     return false
+  
+proc getDevsSignal*(wlan: IfaceKind): OrderedTable[string, string] =
+  let
+    iw = &"iw dev {$wlan} station dump"
+    iwOut= execCmdEx(iw).output
+
+  if iwOut.len > 0:
+    let lines = iwOut.splitLines()
+    for i, line in lines:
+      var macaddr, signal: string
+
+      if line.startsWith("Station"):
+        let parsed = line.splitWhitespace(maxsplit=2)
+        macaddr = parsed[1]
+        
+        if lines[i+2].contains("signal"):
+          let parsed = lines[i+2].split("\t", maxsplit=2)
+          signal = parsed[2]
+          result[macaddr] = signal
+      
+    # result = ret.toOrderedTable()
+  
+proc getConnectedDevs*(wlan: IfaceKind): Future[ConnectedDevs]{.async.} = 
+
+  let
+    arp = &"arp -i {$wlan}"
+    arpOut = execCmdEx(arp).output
+    iw = getDevsSignal(wlan)
+    
+  if arpOut.len > 0:
+    for line in arpOut.splitLines():
+      if line.startsWith("Address"):
+        continue
+
+      if line.len > 0:
+        let parsed = line.splitWhitespace()
+        result.add (macaddr: parsed[2], ipaddr: parsed[0], signal: iw.getOrDefault(parsed[2]))
 
 when isMainModule:
-  const cmd = "ps -ax | grep \"[d]hclient.wlan1\""
-  let ps = execCmdEx(cmd)
-  for v in ps.output.splitLines():
-    let m = v.splitWhitespace(maxsplit = 4)
-    let app = m[4]
-    echo "app: ", app
-    echo "line: ", m
+  when defined(dhclient):
+    const cmd = "ps -ax | grep \"[d]hclient.wlan1\""
+    let ps = execCmdEx(cmd)
+    for v in ps.output.splitLines():
+      let m = v.splitWhitespace(maxsplit = 4)
+      let app = m[4]
+      echo "app: ", app
+      echo "line: ", m
+  
+  when defined(connectedDevs):
+    let cd = waitFor getConnectedDevs(wlan1)
+    # echo cd.macaddr, cd.ipaddr, cd.signal
+    echo $cd

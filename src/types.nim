@@ -101,6 +101,8 @@ type
     scanned*: bool
     logFile*: string
     configFile*: string
+    
+  ConnectedDevs* = seq[tuple[macaddr, ipaddr, signal: string]]
 
   ActiveIfaceList* = tuple
     input, output: IfaceKind

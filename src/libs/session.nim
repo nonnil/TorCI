@@ -118,7 +118,7 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
       result = (token: token, msg: "", res: true)
 
   except OSError:
-      return (token: "", msg: "Invalid username.", res: false)
+    return (token: "", msg: "Invalid username.", res: false)
 
   except:
     let error = getCurrentException()
