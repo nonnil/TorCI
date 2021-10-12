@@ -73,33 +73,80 @@ proc renderTorConfig*(): VNode =
           tr():
             td(): text ""
             
+proc renderObfs4Ctl*(): VNode =
+  buildHtml(tdiv(class="columns width-50")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Bridges Control"
+      form(`method`="post", action="/net/bridgesctl", enctype="multipart/form-data"):
+        table(class="full-width box-table"):
+          tbody():
+            tr():
+              td(): text "All configured Obfs4"
+              td():
+                strong():
+                  button(`type`="submit", name="obfs4", value="all"):
+                    text "Activate"
+            tr():
+              td(): text "Online Obfs4 only"
+              td():
+                strong():
+                  button(`type`="submit", name="obfs4", value="online"):
+                    text "Activate"
+            tr():
+              td(): text "Auto Obfs4 "
+              td():
+                strong():
+                  button(`type`="submit", name="auto-add-obfs4", value="1"):
+                    text "Add"
+
 proc renderBridgesCtl*(): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Bridges Control"
       form(`method`="post", action="/net/bridgesctl", enctype="multipart/form-data"):
-        table(class="box-table"):
+        table(class="full-width box-table"):
           tbody():
             tr():
               td(): text "Obfs4"
               td():
                 strong():
-                  button(`type`="submit", name="obfs4", value="1")
-              td(): text "Meek-Azure"
-              td():
-                strong():
-                  button(`type`="submit", name="meek-azure", value="1")
+                  button(`type`="submit", name="obfs4", value="1"):
+                    text "Activate"
+            tr():
               td(): text "Snowflake"
               td():
                 strong():
-                  button(`type`="submit", name="snowflake", value="1")
+                  button(`type`="submit", name="snowflake", value="1"):
+                    text "Activate"
+            tr():
+              td(): text "Meek-Azure"
+              td():
+                strong():
+                  button(`type`="submit", name="meek-azure", value="1"):
+                    text "Activate"
+                    
+# proc renderObfs4Add*(): VNode =
+#   buildHtml(tdiv(class="columns")):
+#     tdiv(class="box"):
+#       tdiv(class="box-header"):
+#         text "Add Obfs4 Bridge"
+#       form(`method`="post", action="/net/bridges", enctype="miltipart/form-data"):
+#         table(class="full-width box-table"):
+#           tbody():
+#             tr():
+#               td(): text
           
-proc renderInputObfs4Bridges*(): VNode =
+proc renderInputObfs4*(): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Add Obfs4 Bridges"
+      form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
+        table(class="full-width box-table"):
+          tr():
+            td(): text ""
 
 proc renderInterfaces*(): VNode =
   buildHtml(tdiv(class="card")):
@@ -334,13 +381,35 @@ proc renderHostApConf(conf: HostApConf, sysInfo: SystemInfo): VNode =
                 else:
                   tdiv():
                     text "No password has been set"
+                    
+proc renderConnectedDevs*(devs: ConnectedDevs): VNode =
+  buildHtml(tdiv(class="columns full-width")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Connected Devices"
+      table(class="full-width box-table"):
+        tbody():
+          tr():
+            th(): text "MAC Address"
+            th(): text "IP Address"
+            th(): text "Signal"
+          for v in devs:
+            tr():
+              td(): text if v.macaddr.len != 0: v.macaddr else: "None"
+              td(): text if v.ipAddr.len != 0: v.ipAddr else: "None"
+              td(): text if v.signal.len != 0: v.signal else: "None"
  
-proc renderHostApPane*(conf: HostApConf, sysInfo: SystemInfo): VNode =
+proc renderHostApPane*(conf: HostApConf, sysInfo: SystemInfo, devs: ConnectedDevs): VNode =
   buildHtml(tdiv(class="cards")):
     renderHostApConf(conf, sysInfo)
     renderHostApControl(conf)
+    renderConnectedDevs(devs)
     
 proc renderTorPane*(torlog: string): VNode =
   buildHtml(tdiv(class="cards")):
     renderTorConfig()
     renderTorLog(torlog)
+    
+proc renderBridgesPane*(): VNode =
+  buildHtml(tdiv(class="cards")):
+    renderBridgesCtl()

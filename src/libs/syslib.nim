@@ -158,3 +158,40 @@ proc changePasswd*(currentPasswd, newPasswd, rnewPasswd: string; username: strin
     cmdCode = execCmd(cmdPasswd)
   if cmdCode == 0:
     result = true
+
+proc getDevsSignal*(wlan: IfaceKind): OrderedTable[string, string] =
+  let
+    iw = &"iw dev {$wlan} station dump"
+    iwOut= execCmdEx(iw).output
+
+  if iwOut.len > 0:
+    let lines = iwOut.splitLines()
+
+    for i, line in lines:
+      if line.startsWith("Station"):
+        # sts.add i
+        var macaddr, signal: string
+        let parsed = line.splitWhitespace(maxsplit=2)
+        macaddr = parsed[1]
+
+        for j in (i + 1).. (lines.len - 1):
+          if lines[j].startsWith(re"\s.*signal:"):
+            echo i, lines[j]
+            let parsed = lines[j].split("\t", maxsplit=2)
+            result[macaddr] = parsed[2]
+            break
+
+proc getConnectedDevs*(wlan: IfaceKind): Future[ConnectedDevs] {.async.} = 
+  let
+    arp = &"arp -i {$wlan}"
+    arpOut = execCmdEx(arp).output
+    iw = getDevsSignal(wlan)
+    
+  if arpOut.len > 0:
+    for line in arpOut.splitLines():
+      if line.startsWith("Address"):
+        continue
+
+      elif line.len > 0:
+        let parsed = line.splitWhitespace()
+        result.add (macaddr: parsed[2], ipaddr: parsed[0], signal: iw.getOrDefault(parsed[2]))

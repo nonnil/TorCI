@@ -15,10 +15,12 @@ template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: str
   resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, menu=tab, notice = notice)
   
 template respApConf*(n: Notice = new Notice) =
-  let conf = await getHostApConf()
+  let
+    conf = await getHostApConf()
+    devs = await getConnectedDevs(conf.iface)
   if n.msg.len > 0:
-    resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, user.uname, "Host AP", menu=tab, notice=n)
-  resp renderNode(renderHostApPane(conf, sysInfo), request, cfg, user.uname, "Host AP", menu=tab)
+    resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Host AP", menu=tab, notice=n)
+  resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Host AP", menu=tab)
   
 template respRefuse*() =
   resp renderNode(renderClose(), request, cfg, user.uname, menu=tab)
@@ -34,11 +36,18 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
 
     var net: Network = new Network
 
-    get "/tor":
+    # get "/tor":
+    #   let user = await getUser(request)
+    #   if user.isLoggedIn:
+    #     let log = await getTorLog()
+    #     resp renderNode(renderTorPane(log), request, cfg, user.uname, "Tor Config", menu=tab)
+    #   redirectLoginPage()
+    
+    get "/bridges":
       let user = await getUser(request)
       if user.isLoggedIn:
-        let log = await getTorLog()
-        resp renderNode(renderTorPane(log), request, cfg, user.uname, "Tor Config", menu=tab)
+        resp renderNode(renderBridgesPane(), request, cfg, user.uname, "Bridges", menu=tab)
+
       redirectLoginPage()
 
     get "/interfaces":
@@ -229,6 +238,3 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
       if restart == "1":
         await restartTor()
         redirect "/net/tor"
-
-    get "/bridge":
-      redirect "/"
