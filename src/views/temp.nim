@@ -46,12 +46,19 @@ proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNod
       a(class="linker-root", href="/"):
         img(class="logo-file", src="/images/torbox.png")
         tdiv(class="service-name"):text cfg.title
-      tdiv(class="controle"):
-        a(class=getNavClass(req.pathInfo, "/io"), href="/io"): text "Status"
-        a(class=getNavClass(req.pathInfo, "/net"), href="/net"): text "Network"
-        # a(class=getNavClass(req.pathInfo, "/confs"), href="/confs"): text "Configurations"
-        # a(class=getNavClass(req.pathInfo, "/docs"), href="/docs"): text "Documents"
-        a(class=getNavClass(req.pathInfo, "/sys"), href="/sys"): text "System"
+      tdiv(class="tabs"):
+        a(class=getNavClass(req.pathInfo, "/io"), href="/io"):
+          icon "th-large"
+          tdiv(class="tab-name"):
+            text "Status"
+        a(class=getNavClass(req.pathInfo, "/net"), href="/net"):
+          icon "wifi"
+          tdiv(class="tab-name"):
+            text "Network"
+        a(class=getNavClass(req.pathInfo, "/sys"), href="/sys"):
+          icon "cog-alt"
+          tdiv(class="tab-name"):
+            text "System"
       tdiv(class="user-drop"):
         tdiv(class="user-status"):
           icon "user-circle"

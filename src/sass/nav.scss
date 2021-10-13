@@ -20,6 +20,7 @@
   flex-direction: row;
   align-items: center;
   margin-right: 30px;
+  padding-left: 12px;
 }
 .logo-file {
   width: 40px;
@@ -34,7 +35,7 @@
   color: #fff;
   font-size: 14px;
 }
-.controle {
+.tabs {
   display: flex;
   font-size: 20px;
   /*
@@ -44,6 +45,7 @@
   */
 }
 .linker {
+  display: flex;
   margin: 12px 0px 12px 0px;
   color: white;
   padding: 5px 20px 5px 20px;
@@ -52,7 +54,7 @@
   //border-radius: 10px;
 }
 
-.controle > .active {
+.tabs > .active {
   color: $torbox-green;
 }
 
@@ -120,47 +122,63 @@
   background-color: $torbox-green;
 }
 
-@media (max-width: 600px) {
-  .controle {
+@media (max-width: 800px) {
+  .tabs {
     flex-direction: row;
     bottom: 0;
     position: fixed;
-    font-size: 20px;
+    font-size: 1.5rem;
     margin: 0;
     width: 100%;
+    background-color: #444;
+    height: 50px;
+    align-items: center;
   }
+  
+  .tab-name {
+    display: none;
+  }
+
   .nav-container {
     float: bottom;
   }
+
   .top {
     top: 0;
     left: 0;
     position: fixed;
   }
+
   .logo-file {
     width: 40px;
     height: 40px;
   }
+
   .linker {
-    margin: 0;
     border-radius: 0;
+    margin: auto;
   }
+
   .service-name {
     display: none;
   }
+
   .caracteres-version {
     display: none;
   }
+
   .top {
     top: 0;
     left: 0;
     position: fixed;
   }
+
   .logo {
     width: 50px;
     height: 50px;
   }
 }
+
 .linker:hover {
   color: #ddd;
 }
