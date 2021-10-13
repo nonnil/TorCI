@@ -57,7 +57,7 @@ routes:
       redirect "/"
     
   get "/net":
-    redirect "/net/interfaces"
+    redirect "/net/bridges"
   
   error Http404:
     resp renderFlat(renderError("404 Not Found"), cfg)
