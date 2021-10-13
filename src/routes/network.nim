@@ -1,7 +1,7 @@
 import jester, strutils
 import ../views/[temp, network]
 import ".."/[types, query, utils]
-import ".."/libs/[syslib, torLib, torboxLib, session, hostAp, fallbacks, wifiScanner, wirelessManager]
+import ".."/libs/[syslib, torLib, bridges, torboxLib, session, hostAp, fallbacks, wifiScanner, wirelessManager]
 
 export network
 
@@ -30,8 +30,8 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
     const crPath = "/net"
 
     let tab = Menu(
-      text: @["Tor", "Interfaces", "Wireless"],
-      anker: @[crPath & "/tor", crPath & "/interfaces", crPath & "/wireless"]
+      text: @["Bridges", "Interfaces", "Wireless"],
+      anker: @[crPath & "/bridges", crPath & "/interfaces", crPath & "/wireless"]
     )
 
     var net: Network = new Network
@@ -46,7 +46,8 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
     get "/bridges":
       let user = await getUser(request)
       if user.isLoggedIn:
-        resp renderNode(renderBridgesPane(), request, cfg, user.uname, "Bridges", menu=tab)
+        let bridgesSta = await getBridgesStatus()
+        resp renderNode(renderBridgesPage(bridgesSta), request, cfg, user.uname, "Bridges", menu=tab)
 
       redirectLoginPage()
 

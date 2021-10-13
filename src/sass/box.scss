@@ -171,6 +171,37 @@ input[name="password_visibility"][value="show"]:checked ~ .shadow {
 .card-table > input[type="radio"] {
   width: auto;
 }
+
 .card-table > input[type="checkbox"] {
   width: auto;
+}
+
+.textarea {
+  border: none;
+  width: 100%;
+  resize: vertical;
+  padding: 6px;
+}
+
+.btn-general {
+  width: auto;
+  padding: 0 10px;
+  line-height: 32px;
+  font-size: 18px;
+  border-radius: .4rem;
+}
+
+.btn-denger {
+  background-color: $red-btn-bg;
+  color: #fff;
+}
+
+.btn-warn {
+  background-color: $yellow-btn-bg;
+  color: #000;
+}
+
+.btn-safe {
+  background-color: $green-btn-bg;
+  color: #fff;
 }

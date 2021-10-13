@@ -10,7 +10,7 @@ proc renderChangePasswd*(): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="box"):
       tdiv(class="box-header"):
-        text "Change torbox's passwd"
+        text "Change password"
       form(`method`="post", action="/sys/passwd", enctype="multipart/form-data"):
         table(class="full-width box-table"):
           tbody():
@@ -30,6 +30,12 @@ proc renderChangePasswd*(): VNode =
                 strong():
                   input(`type`="password", `required`="", name="re_newPassword")
         button(class="btn-apply", `type`="submit", name="postType", value="chgPasswd"): text "Change password"
+        
+proc renderChangePassControlPort*(): VNode =
+  buildHtml(tdiv(class="columns")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Change"
 
 proc renderLogs*(): VNode =
   buildHtml(tdiv(class="")):

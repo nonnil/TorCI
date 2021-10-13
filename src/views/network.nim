@@ -100,7 +100,7 @@ proc renderObfs4Ctl*(): VNode =
                   button(`type`="submit", name="auto-add-obfs4", value="1"):
                     text "Add"
 
-proc renderBridgesCtl*(): VNode =
+proc renderBridgesCtl*(bridgesSta: BridgesStatus): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
@@ -112,20 +112,34 @@ proc renderBridgesCtl*(): VNode =
               td(): text "Obfs4"
               td():
                 strong():
-                  button(`type`="submit", name="obfs4", value="1"):
-                    text "Activate"
-            tr():
-              td(): text "Snowflake"
-              td():
-                strong():
-                  button(`type`="submit", name="snowflake", value="1"):
-                    text "Activate"
+                  if bridgesSta.obfs4:
+                    button(class="btn-general btn-danger", `type`="submit", name="deactivateObfs4", value="1"):
+                      text "Deactivate"
+                  else:
+                    button(class="btn-general btn-safe", `type`="submit", name="activateObfs4", value="1"):
+                      text "Activate"
+
             tr():
               td(): text "Meek-Azure"
               td():
                 strong():
-                  button(`type`="submit", name="meek-azure", value="1"):
-                    text "Activate"
+                  if bridgesSta.meekAzure:
+                    button(class="btn-general btn-danger", `type`="submit", name="deactivateMeek-azure", value="1"):
+                      text "Deactivate"
+                  else:
+                    button(class="btn-general btn-safe", `type`="submit", name="activateMeek-azure", value="1"):
+                      text "Activate"
+
+            tr():
+              td(): text "Snowflake"
+              td():
+                strong():
+                  if bridgesSta.snowflake:
+                    button(class="btn-general btn-danger", `type`="submit", name="deactivateSnowflake", value="1"):
+                      text "Deactivate"
+                  else:
+                    button(class="btn-general btn-safe", `type`="submit", name="activateSnowflake", value="1"):
+                      text "Activate"
                     
 # proc renderObfs4Add*(): VNode =
 #   buildHtml(tdiv(class="columns")):
@@ -139,14 +153,18 @@ proc renderBridgesCtl*(): VNode =
 #               td(): text
           
 proc renderInputObfs4*(): VNode =
-  buildHtml(tdiv(class="columns")):
+  buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Add Obfs4 Bridges"
       form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
-        table(class="full-width box-table"):
-          tr():
-            td(): text ""
+        textarea(
+          class="textarea bridge-input",
+          name="obfs4Text",
+          placeholder="e.g.\nobfs4 xxx.xxx.xxx.xxx:xxxx cert=abcd.. iat-mode=0\nobfs4 yyy.yyy.yyy.yyy:yyyy cert=abcd.. iat-mode=0",
+          required=""
+        )
+        button(class="btn-apply", `type`="submit"): text "Add Bridges"
 
 proc renderInterfaces*(): VNode =
   buildHtml(tdiv(class="card")):
@@ -410,6 +428,7 @@ proc renderTorPane*(torlog: string): VNode =
     renderTorConfig()
     renderTorLog(torlog)
     
-proc renderBridgesPane*(): VNode =
+proc renderBridgesPage*(bridgesSta: BridgesStatus): VNode =
   buildHtml(tdiv(class="cards")):
-    renderBridgesCtl()
+    renderInputObfs4()
+    renderBridgesCtl(bridgesSta)

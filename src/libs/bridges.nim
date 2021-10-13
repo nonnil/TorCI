@@ -1,7 +1,7 @@
 import os, osproc, re, asyncdispatch, strutils
 import ".."/[types]
 
-proc getBridgesStatus*(): Future[tuple[useBridges, obfs4, meekAzure, snowflake: bool]] {.async.} =
+proc getBridgesStatus*(): Future[BridgesStatus] {.async.} =
   try:
     let rc = readFile(torrc)
     for line in rc.splitLines():

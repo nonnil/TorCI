@@ -3,7 +3,7 @@ import views/[temp, login, renderutils]
 import routes/[status, network, sys]
 import connexion, types, config, query, utils
 import asyncdispatch, logging
-import libs/[syslib, torLib, torboxLib, fallbacks, wifiScanner, wirelessManager]
+import libs/[syslib, torLib, bridges, torboxLib, fallbacks, wifiScanner, wirelessManager]
 
 const configPath {.strdefine.} = "./torci.conf"
 let (cfg, fullCfg) = getConfig(configpath)

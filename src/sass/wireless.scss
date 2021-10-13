@@ -1,6 +1,6 @@
 .btn-reload {
   // color: #fc0;
-  color: #fff;
+  color: #000;
   font-size: 18px;
   width: auto;
   padding: 0 10px;
@@ -10,7 +10,7 @@
   text-align: center;
   border-radius: .4rem;
   vertical-align: middle;
-  background-color: $blue-btn-colour;
+  background-color: $yellow-btn-bg;
 }
 
 .btn-enable {
@@ -25,7 +25,7 @@
   border-radius: .4rem;
   vertical-align: middle;
   border-radius: .4rem;
-  background-color: $green-btn-colour;
+  background-color: $green-btn-bg;
 }
 
 .btn-disable{
@@ -41,5 +41,5 @@
   border-radius: .4rem;
   vertical-align: middle;
   border-radius: .4rem;
-  background-color: $red-btn-colour;
+  background-color: $red-btn-bg;
 }
