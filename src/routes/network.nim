@@ -19,8 +19,8 @@ template respApConf*(n: Notice = new Notice) =
     conf = await getHostApConf()
     devs = await getConnectedDevs(conf.iface)
   if n.msg.len > 0:
-    resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Host AP", menu=tab, notice=n)
-  resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Host AP", menu=tab)
+    resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Wireless", menu=tab, notice=n)
+  resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Wireless", menu=tab)
   
 template respRefuse*() =
   resp renderNode(renderClose(), request, cfg, user.uname, menu=tab)
