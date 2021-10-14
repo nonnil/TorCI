@@ -1,15 +1,25 @@
+import jester
 import karax/[vdom, karaxdsl, vstyles]
-import re
+import strutils, re
+
+proc getCurrentTab*(r: Request): string =
+  const tabs = @[
+    (name: "/io", text: "Status"),
+    (name: "/net", text: "Network"),
+    (name: "/sys", text: "System")
+  ]
+  for v in tabs:
+    if r.pathInfo.startsWith(v.name): return v.text 
 
 proc getNavClass*(path: string; text: string): string = 
   result = "linker"
   if match(path, re("^" & text)):
-    result &= " active"
+    result &= " current"
 
 proc getSubmenuClass*(path: string; text: string): string =
   echo text
   if match(path, re("^" & text)):
-    return "menu-item active"
+    return "menu-item current"
   else:
     return "menu-item"
 

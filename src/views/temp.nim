@@ -2,6 +2,7 @@ import karax/[karaxdsl, vdom, vstyles]
 import jester
 import renderutils
 import ".."/types
+import strutils
 # import re, os
 
 const
@@ -46,6 +47,8 @@ proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNod
       a(class="linker-root", href="/"):
         img(class="logo-file", src="/images/torbox.png")
         tdiv(class="service-name"):text cfg.title
+      tdiv(class="center-title"):
+        text req.getCurrentTab()
       tdiv(class="tabs"):
         a(class=getNavClass(req.pathInfo, "/io"), href="/io"):
           icon "th-large"
@@ -56,7 +59,7 @@ proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNod
           tdiv(class="tab-name"):
             text "Network"
         a(class=getNavClass(req.pathInfo, "/sys"), href="/sys"):
-          icon "cog-alt"
+          icon "cog"
           tdiv(class="tab-name"):
             text "System"
       tdiv(class="user-drop"):
