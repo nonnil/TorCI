@@ -42,7 +42,7 @@ a:hover {
 .container {
   color: #4a4a4a;
   //width: 100%;
-  font-size: 20px;
+  font-size: 1.3rem;
   //float: right;
   width: 80% !important;
   max-width: unset;
@@ -100,4 +100,11 @@ a:hover {
   background: none;
   margin: 0;
   padding: 0;
+}
+
+@media (max-width: 800px) {
+  .container {
+    width: 95% !important;
+    font-size: 1.1rem;
+  }
 }
