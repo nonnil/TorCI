@@ -26,6 +26,7 @@
 .box-table {
   padding: 20px;
   position: relative;
+  overflow-y: auto;
 }
 
 .edit-btn {
@@ -204,4 +205,10 @@ input[name="password_visibility"][value="show"]:checked ~ .shadow {
 .btn-safe {
   background-color: $green-btn-bg;
   color: #fff;
+}
+
+@media (max-width: 800px) {
+  .box-table {
+    display: inline-block;
+  }
 }

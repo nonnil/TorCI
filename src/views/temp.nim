@@ -44,42 +44,43 @@ proc renderSubMenu*(req: Request; menu: Menu): VNode =
 proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNode =
   result = buildHtml(header(class="headers")):
     nav(class="nav-container"):
-      tdiv(class="linker-root"):
-        a(class="", href="/"):
-          img(class="logo-file", src="/images/torbox.png")
-          tdiv(class="service-name"):text cfg.title
-      tdiv(class="center-title"):
-        text req.getCurrentTab()
-      tdiv(class="tabs"):
-        a(class=getNavClass(req.pathInfo, "/io"), href="/io"):
-          icon "th-large", class="tab-icon"
-          tdiv(class="tab-name"):
-            text "Status"
-        a(class=getNavClass(req.pathInfo, "/net"), href="/net"):
-          icon "wifi", class="tab-icon"
-          tdiv(class="tab-name"):
-            text "Network"
-        a(class=getNavClass(req.pathInfo, "/sys"), href="/sys"):
-          icon "cog", class="tab-icon"
-          tdiv(class="tab-name"):
-            text "System"
-      tdiv(class="user-drop"):
-        icon "user-circle"
-        input(class="popup-btn", `type`="radio", name="popup-btn", value="open")
-        input(class="popout-btn", `type`="radio", name="popup-btn", value="close")
-        tdiv(class="dropdown"):
-          tdiv(class="panel"):
-            tdiv(class="line"):
-              icon "user"
-              tdiv(class="username"): text "Logged In as " & username
-            form(`method`="post", action="/net/torctl", enctype="multipart/form-data"):
-              button(`type`="submit", name="restartTor", value="1"):
-                icon "cw"
-                tdiv(class="btn-text"): text "Restart Tor"
-            form(`method`="post", action="/logout", enctype="multipart/form-data"):
-              button(`type`="submit", name="signout", value="1"):
-                icon "logout"
-                tdiv(class="btn-text"): text "Log out"
+      tdiv(class="inner-nav"):
+        tdiv(class="linker-root"):
+          a(class="", href="/"):
+            img(class="logo-file", src="/images/torbox.png")
+            tdiv(class="service-name"):text cfg.title
+        tdiv(class="center-title"):
+          text req.getCurrentTab()
+        tdiv(class="tabs"):
+          a(class=getNavClass(req.pathInfo, "/io"), href="/io"):
+            icon "th-large", class="tab-icon"
+            tdiv(class="tab-name"):
+              text "Status"
+          a(class=getNavClass(req.pathInfo, "/net"), href="/net"):
+            icon "wifi", class="tab-icon"
+            tdiv(class="tab-name"):
+              text "Network"
+          a(class=getNavClass(req.pathInfo, "/sys"), href="/sys"):
+            icon "cog", class="tab-icon"
+            tdiv(class="tab-name"):
+              text "System"
+        tdiv(class="user-drop"):
+          icon "user-circle-o"
+          input(class="popup-btn", `type`="radio", name="popup-btn", value="open")
+          input(class="popout-btn", `type`="radio", name="popup-btn", value="close")
+          tdiv(class="dropdown"):
+            tdiv(class="panel"):
+              tdiv(class="line"):
+                icon "user-o"
+                tdiv(class="username"): text "Username: " & username
+              form(`method`="post", action="/net/torctl", enctype="multipart/form-data"):
+                button(`type`="submit", name="restartTor", value="1"):
+                  icon "cw"
+                  tdiv(class="btn-text"): text "Restart Tor"
+              form(`method`="post", action="/logout", enctype="multipart/form-data"):
+                button(`type`="submit", name="signout", value="1"):
+                  icon "logout"
+                  tdiv(class="btn-text"): text "Log out"
         # tdiv(class="logout-button"):
         #   icon "logout"
     if menu.text.len != 0:
