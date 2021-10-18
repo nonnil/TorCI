@@ -5,6 +5,8 @@
   background-color: #4a4a4a;
   padding: 0px 0px;
   margin: 0;
+  overflow: auto;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
 }
 
 .menu-table {
@@ -16,8 +18,8 @@
   margin: 0;
 }
 
-.menu-table > .active {
-  background-color: #fff;
+.menu-table > .current {
+  border-bottom: solid 5px $torbox-green;
 }
 
 .menu-item {
@@ -30,8 +32,8 @@
   padding: 10px 10px;
 }
 
-.active > .menu-link {
-  color: #4a4a4a;
+.current > .menu-link {
+  font-weight: bold;
 }
 
 .menu-link {

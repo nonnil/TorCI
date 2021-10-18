@@ -295,3 +295,10 @@ td:last-child, th:last-child {
 .width-38 {
   width: 38%;
 }
+
+@media (max-width: 800px) {
+  .columns {
+    width: 100%;
+    margin: 0;
+  }
+}
