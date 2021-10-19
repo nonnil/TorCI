@@ -11,15 +11,19 @@ template redirectLoginPage*() =
 template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string]) =
   resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, menu=tab)
 
-template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notice: Notice) =
-  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, menu=tab, notice = notice)
+template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notify: Notify) =
+  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, menu=tab, notify = notify)
   
-template respApConf*(n: Notice = new Notice) =
+template respApConf*(n: Notify or Notifies) =
   let
     conf = await getHostApConf()
     devs = await getConnectedDevs(conf.iface)
-  if n.msg.len > 0:
-    resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Wireless", menu=tab, notice=n)
+  resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Wireless", menu=tab, n)
+
+template respApConf*() =
+  let
+    conf = await getHostApConf()
+    devs = await getConnectedDevs(conf.iface)
   resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Wireless", menu=tab)
   
 template respRefuse*() =
@@ -103,7 +107,6 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
             redirect crPath & "/interfaces/join/?iface=" & $iface & "&captive=1"
 
           redirect crPath & "/interfaces/join/?iface=" & $iface
-          # else: resp renderNode(renderInterfaces(), request, cfg, tab, notice=Notice(state: failure, message: wifiScanResult.msg))
         else: redirect "interfaces"
       redirectLoginPage()
     
@@ -133,23 +136,37 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
       let user = await getUser(request)
       if user.isLoggedIn:
         let
-          cloak = request.formData.getOrDefault("ssidCloak").body
-          band = request.formData.getOrDefault("band").body
+          band = if sysInfo.model == model3: "g"
+                 else: request.formData.getOrDefault("band").body
+          channel = request.formData.getOrDefault("channel").body
 
-        let conf: HostApConf = HostApConf(
-          ssid: request.formData.getOrDefault("ssid").body,
-          band: if (sysInfo.model == model3) and (band == "a"): "" else: band,
-          channel: request.formData.getOrDefault("channel").body,
-          isHidden: if cloak == "1": true else: false,
-          password: request.formData.getOrDefault("password").body
-        )
+        let conf: OrderedTable[string, string] = {
+          "ssid": request.formData.getOrDefault("ssid").body,
+          "band": band,
+          "channel": if channel.len != 1: "" else: channel,
+          "hideSsid": request.formData.getOrDefault("ssidCloak").body,
+          "password": request.formData.getOrDefault("password").body
+        }.toOrderedTable()
+
         let ret = await setHostApConf(conf)
-        if ret:
-          respApConf(Notice(status: success, msg: "Configuration successful. Please restart this Access Point to apply the changes"))
+
+        if ret.allgreen:
+          respApConf(
+            Notify(
+              status: success,
+              msg: "Configuration successful. Please restart this Access Point to apply the changes"
+            )
+          )
+
+        elif ret.rets.len > 0:
+          var notifies: Notifies
+          for v in ret.rets:
+            notifies.add Notify(status: v.status, msg: v.msg)
+          respApConf(notifies)
+
         else:
-          respApConf(Notice(status: failure, msg: "Invalid config"))
-        # hostapdFallback()
-        # redirect "wireless"
+          redirect "wireless"
+
       redirect "/login"
     
     post "/apctl":
@@ -225,7 +242,6 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
               setInterface(iface, clientWln, clientEth)
               saveIptables()
               redirect crPath & "/interfaces"
-            # resp renderNode(renderWirelessPane(waitFor getWlanInfo()), request, cfg, menu=tab, notice=Notice(state: failure, message: con.msg))
             net = new Network
 
           redirect crPath & "/interfaces"

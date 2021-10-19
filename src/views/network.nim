@@ -336,8 +336,6 @@ proc renderHostApConf(conf: HostApConf, sysInfo: SystemInfo): VNode =
               tdiv(class="card-table"):
                 label(class="card-title"): text "channel"
                 renderChannelSelect(sysInfo, conf.band)
-                  # select(name="channel"):
-                  #   option(value="")
               tdiv(class="card-table"):
                 if conf.isHidden:
                   label(class="card-title"): text "Unhide SSID"

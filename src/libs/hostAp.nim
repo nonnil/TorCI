@@ -39,28 +39,33 @@ proc parseConf*(s: seq[string]): Future[TableRef[string, string]] {.async.} =
 proc isValid(s, flag: string): tuple[ret: bool, msg: string]=
   case flag
   of "ssid":
-    if s.len == 0: return
-    if s.len <= 32 and s.match(re"^(^[A-Za-z0-9\-\_]+$)"):
+    if s.len > 32:
+      return (false, "Please set the SSID to 32 characters or less.")
+    elif s.match(re"^(^[A-Za-z0-9\-\_]+$)"):
       return (true, "")
-    elif s.len > 32:
-      return (false, "Please set to 32 characters or less.")
     else:
-      return  (false, "")
+      return (false, "Invalid SSID")
 
   of "band":
     if s.len == 0: return
     if s.len == 1 and s.match(re"^(a|g)$"):
       return (true, "")
     else:
-      return (false, "")
+      return (false, "Invalid band")
 
   of "channel":
     if s.len == 0: return
     if channels.hasKey(s):
       return (true, "")
+    else:
+      return (false, "Invalid channel")
 
   of "password":
-    if (s.len >= 8) and (s.len <= 64):
+    if s.len > 64:
+      return (false, "Please set the password to 64 characters or less.")
+    elif s.len < 8:
+      return (false, "Please set the password to 8 characters or more")
+    else:
       return (true, "")
 
   else:
@@ -124,7 +129,6 @@ proc getHostApConf*(): Future[HostApConf] {.async.} =
     let apSta = waitFor getHostApStatus()
     var fr = splitLines(readFile(hostapd))
     # fr.delete(0, 5)
-    # echo "Splited file lines: " & fr
     let tb = await parseConf(fr)
     # let crBand = await currentBand()
     # result = {"ssid": tb["ssid"], "band": crBand, "ssidCloak": tb["ignore_broadcast_ssid"]}.newTable
@@ -140,53 +144,105 @@ proc getHostApConf*(): Future[HostApConf] {.async.} =
   except:
     return
 
-proc setHostApConf*(conf: HostApConf): Future[bool] {.async.} =
+proc setHostApConf*(conf: OrderedTable[string, string]): Future[
+  tuple[
+    allgreen: bool,
+    rets: seq[
+      tuple[
+        status: Status,
+        msg: string
+      ]
+    ]
+  ]
+  ] {.async.} =
   try:
     copyFile(hostapd, hostapdBak)
-    var fr = readFile(hostapd)
+    var
+      fr = readFile(hostapd)
+      existsBad: bool
+      succeed: int
 
-    if isValid(conf.ssid, "ssid").ret:
-      fr = fr.replace(re"ssid=.*", "ssid=" & conf.ssid)
+    for k, v in conf.pairs:
+      if v.len == 0: continue
 
-    if isValid(conf.channel, "channel").ret:
-      let (channel, hf) = channels[conf.channel]
-      fr = fr.replace(re"channel=.*", "channel=" & $channel)
+      case k
+      of "ssid":
+        let iv = isValid(v, "ssid")
 
-      if hf == 0:
-        fr = fr.replace("vht_oper_chwidth=1", "#vht_oper_chwidth=1")
-        fr = fr.replace("vht_oper_centr_freq_seg0_idx=42", "#vht_oper_centr_freq_seg0_idx=42")
+        if iv.ret:
+          fr = fr.replace(re"ssid=.*", "ssid=" & v)
+          succeed += 1
 
-      else:
-        fr = fr.replace("#vht_oper_chwidth=1", "vht_oper_chwidth=1")
-        fr = fr.replace("#vht_oper_centr_freq_seg0_idx=42", "vht_oper_centr_freq_seg0_idx=42")
+        else:
+          existsBad = true
+          result.rets.add (failure, iv.msg)
 
-    if isValid(conf.band, "band").ret:
-      if conf.band == "a":
-        let coCode = getCrda()
-        if coCode == "00":
-          changeCrda()
-        fr = fr.replace("hw_mode=g", "hw_mode=" & conf.band)
-        fr = fr.replace(re"channel.*", "channel=36")
-        fr = fr.replace("#ht_capab=[HT40-][HT40+][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40]", "ht_capab=[HT40-][HT40+][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40]")
-      else:
-        fr = fr.replace("hw_mode=a", "hw_mode=g")
-        fr = fr.replace(re"channel.*", "channel=6")
-        fr = fr.replace("vht_oper_chwidth=1", "#vht_oper_chwidth=1")
-        fr = fr.replace("vht_oper_centr_freq_seg0_idx=42", "#vht_oper_centr_freq_seg0_idx=42")
-        
-    if isValid(conf.password, "password").ret:
-      fr = fr.replace(re"wpa_passphrase=.*", "wpa_passphrase=" & conf.password)
+      of "channel":
+        let iv = isValid(v, "channel")
 
-    let input: int = if conf.isHidden: 1
-                     else: 0
+        if iv.ret:
+          let (channel, hf) = channels[v]
+          fr = fr.replace(re"channel=.*", "channel=" & $channel)
+          succeed += 1
 
-    fr = fr.replacef(re"ignore_broadcast_ssid=.*", "ignore_broadcast_ssid=" & $input)
-    writeFile(hostapd, fr)
+          if hf == 0:
+            fr = fr.replace("vht_oper_chwidth=1", "#vht_oper_chwidth=1")
+            fr = fr.replace("vht_oper_centr_freq_seg0_idx=42", "#vht_oper_centr_freq_seg0_idx=42")
 
-    return true
+          else:
+            fr = fr.replace("#vht_oper_chwidth=1", "vht_oper_chwidth=1")
+            fr = fr.replace("#vht_oper_centr_freq_seg0_idx=42", "vht_oper_centr_freq_seg0_idx=42")
+
+        else:
+          existsBad = true
+          result.rets.add (failure, iv.msg)
+
+      of "band":
+        let iv = isValid(v, "band")
+        if iv.ret:
+          if v == "a":
+            let coCode = getCrda()
+
+            if coCode == "00":
+              changeCrda()
+            fr = fr.replace("hw_mode=g", "hw_mode=" & v)
+            fr = fr.replace(re"channel.*", "channel=36")
+            fr = fr.replace("#ht_capab=[HT40-][HT40+][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40]", "ht_capab=[HT40-][HT40+][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40]")
+
+          else:
+            fr = fr.replace("hw_mode=a", "hw_mode=g")
+            fr = fr.replace(re"channel.*", "channel=6")
+            fr = fr.replace("vht_oper_chwidth=1", "#vht_oper_chwidth=1")
+            fr = fr.replace("vht_oper_centr_freq_seg0_idx=42", "#vht_oper_centr_freq_seg0_idx=42")
+
+          succeed += 1
+
+        else:
+          existsBad = true
+          result.rets.add (failure, iv.msg)
+          
+      of "password":
+        let iv = isValid(v, "password")
+        if iv.ret:
+          fr = fr.replace(re"wpa_passphrase=.*", "wpa_passphrase=" & v)
+          succeed += 1
+
+        else:
+          existsBad = true
+          result.rets.add (failure, iv.msg)
+
+      of "hideSsid":
+        let input: int = if v == "1": 1 
+                         else: 0
+        fr = fr.replacef(re"ignore_broadcast_ssid=.*", "ignore_broadcast_ssid=" & $input)
+        succeed += 1
+
+    if succeed > 0:
+      writeFile(hostapd, fr)
+      if not existsBad: result.allgreen = true
 
   except:
-    return false
+    return
 
 when isMainModule:
   when defined(dhclient):

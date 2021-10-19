@@ -36,10 +36,12 @@ type
     deactive
     online
     offline
-
-  Notice* = ref object
+    
+  Notify* = ref object
     status*: Status
     msg*: string
+    
+  Notifies* = seq[Notify]
   
   HostApConf* = object
     isActive*: bool

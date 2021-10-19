@@ -44,7 +44,7 @@ routes:
         setCookie("torci", ret.token, expires = expireTime, httpOnly = true)
         redirect "/"
 
-    resp renderFlat(renderLogin(), cfg, notice = Notice(status: failure, msg: "Invalid username or password"))
+    resp renderFlat(renderLogin(), cfg, notify = Notify(status: failure, msg: "Invalid username or password"))
   
   post "/logout":
     let user = await getUser(request)

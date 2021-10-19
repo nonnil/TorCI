@@ -3,6 +3,7 @@ import jester
 import renderutils
 import ".."/types
 import strutils
+import typetraits
 # import re, os
 
 const
@@ -124,7 +125,15 @@ proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: s
         v
   result = doctype & $node
 
-proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: string = "", menu = Menu(); notice: Notice): string =
+proc renderNode*(
+  v: VNode;
+  req: Request;
+  cfg: Config;
+  username: string;
+  title: string = "",
+  menu = Menu();
+  notify: Notify): string =
+
   let node = buildHtml(html(lang="en")):
     renderHead(cfg, title)
     body:
@@ -132,9 +141,47 @@ proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: s
         renderNav(cfg, req, username, menu)
       else:
         renderNav(cfg, req, username)
-      if notice.msg.len > 0:
+      let colour =
+        case notify.status
+        of success:
+          colourGreen
+
+        of warn:
+          colourYellow
+
+        of failure:
+          colourRed
+
+        else:
+          colourGray
+
+      tdiv(class="notify-bar"):
+        input(id="ignoreNotify", `type`="radio", name="ignoreNotify")
+        tdiv(class="notify-message", style={backgroundColor: colour}):
+          text notify.msg
+      tdiv(class="container"):
+        v
+  result = doctype & $node
+
+proc renderNode*(
+  v: VNode;
+  req: Request;
+  cfg: Config;
+  username: string;
+  title: string = "",
+  menu = Menu();
+  notifies: Notifies): string =
+
+  let node = buildHtml(html(lang="en")):
+    renderHead(cfg, title)
+    body:
+      if menu.text.len != 0:
+        renderNav(cfg, req, username, menu)
+      else:
+        renderNav(cfg, req, username)
+      for i, n in notifies:
         let colour =
-          case notice.status
+          case n.status
           of success:
             colourGreen
 
@@ -147,10 +194,10 @@ proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: s
           else:
             colourGray
 
-        tdiv(class="notice-bar"):
-          input(id="ignoreNotice", `type`="radio", name="ignoreNotice")
-          tdiv(class="notice-message", style={backgroundColor: colour}):
-            text notice.msg
+        tdiv(class="notifies-bar"):
+          input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
+          tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
+            text n.msg
       tdiv(class="container"):
         v
   result = doctype & $node
@@ -162,13 +209,13 @@ proc renderFlat*(v: VNode, cfg: Config, title: string = ""): string =
       v
   result = doctype & $ret
 
-proc renderFlat*(v: VNode, cfg: Config, notice: Notice, title: string = ""): string =
+proc renderFlat*(v: VNode, cfg: Config, notify: Notify, title: string = ""): string =
   let ret = buildHtml(html(lang="en")):
     renderHead(cfg, title)
     body:
-      if notice.msg.len > 0:
+      if notify.msg.len > 0:
         let colour =
-          case notice.status
+          case notify.status
           of success:
             colourGreen
 
@@ -181,9 +228,9 @@ proc renderFlat*(v: VNode, cfg: Config, notice: Notice, title: string = ""): str
           else:
             colourGray
 
-        tdiv(class="notice-bar"):
-          input(id="ignoreNotice", `type`="radio", name="ignoreNotice")
-          tdiv(class="notice-message", style={backgroundColor: colour}):
-            text notice.msg
+        tdiv(class="notify-bar"):
+          input(id="ignoreNotify", `type`="radio", name="ignoreNotify")
+          tdiv(class="notify-message", style={backgroundColor: colour}):
+            text notify.msg
       v
   result = doctype & $ret

@@ -1,11 +1,11 @@
-.notice-bar {
+.notify-bar {
   position: relative;
   width: 60%;
   text-align: center;
   margin: 110px auto 0px auto;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
 }
-.notice-message {
+.notify-message {
   width: 100%;
   color: white;
   padding: 15px 0 15px 0;
@@ -15,7 +15,7 @@
   margin-bottom: -98px;
 }
 
-#ignoreNotice {
+.ignore-notify {
   opacity: 0;
   position: absolute;
   cursor: pointer;
@@ -27,6 +27,6 @@
   margin: 0;
 }
 
-#ignoreNotice:checked ~ .notice-message{
+.ignore-notify:checked ~ .notify-message{
   display: none;
 }

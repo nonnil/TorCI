@@ -22,17 +22,15 @@ proc routingSys*(cfg: Config) =
         if request.formData["postType"].body == "chgPasswd":
           let code = await changePasswd(request.formData["crPassword"].body, request.formData["newPassword"].body, request.formData["re_newPassword"].body)
           if code:
-            # resp renderNode(renderContainer(renderPasswd()), request, cfg, tabForSys, Notice(state: success, message: "TorBox's password had changed."))
             redirect("/login")
           else:
-            # resp renderNode(renderContainer(renderPasswd()), request, cfg, tabForSys, Notice(state: failure, message: "Your password doesn't confirmed."))
             redirect("/login")
         elif request.formData["postType"].body == "eraseLogs":
           let erased = await eraseLogs()
           if erased == success:
-            resp renderNode(renderLogs(), request, cfg, user.uname, "", tabForSys, Notice(status: success, msg: "Complete erased logs"))
+            resp renderNode(renderLogs(), request, cfg, user.uname, "", tabForSys, Notify(status: success, msg: "Complete erased logs"))
           elif erased == failure:
-            resp renderNode(renderLogs(), request, cfg, user.uname, "", tabForSys, Notice(status: failure, msg: "Failure erased logs"))
+            resp renderNode(renderLogs(), request, cfg, user.uname, "", tabForSys, Notify(status: failure, msg: "Failure erased logs"))
 
     get "/sys/passwd":
       let user = await getUser(request)
