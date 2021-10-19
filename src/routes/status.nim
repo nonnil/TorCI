@@ -1,7 +1,7 @@
-import jester 
+import jester, asyncdispatch
 import ../views/[temp, status]
-import ".."/[types, connexion]
-import ".."/libs/[syslib, torLib, wirelessManager]
+import ".."/[types]
+import ".."/libs/[session, syslib, torLib, wirelessManager]
 #import sugar
 
 export status
