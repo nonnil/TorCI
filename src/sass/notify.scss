@@ -9,7 +9,7 @@
   width: 100%;
   color: white;
   padding: 15px 0 15px 0;
-  font-size: 24px;
+  font-size: 1.3rem;
   background-color: #E74C3C;
   cursor: pointer;
   margin-bottom: -98px;
@@ -29,4 +29,13 @@
 
 .ignore-notify:checked ~ .notify-message{
   display: none;
+}
+
+@media (max-width: 800px) {
+  .notify-bar {
+    width: 95%;
+  }
+  .notify-message {
+    font-size: 1.1rem;
+  }
 }

@@ -156,7 +156,7 @@ proc renderNode*(
           colourGray
 
       tdiv(class="notify-bar"):
-        input(id="ignoreNotify", `type`="radio", name="ignoreNotify")
+        input(class="ignore-notify", `type`="checkbox", name="ignoreNotify")
         tdiv(class="notify-message", style={backgroundColor: colour}):
           text notify.msg
       tdiv(class="container"):
@@ -194,7 +194,7 @@ proc renderNode*(
           else:
             colourGray
 
-        tdiv(class="notifies-bar"):
+        tdiv(class="notify-bar"):
           input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
           tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
             text n.msg
