@@ -37,9 +37,7 @@ $ docker run --rm -d -p 1984:1984 torci:beta
 $ docker logs `CONTAINER_ID`
 ```
 
-Reach the TorCI: `127.0.0.1:1984`
-
-(The default username and password : `torbox`)
+Reach TorCI: `0.0.0.0:1984` (username and password: `torbox`)
 
 ### Nimble
 
