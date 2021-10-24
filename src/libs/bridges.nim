@@ -93,7 +93,7 @@ proc isValidObfs4(obfs4: string): bool =
 proc addObfs4*(bridge: string): Future[tuple[res: bool, msg: string]] {.async.} =
   if bridge.isValidObfs4():
     var rc = readFile(torrc)
-    rc.add "\n" & bridge
+    rc &= "\n" & bridge
     torrc.writeFile(rc)
     return (true, "")
 
