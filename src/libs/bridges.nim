@@ -76,4 +76,31 @@ proc activateAllConfiguredObfs4*() {.async.} =
 
     torrc.writeFile(rc)
     
+proc isValidObfs4(obfs4: string): bool =
+  let splited = obfs4.splitWhitespace()
+  if splited.len == 4:
+
+    if (splited[0] != "obfs4") or 
+    (not splited[1].match(re"(\d+\.){3}(\d+):\d+")) or
+    (not splited[2].match(re".+")) or
+    (not splited[3].match(re"cert=.+")) or 
+    (not splited[4].match(re"iat-mode=\d{1}")):
+      return false
+
+    else:
+      return true
+
+proc addObfs4*(bridge: string): Future[tuple[res: bool, msg: string]] {.async.} =
+  if bridge.isValidObfs4():
+    var rc = readFile(torrc)
+    rc.add "\n" & bridge
+    torrc.writeFile(rc)
+    return (true, "")
+
+proc addObfs4*(bridges: seq[string]): Future[tuple[res: bool, msg: string]] {.async.} =
+  for bridge in bridges:
+    let ret = waitFor addObfs4(bridge)
+    if not ret.res:
+      return ret
+    
 # proc activateOnlineObfs4*() {.async.} =
