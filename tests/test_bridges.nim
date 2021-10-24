@@ -1,14 +1,13 @@
 import strutils, re
 
 proc isValidObfs4(obfs4: string): bool =
-  let splited = obfs4.splitWhitespace()
-  if splited.len == 4:
-
-    if (splited[0] != "obfs4") or 
-    (not splited[1].match(re"(\d+\.){3}(\d+):\d+")) or
-    (not splited[2].match(re".+")) or
-    (not splited[3].match(re"cert=.+")) or 
-    (not splited[4].match(re"iat-mode=\d{1}")):
+  let splitted = obfs4.splitWhitespace()
+  if splitted.len == 5:
+    if (splitted[0] != "obfs4") or 
+    (not splitted[1].match(re"(\d+\.){3}(\d+):\d+")) or
+    (not splitted[2].match(re".+")) or
+    (not splitted[3].match(re"cert=.+")) or 
+    (not splitted[4].match(re"iat-mode=\d{1}")):
       return false
 
     else:
