@@ -22,8 +22,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-20.04, ubuntu-18.04]
-        nim-version: [stable, devel]
+        os:
+          - ubuntu-latest
+          - ubuntu-20.04
+          - ubuntu-18.04]
+        nim-version:
+          - stable
+          - devel
       
     steps:
       - name: Checkout
