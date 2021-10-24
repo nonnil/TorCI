@@ -1,21 +1,6 @@
 name: Test TorCI
   
-on:
-  push:
-    paths-ignore:
-      - 'LICENSE'
-      - '*.md'
-    branches:
-      - master
-      - devel
-        
-  pull_request:
-    paths-ignore:
-      - 'LICENSE'
-      - '*.md'
-    branches:
-      - master
-      - devel
+on: [push, pull_request]
   
 jobs:
   test:
@@ -25,7 +10,7 @@ jobs:
         os:
           - ubuntu-latest
           - ubuntu-20.04
-          - ubuntu-18.04]
+          - ubuntu-18.04
         nim-version:
           - stable
           - devel
