@@ -13,7 +13,7 @@ proc curlWriteFn(
   outbuf[] &= buffer
   result = size * count
 
-proc socks5req(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): string =
+proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): string =
   let curl = easy_init()
   let webData: ref string = new string
   discard curl.easy_setopt(OPT_USERAGENT,
@@ -40,24 +40,21 @@ proc socks5req(url, address: string, port: Port, prt: Protocol = GET, data: stri
 # proc torsocks*(url, address: string, port: Port, ): Future[string] {.async.} = 
 #   result = url.socks5req(address, port)
 
-proc torsocksGet*(url: string, cfg: Config): Future[string] {.async.} =
+proc torsocks*(url: string, cfg: Config, prtc: Protocol = GET): Future[string] {.async.} =
   let
     address = cfg.torAddress
     port = cfg.torPort.parseInt.Port
-  result = url.socks5req(address, port, GET)
+  result = url.socks5(address, port, prtc)
 
-proc torsocksPost*(url: string, cfg: Config, data: string): Future[string] {.async.} =
-  let
-    address = cfg.torAddress
-    port = cfg.torPort.parseInt.Port
-  result = url.socks5req(address, port, POST, data)
+proc torsocks*(url: string, address: string = "127.0.0.1", port: Port = 9050.Port, prtc: Protocol = GET): Future[string] {.async.} =
+  result = url.socks5(address, port, prtc)
 
 proc checkTor*(cfg: Config): Future[tuple[isTor: bool, ipAddr: string]] {.async.} =
   try:
     const
       destHost = "https://check.torproject.org/api/ip"
     let
-      torch = await destHost.torsocksGet(cfg)
+      torch = await destHost.torsocks(cfg)
     if torch.len != 0:
       let jObj = parseJson(torch)
       if $jObj["IsTor"] == "true":
@@ -69,7 +66,7 @@ proc checkTor*(cfg: Config): Future[tuple[isTor: bool, ipAddr: string]] {.async.
 proc getTorStatus*(cfg: Config): Future[TorStatus] {.async.} =
   let
     torch = await checkTor(cfg)
-    bridges = await getBridgesStatus()
+    bridges = await getBridgeStatuses()
   result.isOnline = torch.isTor
   result.exitIp = torch.ipAddr
   result.useObfs4 = bridges.obfs4
@@ -102,9 +99,9 @@ proc spawnTorrc*() =
 # proc activateBridges*()
   
 when isMainModule:
-  let bridgesS = waitFor getBridgesStatus()
+  let bridgesS = waitFor getBridgeStatuses()
   echo "obfs4: ", bridgesS.obfs4
   echo "meekAzure: ", bridgesS.meekAzure
   echo "snowflake: ", bridgesS.snowflake
-  let check = socks5Req("https://ipinfo.io/products/ip-geolocation-api", "127.0.0.1", 9050.Port, POST, "input=37.228.129.5")
+  let check = socks5("https://ipinfo.io/products/ip-geolocation-api", "127.0.0.1", 9050.Port, POST, "input=37.228.129.5")
   echo "result: ", check
