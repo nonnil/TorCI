@@ -141,24 +141,25 @@ proc renderNode*(
         renderNav(cfg, req, username, menu)
       else:
         renderNav(cfg, req, username)
-      let colour =
-        case notify.status
-        of success:
-          colourGreen
+      if notify.msg.len > 0:
+        let colour =
+          case notify.status
+          of success:
+            colourGreen
 
-        of warn:
-          colourYellow
+          of warn:
+            colourYellow
 
-        of failure:
-          colourRed
+          of failure:
+            colourRed
 
-        else:
-          colourGray
+          else:
+            colourGray
 
-      tdiv(class="notify-bar"):
-        input(class="ignore-notify", `type`="checkbox", name="ignoreNotify")
-        tdiv(class="notify-message", style={backgroundColor: colour}):
-          text notify.msg
+        tdiv(class="notify-bar"):
+          input(class="ignore-notify", `type`="checkbox", name="ignoreNotify")
+          tdiv(class="notify-message", style={backgroundColor: colour}):
+            text notify.msg
       tdiv(class="container"):
         v
   result = doctype & $node
@@ -177,27 +178,30 @@ proc renderNode*(
     body:
       if menu.text.len != 0:
         renderNav(cfg, req, username, menu)
+
       else:
         renderNav(cfg, req, username)
+
       for i, n in notifies:
-        let colour =
-          case n.status
-          of success:
-            colourGreen
+        if n.msg.len > 0:
+          let colour =
+            case n.status
+            of success:
+              colourGreen
 
-          of warn:
-            colourYellow
+            of warn:
+              colourYellow
 
-          of failure:
-            colourRed
+            of failure:
+              colourRed
 
-          else:
-            colourGray
+            else:
+              colourGray
 
-        tdiv(class="notify-bar"):
-          input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
-          tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
-            text n.msg
+          tdiv(class="notify-bar"):
+            input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
+            tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
+              text n.msg
       tdiv(class="container"):
         v
   result = doctype & $node

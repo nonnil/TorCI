@@ -104,7 +104,7 @@ type
     logFile*: string
     configFile*: string
     
-  BridgesStatus* = object
+  BridgeStatuses* = object
     useBridges*: bool
     obfs4*: bool
     meekAzure*: bool

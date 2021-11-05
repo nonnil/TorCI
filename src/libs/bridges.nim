@@ -1,7 +1,10 @@
 import os, osproc, re, asyncdispatch, strutils
 import ".."/[types]
+import json
+import torsocks
+import nimpy
 
-proc getBridgesStatus*(): Future[BridgesStatus] {.async.} =
+proc getBridgeStatuses*(): Future[BridgeStatuses] {.async.} =
   try:
     let rc = readFile(torrc)
     for line in rc.splitLines():
@@ -18,6 +21,25 @@ proc getBridgesStatus*(): Future[BridgesStatus] {.async.} =
         result.snowflake = true
         continue
   except: return
+  
+proc isRunning*(fp: string, conf: Config): Future[bool] {.async.} =
+  const destHost = "https://onionoo.torproject.org" / "details?lookup="
+
+  let
+    binascii = pyImport("binascii")
+    hashlib = pyImport("hashlib")
+    hash = hashlib.sha1(binascii.a2b_hex(fp)).hexdigest().to(string)
+
+  let ret = await (destHost & hash).torsocks(conf)
+
+  if ret.len > 0:
+    let j = parseJson(ret)
+
+    if j["bridges"].len > 0:
+      let bridge = j["bridges"][0]
+      
+      if $bridge["running"] == "true":
+        return true
 
 proc getObfs4Count(): tuple[activated, deactivated, total: int] =
   let rc = readFile(torrc)
@@ -58,9 +80,10 @@ proc deactivateBridgeRelay() =
     rc = rc.replacef(re"BridgeDistribution\s(.*)", "#BridgeDistribution $1")
 
     torrc.writeFile rc
-    
-    discard execCmd("sudo iptables -D INPUT -p tcp --dport $sORPORT -j ACCEPT")
-    discard execCmd("sudo iptables -D INPUT -p tcp --dport $sOBFS4PORT -j ACCEPT")
+
+    if (orport.len != 0) and (obfs4port.len != 0):
+      discard execCmd("sudo iptables -D INPUT -p tcp --dport $sORPORT -j ACCEPT")
+      discard execCmd("sudo iptables -D INPUT -p tcp --dport $sOBFS4PORT -j ACCEPT")
     
 proc activateAllConfiguredObfs4*() {.async.} =
   let (activated, _, _) = getObfs4Count()
@@ -76,31 +99,51 @@ proc activateAllConfiguredObfs4*() {.async.} =
 
     torrc.writeFile(rc)
     
-proc isValidObfs4(obfs4: string): bool =
-  let splited = obfs4.splitWhitespace()
-  if splited.len == 4:
+proc isObfs4(obfs4: string): bool =
+  let splitted = obfs4.splitWhitespace()
+  if splitted.len == 5:
 
-    if (splited[0] != "obfs4") or 
-    (not splited[1].match(re"(\d+\.){3}(\d+):\d+")) or
-    (not splited[2].match(re".+")) or
-    (not splited[3].match(re"cert=.+")) or 
-    (not splited[4].match(re"iat-mode=\d{1}")):
-      return false
-
-    else:
+    if (splitted[0] == "obfs4") and
+    (splitted[1].match(re"(\d+\.){3}(\d+):\d+")) and
+    (splitted[2].match(re".+")) and
+    (splitted[3].match(re"cert=.+")) and
+    (splitted[4].match(re"iat-mode=\d")):
       return true
 
+    else:
+      return false
+    
+proc isSnowflake(snowflake: string): bool =
+  let s = snowflake.splitWhitespace()
+  if s.len == 2:
+    
+    if (s[0].match(re"(\d+\.){3}(\d+):\d+")) and
+    (s[1].match(re".+")):
+      return true
+    
+    else:
+      return false
+
 proc addObfs4*(bridge: string): Future[tuple[res: bool, msg: string]] {.async.} =
-  if bridge.isValidObfs4():
+  if bridge.isObfs4():
     var rc = readFile(torrc)
     rc &= "\n" & bridge
     torrc.writeFile(rc)
     return (true, "")
 
-proc addObfs4*(bridges: seq[string]): Future[tuple[res: bool, msg: string]] {.async.} =
+proc addObfs4*(bridges: seq[string]): Future[seq[tuple[res: bool, msg: string]]] {.async.} =
   for bridge in bridges:
     let ret = waitFor addObfs4(bridge)
     if not ret.res:
-      return ret
+      result.add ret
+      
+proc activateSnowflake*(): Future[bool] {.async.} =
+  let rc = readFile(torrc)
+  for line in rc.splitLines():
+    if line.startsWith("#Bridge snowflake "):
+      let strs = line.splitWhitespace(2)
+      if isSnowflake(strs[2]):
+        return true
+      
     
 # proc activateOnlineObfs4*() {.async.} =

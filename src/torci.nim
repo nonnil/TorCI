@@ -1,7 +1,7 @@
 import jester
 import views/[temp, login, renderutils]
 import routes/[status, network, sys]
-import types, config, query, utils
+import types, config, query, utils, strutils
 import asyncdispatch, logging
 import libs/[session, syslib, torLib, bridges, torboxLib, hostAp, fallbacks, wifiScanner, wirelessManager]
 

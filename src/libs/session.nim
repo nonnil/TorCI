@@ -1,6 +1,7 @@
 import times, strutils, strformat
 import jester
-import random, bcrypt 
+import bcrypt 
+import random
 import nimpy
 import ".."/[ types ]
 

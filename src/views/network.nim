@@ -63,22 +63,12 @@ proc renderTorLog*(log: string): VNode =
       tdiv(class="card-padding"):
         tdiv(class="log-text"): text if log.len > 0: log else: "No Tor log exists"
 
-proc renderTorConfig*(): VNode =
-  buildHtml(tdiv(class="columns width-50")):
-    tdiv(class="box"):
-      tdiv(class="box-header"):
-        text "Tor Configuration"
-      table(class="box-table"):
-        tbody():
-          tr():
-            td(): text ""
-            
 proc renderObfs4Ctl*(): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Bridges Control"
-      form(`method`="post", action="/net/bridgesctl", enctype="multipart/form-data"):
+      form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
         table(class="full-width box-table"):
           tbody():
             tr():
@@ -100,12 +90,12 @@ proc renderObfs4Ctl*(): VNode =
                   button(`type`="submit", name="auto-add-obfs4", value="1"):
                     text "Add"
 
-proc renderBridgesCtl*(bridgesSta: BridgesStatus): VNode =
+proc renderBridgesCtl*(bridgesSta: BridgeStatuses): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Bridges Control"
-      form(`method`="post", action="/net/bridgesctl", enctype="multipart/form-data"):
+      form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
         table(class="full-width box-table"):
           tbody():
             tr():
@@ -113,10 +103,10 @@ proc renderBridgesCtl*(bridgesSta: BridgesStatus): VNode =
               td():
                 strong():
                   if bridgesSta.obfs4:
-                    button(class="btn-general btn-danger", `type`="submit", name="deactivateObfs4", value="1"):
+                    button(class="btn-general btn-danger", `type`="submit", name="obfs4-ctl", value="deactivate"):
                       text "Deactivate"
                   else:
-                    button(class="btn-general btn-safe", `type`="submit", name="activateObfs4", value="1"):
+                    button(class="btn-general btn-safe", `type`="submit", name="obfs4-ctl", value="activate"):
                       text "Activate"
 
             tr():
@@ -124,10 +114,10 @@ proc renderBridgesCtl*(bridgesSta: BridgesStatus): VNode =
               td():
                 strong():
                   if bridgesSta.meekAzure:
-                    button(class="btn-general btn-danger", `type`="submit", name="deactivateMeek-azure", value="1"):
+                    button(class="btn-general btn-danger", `type`="submit", name="meekAzure-ctl", value="deactivate"):
                       text "Deactivate"
                   else:
-                    button(class="btn-general btn-safe", `type`="submit", name="activateMeek-azure", value="1"):
+                    button(class="btn-general btn-safe", `type`="submit", name="meekAzure-ctl", value="activate"):
                       text "Activate"
 
             tr():
@@ -135,10 +125,10 @@ proc renderBridgesCtl*(bridgesSta: BridgesStatus): VNode =
               td():
                 strong():
                   if bridgesSta.snowflake:
-                    button(class="btn-general btn-danger", `type`="submit", name="deactivateSnowflake", value="1"):
+                    button(class="btn-general btn-danger", `type`="submit", name="snowflake-ctl", value="deactivate"):
                       text "Deactivate"
                   else:
-                    button(class="btn-general btn-safe", `type`="submit", name="activateSnowflake", value="1"):
+                    button(class="btn-general btn-safe", `type`="submit", name="snowflake-ctl", value="activate"):
                       text "Activate"
                     
 # proc renderObfs4Add*(): VNode =
@@ -160,11 +150,11 @@ proc renderInputObfs4*(): VNode =
       form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
         textarea(
           class="textarea bridge-input",
-          name="obfs4Text",
+          name="input-obfs4",
           placeholder="e.g.\nobfs4 xxx.xxx.xxx.xxx:xxxx cert=abcd.. iat-mode=0\nobfs4 yyy.yyy.yyy.yyy:yyyy cert=abcd.. iat-mode=0",
           required=""
         )
-        button(class="btn-apply", `type`="submit"): text "Add Bridges"
+        button(class="btn-apply", `type`="submit", name="bridges-ctl", value="1"): text "Add Bridges"
 
 proc renderInterfaces*(): VNode =
   buildHtml(tdiv(class="card")):
@@ -420,12 +410,7 @@ proc renderHostApPane*(conf: HostApConf, sysInfo: SystemInfo, devs: ConnectedDev
     renderHostApControl(conf)
     renderConnectedDevs(devs)
     
-proc renderTorPane*(torlog: string): VNode =
-  buildHtml(tdiv(class="cards")):
-    renderTorConfig()
-    renderTorLog(torlog)
-    
-proc renderBridgesPage*(bridgesSta: BridgesStatus): VNode =
+proc renderBridgesPage*(bridgesSta: BridgeStatuses): VNode =
   buildHtml(tdiv(class="cards")):
     renderInputObfs4()
     renderBridgesCtl(bridgesSta)

@@ -1,4 +1,5 @@
-import jester, strutils
+import jester 
+import std/strutils
 import ../views/[temp, network]
 import ".."/[types, query, utils]
 import ".."/libs/[syslib, torLib, bridges, torboxLib, session, hostAp, fallbacks, wifiScanner, wirelessManager]
@@ -26,6 +27,10 @@ template respApConf*() =
     devs = await getConnectedDevs(conf.iface)
   resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Wireless", menu=tab)
   
+template respBridges*(n: Notify | Notifies = Notify()) =
+  let bridgesSta = await getBridgeStatuses()
+  resp renderNode(renderBridgesPage(bridgesSta), request, cfg, user.uname, "Bridges", menu=tab, n)
+
 template respRefuse*() =
   resp renderNode(renderClose(), request, cfg, user.uname, menu=tab)
 
@@ -40,18 +45,10 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
 
     var net: Network = new Network
 
-    # get "/tor":
-    #   let user = await getUser(request)
-    #   if user.isLoggedIn:
-    #     let log = await getTorLog()
-    #     resp renderNode(renderTorPane(log), request, cfg, user.uname, "Tor Config", menu=tab)
-    #   redirectLoginPage()
-    
     get "/bridges":
       let user = await getUser(request)
       if user.isLoggedIn:
-        let bridgesSta = await getBridgesStatus()
-        resp renderNode(renderBridgesPage(bridgesSta), request, cfg, user.uname, "Bridges", menu=tab)
+        respBridges()
 
       redirectLoginPage()
 
@@ -251,7 +248,47 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
       redirectLoginPage
       
     post "/torctl":
-      let restart = request.formData.getOrDefault("restartTor").body
-      if restart == "1":
-        await restartTor()
-        redirect "/net/tor"
+      let user = await getUser(request)
+      if user.isLoggedIn:
+        let restart = request.formData.getOrDefault("restartTor").body
+        if restart == "1":
+          await restartTor()
+          redirect "/net/tor"
+        
+    post "/bridges":
+      let user = await getUser(request)
+      if user.isLoggedIn:
+        var notifies: Notifies
+        let
+          input: string = request.formData.getOrDefault("input-obfs4").body
+
+          obfs4 = case request.formData.getOrDefault("obfs4-ctl").body
+                  of "activate": 1
+                  of "deactivate": -1
+                  else: 0
+
+          meekAzure = case request.formData.getOrDefault("meekAzure-ctl").body
+                      of "activate": 1
+                      of "deactivate": -1
+                      else: 0
+
+          snowflake = case request.formData.getOrDefault("snowflake-ctl").body
+                      of "activate": 1
+                      of "deactivate": -1
+                      else: 0
+
+        if input.len > 0:
+          let fails = await addObfs4(input.splitLines())
+          if fails.len == 0:
+            notifies.add Notify(status: success, msg: "Success add obfs4 bridges")
+
+          else:
+            for (res, msg) in fails:
+              notifies.add Notify(status: failure, msg: msg)
+              
+        if snowflake == 1:
+          let activateSf = await activateSnowflake()
+        
+        # if request.formData.getOrDefault("bridges-ctl").body == 1:
+      
+        respBridges(notifies)
