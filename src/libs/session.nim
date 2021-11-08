@@ -104,7 +104,7 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
   
   try:
     let
-      shadow = getShadow(cstring password)
+      shadow = getShadow(cstring username)
       shadowV = splitShadow($shadow.passwd)
       crypted: string = $crypt(cstring password, cstring(&"${shadowV[1]}${shadowV[2]}"))
     # var passwdV = spawnPasswd.split("$")
