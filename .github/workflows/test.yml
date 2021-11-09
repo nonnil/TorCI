@@ -19,11 +19,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
           
-      # - name: Install gnulib
-      #   run: sudo apt-get install -y gnulib
-      
-      - name: Install libcrypt
-        run: sudo apt-get install -y libcrypt1
+      - name: Install dependencies
+        if: ${{ runner.os }} == "ubuntu-18.04"
+        run: sudo apt-get install -y libcrypto++-dev
+
+        if: ${{ runner.os }} != "ubuntu-18.04"
+        run: sudo apt-get install -y libcrypt-dev
+          # sudo apt-get install -y gnulib
 
       - name: Cache choosenim
         id: cache-choosenim
