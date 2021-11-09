@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+          
+      - name: Install gnulib
+        run: apt install -y gnulib
 
       - name: Cache choosenim
         id: cache-choosenim
