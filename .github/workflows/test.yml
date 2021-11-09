@@ -21,6 +21,9 @@ jobs:
           
       - name: Install gnulib
         run: sudo apt-get install -y gnulib
+      
+      - name: Install libcrypt
+        run: sudo apt-get install -y libcrypt-dev
 
       - name: Cache choosenim
         id: cache-choosenim
