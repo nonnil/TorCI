@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
           
       - name: Install gnulib
-        run: apt install -y gnulib
+        run: sudo apt-get install -y gnulib
 
       - name: Cache choosenim
         id: cache-choosenim
