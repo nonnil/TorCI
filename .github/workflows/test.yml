@@ -19,11 +19,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
           
-      - name: Install gnulib
-        run: sudo apt-get install -y gnulib
+      # - name: Install gnulib
+      #   run: sudo apt-get install -y gnulib
       
       - name: Install libcrypt
-        run: sudo apt-get install -y libcrypt-dev
+        run: sudo apt-get install -y libcrypt1
 
       - name: Cache choosenim
         id: cache-choosenim
