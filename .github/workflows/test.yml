@@ -41,7 +41,7 @@ jobs:
           nim-version: ${{ matrix.nim-version }}
             
       - name: Install packages
-        run: nimble install -y --passL:-lcrypt
+        run: nimble install -y
           
       - name: Test
         run: testament cat .
