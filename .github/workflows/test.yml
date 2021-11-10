@@ -10,6 +10,7 @@ jobs:
         os:
           - ubuntu-latest
           - ubuntu-20.04
+          - ubuntu-18.04
         nim-version:
           - stable
           - devel
@@ -18,13 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
           
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y zlib1g-dev
-          sudo apt-get install -y libcrypt-dev
-          sudo apt-get install -y libcrypt1
-          sudo apt-get install -y gnulib
-
       - name: Cache choosenim
         id: cache-choosenim
         uses: actions/cache@v2
