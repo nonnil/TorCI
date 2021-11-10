@@ -14,12 +14,12 @@ type
     name* {.importc: "sp_namp".}: cstring
     passwd* {.importc: "sp_pwdp".}: cstring
     sp_lstchg {.importc: "sp_lstchg".}: clong
-    sp_min {.importc: "sp_min".}: clong
-    sp_max {.importc: "sp_max".}: clong
-    sp_warn {.importc: "sp_warn".}: clong
-    sp_inact {.importc: "sp_inact".}: clong
-    sp_expire {.importc: "sp_expire".}: clong
-    sp_flag {.importc: "sp_flag".}: culong
+    min {.importc: "sp_min".}: clong
+    max {.importc: "sp_max".}: clong
+    warn {.importc: "sp_warn".}: clong
+    inact {.importc: "sp_inact".}: clong
+    expire {.importc: "sp_expire".}: clong
+    flag {.importc: "sp_flag".}: culong
 
   UserSession* = object
     token*: string

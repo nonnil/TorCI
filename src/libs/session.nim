@@ -32,9 +32,9 @@ proc devRandomSalt(): string =
     result = randomSalt()
 
 proc makeSalt*(): string =
-  ## Creates a salt using a cryptographically secure random number generator.
-  ##
-  ## Ensures that the resulting salt contains no ``\0``.
+  # Creates a salt using a cryptographically secure random number generator.
+  #
+  # Ensures that the resulting salt contains no ``\0``.
   try:
     result = devRandomSalt()
   except IOError:
@@ -47,7 +47,7 @@ proc makeSalt*(): string =
   return newResult
 
 proc makeSessionKey*(): string =
-  ## Creates a random key to be used to authorize a session.
+  # Creates a random key to be used to authorize a session.
   let random = makeSalt()
   return bcrypt.hash(random, genSalt(8))
 # The end of [https://github.com/nim-lang/nimforum/blob/master/src/auth.nim] code
