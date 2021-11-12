@@ -1,6 +1,6 @@
 import os, osproc, re, asyncdispatch, strutils
 import ".."/[types]
-import json
+import json, std / sha1
 import torsocks
 import nimpy
 
@@ -27,10 +27,9 @@ proc isRunning*(fp: string, conf: Config): Future[bool] {.async.} =
 
   let
     binascii = pyImport("binascii")
-    hashlib = pyImport("hashlib")
-    hash = hashlib.sha1(binascii.a2b_hex(fp)).hexdigest().to(string)
+    hash = secureHash(binascii.a2b_hex(fp).to(string))
 
-  let ret = await (destHost & hash).torsocks(conf)
+  let ret = await (destHost & $hash).torsocks(conf)
 
   if ret.len > 0:
     let j = parseJson(ret)

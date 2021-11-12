@@ -141,7 +141,8 @@ proc renderNode*(
         renderNav(cfg, req, username, menu)
       else:
         renderNav(cfg, req, username)
-      if notify.msg.len > 0:
+      # if notify.msg.len > 0:
+      if notify != nil:
         let colour =
           case notify.status
           of success:

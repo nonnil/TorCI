@@ -1,5 +1,6 @@
-import std/unittest
+import std / unittest, std / sha1
 import strutils, re
+import nimpy
 
 suite "Check bridges validity":
 
@@ -41,3 +42,21 @@ suite "Check bridges validity":
     check:
       isValidSnowflake(strs[2])
       not isValidSnowflake(strs[1])
+
+suite "Check fingerprint of Tor bridges":
+  test "Fingerprint hashing":
+    let
+      o4Fp = "07784768F54CF66F9D588E19E8EE3B0FA702711B"
+      o4Hashed = "581674112383BEBF88E79C3328B71ADF79365B45"
+
+      sfFp = "2B280B23E1107BB62ABFC40DDCC8824814F80A72" 
+      sfHashed = "5481936581E23D2D178105D44DB6915AB06BFB7F"
+
+      binascii = pyImport("binascii")
+
+      sfHash = secureHash(binascii.a2b_hex(sfFp).to(string))
+      o4Hash = secureHash(binascii.a2b_hex(o4Fp).to(string))
+      
+    check:
+      $sfHash == sfHashed
+      $o4Hash == o4Hashed
