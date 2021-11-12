@@ -1,9 +1,8 @@
 import karax/[karaxdsl, vdom, vstyles]
 import jester
 import tables, strformat
-import ".."/[types]
+import ".." / [types]
 import temp, renderutils
-# import ../libs/wifiScanner
 
 proc renderChannelSelect(hd: SystemInfo, band: string): VNode =
   buildHtml(select(name="channel")):

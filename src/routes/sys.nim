@@ -1,7 +1,8 @@
 import jester
-import ../views/[temp, sys]
-import ".."/[types]
-import ".."/libs/[syslib, session]
+import ../ views / [temp, sys]
+import ".." / [types]
+import ".." / lib / sys as libsys 
+import ".." / lib / session
 
 export sys
 

@@ -1,8 +1,8 @@
 import os, osproc, asyncdispatch, re, json, strutils, strformat
 import libcurl
 import torsocks
-import ".."/[types]
-import syslib, bridges
+import ".." / [types]
+import sys, bridges
 
 export torsocks
 

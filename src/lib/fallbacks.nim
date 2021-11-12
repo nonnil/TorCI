@@ -1,7 +1,7 @@
 import os, osproc, re, strutils, strformat, logging
 import asyncdispatch
-import ".."/[types]
-import syslib, hostAp
+import ".." / [types]
+import sys, hostAp
 
 proc hostapdFallback*() {.async.} =
   try:

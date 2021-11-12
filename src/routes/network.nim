@@ -1,8 +1,8 @@
 import jester 
-import std/strutils
-import ../views/[temp, network]
-import ".."/[types, query, utils]
-import ".."/libs/[syslib, torLib, bridges, torboxLib, session, hostAp, fallbacks, wifiScanner, wirelessManager]
+import std / strutils
+import ../ views / [temp, network]
+import ".." / [types, query, utils]
+import ".." / lib / [sys, tor, bridges, torbox, session, hostAp, fallbacks, wifiScanner, wirelessManager]
 
 export network
 

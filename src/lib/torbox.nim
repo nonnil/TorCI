@@ -1,7 +1,7 @@
 import os, osproc, asyncdispatch
 import re, strutils, strformat
-import syslib
-import ".."/[types, utils]
+import sys
+import ".." / [types, utils]
 
 const
   iptable = "/sbin" / "iptables"

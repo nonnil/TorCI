@@ -1,7 +1,7 @@
 import asyncdispatch, tables, osproc, sequtils, strutils, strformat
 import re, os
-import ".."/[types, utils]
-import syslib
+import ".." / [types, utils]
+import sys
 
 #proc getModuleName*(net: NetInterfaces; name: NetInterKind): Future[string] {.async.} =
 # const

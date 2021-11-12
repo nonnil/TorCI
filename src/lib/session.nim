@@ -3,12 +3,9 @@ import jester
 import bcrypt 
 import random
 import ".."/[ types ]
+import clib / [crypt, shadow]
 
 var sessionList: SessionList
-
-proc crypt(key, salt: cstring): cstring {.header: "<crypt.h>".}
-
-proc getShadow(name: cstring): Spwd {.importc: "getspnam", header: "<shadow.h>".}
 
 # Here's code taken from [https://github.com/nim-lang/nimforum/blob/master/src/auth.nim]
 proc randomSalt(): string =
@@ -106,7 +103,7 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
     let
       shadow = getShadow(cstring username)
       shadowV = splitShadow($shadow.passwd)
-      crypted: string = $crypt(cstring password, cstring(&"${shadowV[1]}${shadowV[2]}"))
+      crypted: string = $ccrypt(cstring password, cstring(&"${shadowV[1]}${shadowV[2]}"))
     # var passwdV = spawnPasswd.split("$")
     # passwdV[3] = passwdV[3].splitWhitespace[0]
     
