@@ -1,5 +1,7 @@
-import std / unittest, std / sha1
-import strutils, re
+import std / unittest
+import std / [re, strutils]
+import std / [sha1, json]
+import httpclient
 import ../ src / lib / binascii
 
 suite "Check bridges validity":
@@ -59,3 +61,30 @@ suite "Check fingerprint of Tor bridges":
     check:
       $sfHash == sfHashed
       $o4Hash == o4Hashed
+
+suite "Request to Onionoo":
+  proc isFound(fp: string): bool =
+    const
+      destHost = "https://onionoo.torproject.org/details?lookup="
+      userAgent = "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0"
+
+    var client = newHttpClient(userAgent = userAgent)
+
+    let res = client.get(destHost & fp)
+
+    if res.code == Http200:
+      let
+        j = parseJson(res.body)
+        b = j["bridges"]
+
+      if b.len > 0:
+        let hashedFP = b[0]{"hashed_fingerprint"}.getStr
+        if fp == hashedFP: return true
+
+  test "Get bridges data":
+    const
+      fp = "07784768F54CF66F9D588E19E8EE3B0FA702711B"
+      hfp = "581674112383BEBF88E79C3328B71ADF79365B45"
+    check:
+      hfp.isFound()
+      not fp.isFound()

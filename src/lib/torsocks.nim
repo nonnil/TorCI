@@ -6,6 +6,23 @@ proc curlWriteFn(
   buffer: cstring,
   size: int,
   count: int,
+  outstream: pointer): int
+
+proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): string
+
+proc torsocks*(url: string, cfg: Config, prtc: Protocol = GET): Future[string] {.async.} =
+  let
+    address = cfg.torAddress
+    port = cfg.torPort.parseInt.Port
+  result = url.socks5(address, port, prtc)
+
+proc torsocks*(url: string, address: string = "127.0.0.1", port: Port = 9050.Port, prtc: Protocol = GET): Future[string] {.async.} =
+  result = url.socks5(address, port, prtc)
+
+proc curlWriteFn(
+  buffer: cstring,
+  size: int,
+  count: int,
   outstream: pointer): int =
   
   let outbuf = cast[ref string](outstream)
@@ -15,8 +32,10 @@ proc curlWriteFn(
 proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): string =
   let curl = easy_init()
   let webData: ref string = new string
-  discard curl.easy_setopt(OPT_USERAGENT,
-    "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0")
+  discard curl.easy_setopt(
+    OPT_USERAGENT,
+    "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0"
+  )
   case prt
   of GET:
     discard curl.easy_setopt(OPT_HTTPGET, 1)
@@ -35,15 +54,3 @@ proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string 
   if ret == E_OK:
     result = webData[]
   else: return
-
-# proc torsocks*(url, address: string, port: Port, ): Future[string] {.async.} = 
-#   result = url.socks5req(address, port)
-
-proc torsocks*(url: string, cfg: Config, prtc: Protocol = GET): Future[string] {.async.} =
-  let
-    address = cfg.torAddress
-    port = cfg.torPort.parseInt.Port
-  result = url.socks5(address, port, prtc)
-
-proc torsocks*(url: string, address: string = "127.0.0.1", port: Port = 9050.Port, prtc: Protocol = GET): Future[string] {.async.} =
-  result = url.socks5(address, port, prtc)

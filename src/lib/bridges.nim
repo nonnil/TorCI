@@ -1,43 +1,46 @@
 import os, osproc, re, asyncdispatch, strutils
-import ".."/[types]
-import json, std / sha1
-import torsocks
-import nimpy
+import ".." / [types]
+import std / [sha1, json]
+import torsocks, binascii
 
 proc getBridgeStatuses*(): Future[BridgeStatuses] {.async.} =
   try:
     let rc = readFile(torrc)
     for line in rc.splitLines():
+
       if line.startsWith("Use Bridges 1"):
         result.useBridges = true
         continue
+
       elif line.startsWith("Bridge obfs4 "):
         result.obfs4 = true
         continue
+
       elif line.startsWith("Bridge meek_lite "):
         result.meekAzure = true
         continue
+
       elif line.startsWith("Bridge snowflake "):
         result.snowflake = true
         continue
+
   except: return
   
 proc isRunning*(fp: string, conf: Config): Future[bool] {.async.} =
+
   const destHost = "https://onionoo.torproject.org" / "details?lookup="
 
   let
-    binascii = pyImport("binascii")
-    hash = secureHash(binascii.a2b_hex(fp).to(string))
-
-  let ret = await (destHost & $hash).torsocks(conf)
+    hash = secureHash(a2bHex(fp))
+    ret = await (destHost & $hash).torsocks(conf)
 
   if ret.len > 0:
-    let j = parseJson(ret)
+    let
+      j = parseJson(ret)
+      b = j["bridges"]
 
-    if j["bridges"].len > 0:
-      let bridge = j["bridges"][0]
-      
-      if $bridge["running"] == "true":
+    if b.len > 0:
+      if b[0]{"running"}.getStr() == "true":
         return true
 
 proc getObfs4Count(): tuple[activated, deactivated, total: int] =
