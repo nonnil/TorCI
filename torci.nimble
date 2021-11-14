@@ -15,8 +15,6 @@ requires "jester >= 0.5.0"
 requires "karax >= 1.2.1"
 requires "sass"
 requires "libcurl >= 1.0.0"
-requires "sha1 >= 1.1"
-requires "nimpy >= 0.1.1"
 requires "bcrypt >= 0.2.1"
 
 task scss, "Generate css":
