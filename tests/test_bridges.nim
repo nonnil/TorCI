@@ -1,6 +1,6 @@
 import std / unittest, std / sha1
 import strutils, re
-import nimpy
+import ../ src / lib / binascii
 
 suite "Check bridges validity":
 
@@ -52,10 +52,9 @@ suite "Check fingerprint of Tor bridges":
       sfFp = "2B280B23E1107BB62ABFC40DDCC8824814F80A72" 
       sfHashed = "5481936581E23D2D178105D44DB6915AB06BFB7F"
 
-      binascii = pyImport("binascii")
 
-      sfHash = secureHash(binascii.a2b_hex(sfFp).to(string))
-      o4Hash = secureHash(binascii.a2b_hex(o4Fp).to(string))
+      sfHash = secureHash(a2bHex(sfFp))
+      o4Hash = secureHash(a2bHex(o4Fp))
       
     check:
       $sfHash == sfHashed
