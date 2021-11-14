@@ -8,6 +8,7 @@ proc getCurrentTab*(r: Request): string =
     (name: "/net", text: "Network"),
     (name: "/sys", text: "System")
   ]
+
   for v in tabs:
     if r.pathInfo.startsWith(v.name): return v.text 
 
