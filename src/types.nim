@@ -1,5 +1,5 @@
 import jester
-import times, os
+import std / [times, os, uri]
 
 type
   Session* = object
@@ -28,7 +28,29 @@ type
   Protocol* = enum
     GET = "get",
     POST = "post"
-  
+
+  BridgeKind* = enum
+    obfs4 = "obfs4",
+    meekazure = "meek_lite",
+    snowflake = "snowflake"
+
+  Obfs4* = object
+    ipaddr*: string
+    port*: Port
+    fingerprint*, cert*, iatMode*: string
+
+  Meekazure* = object
+    ipaddr*: string
+    port*: Port
+    fingerprint*: string
+    meekazureUrl*: Uri
+    front*: Uri
+
+  Snowflake* = object
+    ipaddr*: string
+    port*: Port
+    fingerprint*: string
+
   TorStatus* = object
     isOnline*: bool
     exitIp*: string

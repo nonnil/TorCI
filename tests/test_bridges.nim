@@ -1,49 +1,41 @@
 import std / unittest
-import std / [re, strutils]
+import std / [strutils]
 import std / [sha1, json]
-import httpclient
-import ../ src / lib / binascii
+import httpclient, asyncdispatch
+import ../ src / lib / [binascii, bridges]
+import ../ src / types
+import std / nativesockets
 
 suite "Check bridges validity":
+  const
+    o = "obfs4 122.148.194.24:993 07784768F54CF66F9D588E19E8EE3B0FA702711B cert=m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg iat-mode=0"
+    m = "meek_lite 192.0.2.2:2 97700DFE9F483596DDA6264C4D7DF7641E1E39CE url=https://meek.azureedge.net/ front=ajax.aspnetcdn.com"
+    s = "snowflake 192.0.2.3:1 2B280B23E1107BB62ABFC40DDCC8824814F80A72"
+  
+  let obfs4: Obfs4 = parseObfs4(o)
+  let meekazure: Meekazure = parseMeekazure(m)
+  let snowflake: Snowflake = parseSnowflake(s)
 
-  proc isValidObfs4(obfs4: string): bool =
-    let splitted = obfs4.splitWhitespace()
-    if splitted.len == 5:
-
-      if (splitted[0] == "obfs4") and
-      (splitted[1].match(re"(\d+\.){3}(\d+):\d+")) and
-      (splitted[2].match(re".+")) and
-      (splitted[3].match(re"cert=.+")) and
-      (splitted[4].match(re"iat-mode=\d")):
-        return true
-
-      else:
-        return false
-
-  proc isValidSnowflake(snowflake: string): bool =
-    let s = snowflake.splitWhitespace()
-    if s.len == 2:
-      
-      if (s[0].match(re"(\d+\.){3}(\d+):\d+")) and
-      (s[1].match(re".+")):
-        return true
-      
-      else:
-        return false
-      
   test "obfs4 validity":
     check:
-      isValidObfs4("obfs4 122.148.194.24:993 07784768F54CF66F9D588E19E8EE3B0FA702711B cert=m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg iat-mode=0")
-      not isValidObfs4("obfs4 0.0.0:999 07784768F54CF66F9D588E19E8EE3B0FA702711B cert=m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg iat-mode=0")
-      not isValidObfs4("obfs4 122.148.194.24:993 cert=m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg iat-mode=0")
-      not isValidObfs4("obfs4 122.148.194.24:993 07784768F54CF66F9D588E19E8EE3B0FA702711B cert= iat-mode=0")
-      not isValidObfs4("obfs4 122.148.194.24:993 07784768F54CF66F9D588E19E8EE3B0FA702711B cert=m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg iat-mode=g")
+      obfs4.ipaddr == "122.148.194.24"
+      obfs4.port == 993.Port
+      obfs4.fingerprint == "07784768F54CF66F9D588E19E8EE3B0FA702711B"
+      obfs4.cert == "m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg"
+      obfs4.iatMode == "0"
+  
+  test "meekazure validity":
+    check:
+      $BridgeKind.meekazure == "meek_lite"
+      meekazure.ipaddr == "192.0.2.2"
+      meekazure.port == 2.Port
+      meekazure.fingerprint == "97700DFE9F483596DDA6264C4D7DF7641E1E39CE"
 
   test "snowflake validity":
-    let strs = splitWhitespace("#Bridge snowflake 192.0.2.3:1 2B280B23E1107BB62ABFC40DDCC8824814F80A72", 2)
     check:
-      isValidSnowflake(strs[2])
-      not isValidSnowflake(strs[1])
+      snowflake.ipaddr == "192.0.2.3"
+      snowflake.port == 1.Port
+      snowflake.fingerprint == "2B280B23E1107BB62ABFC40DDCC8824814F80A72"
 
 suite "Check fingerprint of Tor bridges":
   test "Fingerprint hashing":
@@ -85,6 +77,8 @@ suite "Request to Onionoo":
     const
       fp = "07784768F54CF66F9D588E19E8EE3B0FA702711B"
       hfp = "581674112383BEBF88E79C3328B71ADF79365B45"
+
     check:
       hfp.isFound()
       not fp.isFound()
+      not "123456FF".isFound()

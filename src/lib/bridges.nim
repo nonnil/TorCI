@@ -1,6 +1,6 @@
 import os, osproc, re, asyncdispatch, strutils
 import ".." / [types]
-import std / [sha1, json]
+import std / [sha1, json, uri]
 import torsocks, binascii
 
 proc getBridgeStatuses*(): Future[BridgeStatuses] {.async.} =
@@ -25,10 +25,63 @@ proc getBridgeStatuses*(): Future[BridgeStatuses] {.async.} =
         continue
 
   except: return
+
+proc splitAddress(address: string): tuple[ipaddr: string, port: Port] =
+  let s = address.split(":")
+  return (s[0], s[1].parseInt().Port())
+
+proc parseObfs4*(s: string): Obfs4 =
+  let el = s.splitWhitespace
+
+  if el.len != 5 or
+  not el[1].match(re"(\d+\.){3}(\d+):\d+") or
+  not el[3].startsWith("cert=") or
+  not el[4].startsWith("iat-mode="): return
+
+  let (ipaddr, port) = splitAddress(el[1])
+
+  result = Obfs4(
+    ipaddr: ipaddr,
+    port: port,
+    fingerprint: el[2],
+    cert: el[3].split('=')[1],
+    iatMode: el[4].split('=')[1]
+  )
+
+proc parseMeekazure*(s: string): Meekazure =
+  let el = s.splitWhitespace()
+  if el.len != 5 or
+  not el[1].match(re"(\d+\.){3}(\d+):\d+") or
+  not el[3].startsWith("url=") or
+  not el[4].startsWith("front="): return
+
+  let (ipaddr, port) = splitAddress(el[1])
+
+  result = Meekazure(
+    ipaddr: ipaddr,
+    port: port,
+    fingerprint: el[2],
+    meekAzureUrl: el[3].split('=')[1].parseUri(),
+    front: el[4].split('=')[1].parseUri()
+  )
+    
+proc parseSnowflake*(s: string): Snowflake =
+  let el = s.splitWhitespace()
+  if el.len != 3 or
+  not el[1].match(re"(\d+\.){3}(\d+):\d+"): return
+
+  let (ipaddr, port) = splitAddress(el[1])
+
+  result = Snowflake(
+    ipaddr: ipaddr,
+    port: port,
+    fingerprint: el[2],
+  )
   
-proc isRunning*(fp: string, conf: Config): Future[bool] {.async.} =
+proc isRunning*(bridge: Obfs4 | Meekazure | Snowflake, conf: Config): Future[bool] {.async.} =
 
   const destHost = "https://onionoo.torproject.org" / "details?lookup="
+  let fp = bridge.fingerprint
 
   let
     hash = secureHash(a2bHex(fp))
@@ -101,8 +154,8 @@ proc activateAllConfiguredObfs4*() {.async.} =
 
     torrc.writeFile(rc)
     
-proc isObfs4(obfs4: string): bool =
-  let splitted = obfs4.splitWhitespace()
+proc isObfs4*(bridge: string): bool =
+  let splitted = bridge.splitWhitespace()
   if splitted.len == 5:
 
     if (splitted[0] == "obfs4") and
@@ -115,8 +168,8 @@ proc isObfs4(obfs4: string): bool =
     else:
       return false
     
-proc isSnowflake(snowflake: string): bool =
-  let s = snowflake.splitWhitespace()
+proc isSnowflake*(bridge: string): bool =
+  let s = bridge.splitWhitespace()
   if s.len == 2:
     
     if (s[0].match(re"(\d+\.){3}(\d+):\d+")) and
