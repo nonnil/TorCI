@@ -5,6 +5,7 @@ import httpclient, asyncdispatch
 import ../ src / lib / [binascii, bridges]
 import ../ src / types
 import std / nativesockets
+import jester
 
 suite "Check bridges validity":
   const
@@ -26,7 +27,6 @@ suite "Check bridges validity":
   
   test "meekazure validity":
     check:
-      $BridgeKind.meekazure == "meek_lite"
       meekazure.ipaddr == "192.0.2.2"
       meekazure.port == 2.Port
       meekazure.fingerprint == "97700DFE9F483596DDA6264C4D7DF7641E1E39CE"
