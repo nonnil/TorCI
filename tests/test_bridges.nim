@@ -5,7 +5,6 @@ import httpclient, asyncdispatch
 import ../ src / lib / [binascii, bridges]
 import ../ src / types
 import std / nativesockets
-import jester
 
 suite "Check bridges validity":
   const
