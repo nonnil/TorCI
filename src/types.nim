@@ -1,5 +1,5 @@
-import jester
 import std / [times, os, uri]
+import std / nativesockets
 
 type
   Session* = object
@@ -21,10 +21,6 @@ type
     expire {.importc: "sp_expire".}: clong
     flag {.importc: "sp_flag".}: culong
 
-  UserSession* = object
-    token*: string
-    req*: Request
-  
   Protocol* = enum
     GET = "get",
     POST = "post"

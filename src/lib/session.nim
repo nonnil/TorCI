@@ -117,10 +117,7 @@ proc login*(username, password: string, expireTime: DateTime): Future[tuple[toke
   except OSError:
     return (token: "", msg: "Invalid username.", res: false)
 
-  except:
-    let error = getCurrentException()
-    echo "Type of Exception: ", error.name
-    echo "Msg of Exception: ", error.msg
+  except: return
 
 proc logout*(r: Request): Future[bool] {.async.} =
   if not r.cookies.hasKey("torci"): return
