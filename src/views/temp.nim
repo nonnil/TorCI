@@ -183,26 +183,28 @@ proc renderNode*(
       else:
         renderNav(cfg, req, username)
 
-      for i, n in notifies:
-        if n.msg.len > 0:
-          let colour =
-            case n.status
-            of success:
-              colourGreen
+      if notifies.len > 0 and
+      notifies[0] != nil:
+        for i, n in notifies:
+          if n.msg.len > 0:
+            let colour =
+              case n.status
+              of success:
+                colourGreen
 
-            of warn:
-              colourYellow
+              of warn:
+                colourYellow
 
-            of failure:
-              colourRed
+              of failure:
+                colourRed
 
-            else:
-              colourGray
+              else:
+                colourGray
 
-          tdiv(class="notify-bar"):
-            input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
-            tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
-              text n.msg
+            tdiv(class="notify-bar"):
+              input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
+              tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
+                text n.msg
       tdiv(class="container"):
         v
   result = doctype & $node

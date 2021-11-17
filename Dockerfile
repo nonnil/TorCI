@@ -8,7 +8,7 @@ COPY . /src/torci
 WORKDIR /src/torci
 # create hostapd environment
 RUN mkdir /etc/hostapd
-RUN curl -A "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0" -o "/etc/hostapd/hostapd.conf" https://raw.githubusercontent.com/radio24/TorBox/master/etc/hostapd/hostapd.conf \
+RUN curl -A "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0" https://raw.githubusercontent.com/radio24/TorBox/master/etc/hostapd/hostapd.conf \
     && cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.conf.tbx
 
 # add torbox user
