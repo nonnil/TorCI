@@ -86,9 +86,6 @@ type
     iface*: IfaceKind
     withCaptive*: bool
   
-  CardKind* = enum
-    nord, editable
-
   Menu* = ref object
     text*: seq[string]
     anker*: seq[string]
@@ -149,21 +146,6 @@ type
   #   status*: Status
     #eth0*, eth1*, wlan0*, wlan1*, pop0*, usb0*, tun0*: Status
 
-  EditType* = enum
-    text, select
-
-  Card* = ref object  
-    kind*: CardKind
-    path*: string
-    status*: seq[Status]
-    str*: seq[string]
-    message*: seq[string]
-    editType*: seq[EditType]
-
-  Cards* = ref object
-    subject*: seq[string]
-    card*: seq[Card]
-  
   Config* = ref object
     address*: string
     port*: int
