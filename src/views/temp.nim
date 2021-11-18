@@ -2,7 +2,6 @@ import karax/[karaxdsl, vdom, vstyles]
 import jester
 import renderutils
 import ".."/types
-import strutils
 import typetraits
 # import re, os
 
@@ -27,7 +26,6 @@ proc renderHead(cfg: Config, title: string = ""): VNode =
       else:
         text cfg.title
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-
 
 proc renderSubMenu*(req: Request; menu: Menu): VNode =
   buildHtml(tdiv(class="sub-menu")):
@@ -74,8 +72,8 @@ proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNod
               tdiv(class="line"):
                 icon "user-o"
                 tdiv(class="username"): text "Username: " & username
-              form(`method`="post", action="/net/torctl", enctype="multipart/form-data"):
-                button(`type`="submit", name="restartTor", value="1"):
+              form(`method`="post", action="/io", enctype="multipart/form-data"):
+                button(`type`="submit", name="tor-request", value="restart-tor"):
                   icon "cw"
                   tdiv(class="btn-text"): text "Restart Tor"
               form(`method`="post", action="/logout", enctype="multipart/form-data"):
@@ -142,7 +140,7 @@ proc renderNode*(
       else:
         renderNav(cfg, req, username)
       # if notify.msg.len > 0:
-      if notify != nil:
+      if notify.msg.len != 0:
         let colour =
           case notify.status
           of success:
@@ -184,7 +182,7 @@ proc renderNode*(
         renderNav(cfg, req, username)
 
       if notifies.len > 0 and
-      notifies[0] != nil:
+      notifies[0].msg.len > 0:
         for i, n in notifies:
           if n.msg.len > 0:
             let colour =
@@ -236,7 +234,7 @@ proc renderFlat*(v: VNode, cfg: Config, notify: Notify, title: string = ""): str
             colourGray
 
         tdiv(class="notify-bar"):
-          input(id="ignoreNotify", `type`="radio", name="ignoreNotify")
+          input(class="ignore-notify", `type`="checkbox", name="ignoreNotify")
           tdiv(class="notify-message", style={backgroundColor: colour}):
             text notify.msg
       v
