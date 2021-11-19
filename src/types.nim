@@ -1,4 +1,4 @@
-import std / [times, os, uri]
+import std / [times, uri]
 import std / nativesockets
 
 type
@@ -157,14 +157,3 @@ type
     staticDir*: string
     torAddress*: string
     torPort*: string
-
-const
-  model3* = "Raspberry Pi 3 Model B Rev"
-  torrc* = "/etc" / "tor" / "torrc"
-  torrcBak* = "/etc" / "tor" / "torrc.bak"
-  tmp* = "/tmp" / "torrc.tmp"
-  runfile* = "/home" / "torbox" / "torbox" / "run" / "torbox.run"
-  hostapd* = "/etc" / "hostapd" / "hostapd.conf"
-  hostapdBak* = "/etc" / "hostapd" / "hostapd.conf.tbx"
-  crda* = "/etc" / "default" / "crda"
-  torlog* = "/var" / "log" / "tor" / "notices.log"
