@@ -46,25 +46,34 @@ proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
     post "/io":
       let user = await getUser(request)
       if user.isLoggedIn:
-        let newIpReq = request.formData.getOrDefault("new_circuit").body
-        if newIpReq == "1":
-          let
-            prevS = await getTorStatus(cfg)
-            prevIp = prevS.exitIp
+        let rTor = request.formData.getOrDefault("tor-request").body
 
-          discard renewTorExitIp()
+        if rTor.len > 0:
+          case rTor
+          of "new-circuit":
+            let
+              prevS = await getTorStatus(cfg)
+              prevIp = prevS.exitIp
 
-          let
-            torS = await getTorStatus(cfg)
-            iface = await getActiveIface()
-            wlan = iface.input
-            crNet = await currentNetwork(wlan)
+            discard renewTorExitIp()
 
-          let newIp = torS.exitIp
-        
-          if prevIp != newIp:
-            respIo(Notifies(@[Notify(status: success, msg: "Exit node has been changed.")]))
-          else:
-            respIo(Notifies(@[Notify(status: failure, msg: "Request new exit node failed. Please try again later.")]))
+            let
+              torS = await getTorStatus(cfg)
+              iface = await getActiveIface()
+              wlan = iface.input
+              crNet = await currentNetwork(wlan)
+
+            let newIp = torS.exitIp
+          
+            if prevIp != newIp:
+              respIo(Notifies(@[Notify(status: success, msg: "Exit node has been changed.")]))
+            else:
+              respIo(Notifies(@[Notify(status: failure, msg: "Request new exit node failed. Please try again later.")]))
+
+          of "restart-tor":
+            await restartTor()
+            redirect "/io"
+
         redirect "/io"
+
       redirect "/login"

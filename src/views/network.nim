@@ -149,4 +149,4 @@ proc renderHostApPane*(conf: HostApConf, sysInfo: SystemInfo, devs: ConnectedDev
 proc renderBridgesPage*(bridgesSta: BridgeStatuses): VNode =
   buildHtml(tdiv(class="cards")):
     renderInputObfs4()
-    renderBridgesCtl(bridgesSta)
+    renderBridgeActions(bridgesSta)

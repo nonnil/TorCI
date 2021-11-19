@@ -2,6 +2,7 @@ import asyncdispatch, tables, osproc, sequtils, strutils, strformat
 import re, os
 import ".." / [types, utils]
 import sys
+from utils as libutils import hostapd, hostapdBak, crda
 
 #proc getModuleName*(net: NetInterfaces; name: NetInterKind): Future[string] {.async.} =
 # const

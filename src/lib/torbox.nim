@@ -2,6 +2,7 @@ import os, osproc, asyncdispatch
 import re, strutils, strformat
 import sys
 import ".." / [types, utils]
+from utils as libutils import torrc, runfile
 
 const
   iptable = "/sbin" / "iptables"

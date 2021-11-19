@@ -3,6 +3,7 @@ import std / strutils
 import ../ views / [temp, network]
 import ".." / [types, query, utils]
 import ".." / lib / [sys, tor, bridges, torbox, session, hostAp, fallbacks, wifiScanner, wirelessManager]
+from ../ lib / utils as utl import model3
 
 export network
 
@@ -57,12 +58,14 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
       if user.isLoggedIn:
         respRefuse()
         resp renderNode(renderInterfaces(), request, cfg, user.uname, menu=tab)
+
       redirectLoginPage()
     
     get "/wireless":
       let user = await getUser(request)
       if user.isLoggedIn:
         respApConf()
+
       redirectLoginPage()
 
     get "/interfaces/set/?":
@@ -105,6 +108,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
 
           redirect crPath & "/interfaces/join/?iface=" & $iface
         else: redirect "interfaces"
+
       redirectLoginPage()
     
     get "/interfaces/join/?":
@@ -247,48 +251,54 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         # newConnect()
       redirectLoginPage
       
-    post "/torctl":
-      let user = await getUser(request)
-      if user.isLoggedIn:
-        let restart = request.formData.getOrDefault("restartTor").body
-        if restart == "1":
-          await restartTor()
-          redirect "/net/tor"
-        
     post "/bridges":
       let user = await getUser(request)
       if user.isLoggedIn:
         var notifies: Notifies
         let
-          input: string = request.formData.getOrDefault("input-obfs4").body
+          input: string = request.formData.getOrDefault("input-bridges").body
+          action = request.formData.getOrDefault("bridge-action").body
 
-          obfs4 = case request.formData.getOrDefault("obfs4-ctl").body
-                  of "activate": 1
-                  of "deactivate": -1
-                  else: 0
+        if action.len > 0:
+          case action
 
-          meekAzure = case request.formData.getOrDefault("meekAzure-ctl").body
-                      of "activate": 1
-                      of "deactivate": -1
-                      else: 0
+          of "obfs4-activate-all":
+            await activateObfs4(ActivateObfs4Kind.all)
+            redirect "/bridges"
 
-          snowflake = case request.formData.getOrDefault("snowflake-ctl").body
-                      of "activate": 1
-                      of "deactivate": -1
-                      else: 0
+          of "obfs4-activate-online":
+            await activateObfs4(ActivateObfs4Kind.online)
+            redirect "/bridges"
+
+          of "obfs4-deactivate":
+            await deactivateObfs4()
+            redirect "/bridges"
+
+          of "meekazure-activate":
+            await activateMeekazure()
+            redirect "/bridges"
+
+          of "meekazure-deactivate":
+            await deactivateMeekazure()
+            redirect "/bridges"
+
+          of "snowflake-activate":
+            await activateSnowflake()
+            redirect "/bridges"
+
+          of "snowflake-deactivate":
+            await deactivateSnowflake()
+            redirect "/bridges"
 
         if input.len > 0:
           let fails = await addObfs4(input.splitLines())
           if fails.len == 0:
-            notifies.add Notify(status: success, msg: "Success add obfs4 bridges")
+            notifies.add Notify(status: success, msg: "Added bridges")
 
           else:
             for (res, msg) in fails:
               notifies.add Notify(status: failure, msg: msg)
-              
-        if snowflake == 1:
-          let activateSf = await activateSnowflake()
-        
-        # if request.formData.getOrDefault("bridges-ctl").body == 1:
-      
-        respBridges(notifies)
+
+          respBridges(notifies)
+
+        redirect "/bridges"

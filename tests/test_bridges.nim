@@ -1,12 +1,13 @@
 import std / unittest
-import std / [strutils]
+import std / [strutils, re]
 import std / [sha1, json]
-import httpclient, asyncdispatch
+import std / [httpclient, asyncdispatch]
 import ../ src / lib / [binascii, bridges]
 import ../ src / types
 import std / nativesockets
+import torrc_template
 
-suite "Check bridges validity":
+suite "Bridges validity":
   const
     o = "obfs4 122.148.194.24:993 07784768F54CF66F9D588E19E8EE3B0FA702711B cert=m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg iat-mode=0"
     m = "meek_lite 192.0.2.2:2 97700DFE9F483596DDA6264C4D7DF7641E1E39CE url=https://meek.azureedge.net/ front=ajax.aspnetcdn.com"
@@ -81,3 +82,108 @@ suite "Request to Onionoo":
       hfp.isFound()
       not fp.isFound()
       not "123456FF".isFound()
+
+suite "Bridge actions":
+  test "Activate obfs4":
+    proc activateObfs4(torrc: string, kind: ActivateObfs4Kind): string =
+      var rc = torrc
+      rc = rc.replacef(re"#UseBridges\s(\d+)", "UseBridges $1")
+      rc = rc.replacef(re"#UpdateBridgesFromAuthority\s(\d+)", "UpdateBridgesFromAuthority $1")
+      rc = rc.replacef(re"#ClientTransportPlugin meek_lite,obfs4\s(.*)", "ClientTransportPlugin meek_lite,obfs4 $1")
+      rc = rc.replacef(re"[^#]ClientTransportPlugin snowflake\s(.*)", "\n#ClientTransportPlugin snowflake $1")
+      rc = rc.replacef(re"[^#]Bridge snowflake\s(.*)", "\n#Bridge snowflake $1")
+      rc = rc.replacef(re"[^#]Bridge meek_lite\s(.*)", "\n#Bridge meek_lite $1")
+
+      case kind
+      of ActivateObfs4Kind.all:
+        rc = rc.replacef(re"#Bridge obfs4\s(.*)", "Bridge obfs4 $1")
+      
+      of ActivateObfs4Kind.online:
+        rc = rc.replacef(re"#Bridge obfs4\s(.*)", "Bridge obfs4 $1")
+
+      of ActivateObfs4Kind.select:
+        rc = rc.replacef(re"#Bridge obfs4\s(.*)", "Bridge obfs4 $1")
+
+      return rc
+
+    check:
+      torrc_activated_obfs4 == torrc.activateObfs4(ActivateObfs4Kind.all)
+  
+  test "Deactivate obfs4":
+    proc deactivateObfs4(torrc: string): string =
+      var rc = torrc
+      rc = rc.replacef(re"[^#]UseBridges\s(\d+)", "\n#UseBridges $1")
+      rc = rc.replacef(re"[^#]UpdateBridgesFromAuthority\s(\d+)", "\n#UpdateBridgesFromAuthority $1")
+      rc = rc.replacef(re"[^#]ClientTransportPlugin meek_lite,obfs4\s(.*)", "\n#ClientTransportPlugin meek_lite,obfs4 $1")
+      rc = rc.replacef(re"[^#]Bridge obfs4\s(.*)", "\n#Bridge obfs4 $1")
+
+      return rc
+
+    check:
+      torrc == torrc_activated_obfs4.deactivateObfs4()
+
+  test "Activate meekazure":
+    proc activateMeekazure(torrc: string): string =
+      var rc = torrc
+
+      rc = rc.replacef(re"[^#]Bridge obfs4\s(.*)", "\n#Bridge obfs4 $1")
+      rc = rc.replacef(re"[^#]Bridge snowflake\s(.*)", "\n#Bridge snowflake $1")
+      rc = rc.replacef(re"[^#]ClientTransportPlugin snowflake\s(.*)", "\n#ClientTransportPlugin snowflake $1")
+      rc = rc.replacef(re"#UseBridges\s(\d+)", "UseBridges $1")
+      rc = rc.replacef(re"#UpdateBridgesFromAuthority\s(\d+)", "UpdateBridgesFromAuthority $1")
+      rc = rc.replacef(re"#ClientTransportPlugin meek_lite,obfs4\s(.*)", "ClientTransportPlugin meek_lite,obfs4 $1")
+      rc = rc.replacef(re"#Bridge meek_lite\s(.*)", "Bridge meek_lite $1")
+
+      return rc
+
+    check:
+      torrc_activated_meekazure == torrc.activateMeekazure()
+
+  test "Deactivate meekazure":
+    proc deactivateMeekazure(torrc: string): string =
+      var rc = torrc
+
+      rc = rc.replacef(re"[^#]Bridge obfs4\s(.*)", "\n#Bridge obfs4 $1")
+      rc = rc.replacef(re"[^#]Bridge snowflake\s(.*)", "\n#Bridge snowflake $1")
+      rc = rc.replacef(re"[^#]ClientTransportPlugin snowflake\s(.*)", "\n#ClientTransportPlugin snowflake $1")
+      rc = rc.replacef(re"[^#]UseBridges\s(\d+)", "\n#UseBridges $1")
+      rc = rc.replacef(re"[^#]UpdateBridgesFromAuthority\s(\d+)", "\n#UpdateBridgesFromAuthority $1")
+      rc = rc.replacef(re"[^#]ClientTransportPlugin meek_lite,obfs4\s(.*)", "\n#ClientTransportPlugin meek_lite,obfs4 $1")
+      rc = rc.replacef(re"[^#]Bridge meek_lite\s(.*)", "\n#Bridge meek_lite $1")
+    
+      return rc
+
+    check:
+      torrc == torrc_activated_meekazure.deactivateMeekazure()
+
+  test "Activate snowflake":
+    proc activateSnowflake(torrc: string): string =
+      var rc = torrc
+
+      rc = rc.replacef(re"[^#]Bridge obfs4\s(.*)", "\n#Bridge obfs4 $1")
+      rc = rc.replacef(re"[^#]Bridge meek_lite\s(.*)", "\n#Bridge meek_lite $1")
+      rc = rc.replacef(re"#UseBridges\s(\d+)", "UseBridges $1")
+      rc = rc.replacef(re"#UpdateBridgesFromAuthority\s(\d+)", "UpdateBridgesFromAuthority $1")
+      rc = rc.replacef(re"#ClientTransportPlugin snowflake\s(.*)", "ClientTransportPlugin snowflake $1")
+      rc = rc.replacef(re"#Bridge snowflake\s(.*)", "Bridge snowflake $1")
+
+      return rc
+
+    check:
+      torrc_activated_snowflake == torrc.activateSnowflake()
+
+  test "Deactivate snowflake":
+    proc deactivateSnowflake(torrc: string): string =
+      var rc = torrc
+
+      rc = rc.replacef(re"[^#]Bridge obfs4\s(.*)", "\n#Bridge obfs4 $1")
+      rc = rc.replacef(re"[^#]Bridge meek_lite\s(.*)", "\n#Bridge meek_lite $1")
+      rc = rc.replacef(re"[^#]UseBridges\s(\d+)", "\n#UseBridges $1")
+      rc = rc.replacef(re"[^#]UpdateBridgesFromAuthority\s(\d+)", "\n#UpdateBridgesFromAuthority $1")
+      rc = rc.replacef(re"[^#]ClientTransportPlugin snowflake\s(.*)", "\n#ClientTransportPlugin snowflake $1")
+      rc = rc.replacef(re"[^#]Bridge snowflake\s(.*)", "\n#Bridge snowflake $1")
+
+      return rc
+
+    check:
+      torrc == torrc_activated_snowflake.deactivateSnowflake()

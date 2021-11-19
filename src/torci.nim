@@ -5,9 +5,10 @@ import types, config, query, utils, strutils
 import asyncdispatch
 import lib / [session, tor, bridges, torbox, hostAp, fallbacks, wifiScanner, wirelessManager]
 import lib / sys as libsys
+import lib / utils as utl
 
 const configPath {.strdefine.} = "./torci.conf"
-let (cfg, fullCfg) = getConfig(configpath)
+let (cfg, _) = getConfig(configpath)
 let sysInfo = getSystemInfo()
 
 routingStatus(cfg, sysInfo)
@@ -69,4 +70,3 @@ routes:
   extend status, ""
   extend network, "/net"
   extend sys, ""
-  

@@ -25,6 +25,9 @@ type
     GET = "get",
     POST = "post"
 
+  ActivateObfs4Kind* {.pure.} = enum
+    all, online, select
+
   BridgeKind* = enum
     obfs4 = "obfs4",
     meekazure = "meek_lite",

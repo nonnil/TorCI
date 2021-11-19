@@ -28,7 +28,7 @@ proc renderObfs4Ctl*(): VNode =
                   button(`type`="submit", name="auto-add-obfs4", value="1"):
                     text "Add"
 
-proc renderBridgesCtl*(bridgesSta: BridgeStatuses): VNode =
+proc renderBridgeActions*(bridgesSta: BridgeStatuses): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
@@ -41,10 +41,10 @@ proc renderBridgesCtl*(bridgesSta: BridgeStatuses): VNode =
               td():
                 strong():
                   if bridgesSta.obfs4:
-                    button(class="btn-general btn-danger", `type`="submit", name="obfs4-ctl", value="deactivate"):
+                    button(class="btn-general btn-danger", `type`="submit", name="bridge-action", value="obfs4-deactivate"):
                       text "Deactivate"
                   else:
-                    button(class="btn-general btn-safe", `type`="submit", name="obfs4-ctl", value="activate"):
+                    button(class="btn-general btn-safe", `type`="submit", name="bridge-action", value="obfs4-activate-all"):
                       text "Activate"
 
             tr():
@@ -52,10 +52,10 @@ proc renderBridgesCtl*(bridgesSta: BridgeStatuses): VNode =
               td():
                 strong():
                   if bridgesSta.meekAzure:
-                    button(class="btn-general btn-danger", `type`="submit", name="meekAzure-ctl", value="deactivate"):
+                    button(class="btn-general btn-danger", `type`="submit", name="bridge-action", value="meekazure-deactivate"):
                       text "Deactivate"
                   else:
-                    button(class="btn-general btn-safe", `type`="submit", name="meekAzure-ctl", value="activate"):
+                    button(class="btn-general btn-safe", `type`="submit", name="bridge-action", value="meekazure-activate"):
                       text "Activate"
 
             tr():
@@ -63,23 +63,12 @@ proc renderBridgesCtl*(bridgesSta: BridgeStatuses): VNode =
               td():
                 strong():
                   if bridgesSta.snowflake:
-                    button(class="btn-general btn-danger", `type`="submit", name="snowflake-ctl", value="deactivate"):
+                    button(class="btn-general btn-danger", `type`="submit", name="bridge-action", value="snowflake-deactivate"):
                       text "Deactivate"
                   else:
-                    button(class="btn-general btn-safe", `type`="submit", name="snowflake-ctl", value="activate"):
+                    button(class="btn-general btn-safe", `type`="submit", name="bridge-action", value="snowflake-activate"):
                       text "Activate"
                     
-# proc renderObfs4Add*(): VNode =
-#   buildHtml(tdiv(class="columns")):
-#     tdiv(class="box"):
-#       tdiv(class="box-header"):
-#         text "Add Obfs4 Bridge"
-#       form(`method`="post", action="/net/bridges", enctype="miltipart/form-data"):
-#         table(class="full-width box-table"):
-#           tbody():
-#             tr():
-#               td(): text
-          
 proc renderInputObfs4*(): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
@@ -88,8 +77,11 @@ proc renderInputObfs4*(): VNode =
       form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
         textarea(
           class="textarea bridge-input",
-          name="input-obfs4",
-          placeholder="e.g.\nobfs4 xxx.xxx.xxx.xxx:xxxx cert=abcd.. iat-mode=0\nobfs4 yyy.yyy.yyy.yyy:yyyy cert=abcd.. iat-mode=0",
+          name="input-bridges",
+          placeholder="e.g.\n" &
+          "obfs4 xxx.xxx.xxx.xxx:xxxx FINGERPRINT cert=abcd.. iat-mode=0\n" &
+          "meek_lite 192.0.2.2:2 97700DFE9F483596DDA6264C4D7DF7641E1E39CE url=https://meek.azureedge.net/ front=ajax.aspnetcdn.com\n" &
+          "snowflake 192.0.2.3:1 2B280B23E1107BB62ABFC40DDCC8824814F80A72",
           required=""
         )
         button(class="btn-apply", `type`="submit", name="bridges-ctl", value="1"): text "Add Bridges"

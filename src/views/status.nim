@@ -56,7 +56,7 @@ proc renderTorInfo(torS: TorStatus): VNode =
                 tdiv():
                   text if torS.isOnline: "Online" else: "Offline"
                 form(`method`="post", action="/io", enctype="multipart/form-data"):
-                  button(class="btn-flat", `type`="submit", name="new_circuit", value="1"):
+                  button(class="btn-flat", `type`="submit", name="tor-request", value="new-circuit"):
                     svg(class="new-circuit", loading="lazy", alt="new circuit", width="25px", height="25px", viewBox="0 0 16 16", version="1.1"):
                       title(): text "Enforce a new exit node with a new IP"
                       path(

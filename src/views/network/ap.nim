@@ -1,6 +1,7 @@
 import karax / [karaxdsl, vdom]
 import ../ renderutils
 import ../ ../ types
+from ../ ../ lib / utils import model3
 
 proc renderChannelSelect(hd: SystemInfo, band: string): VNode
 

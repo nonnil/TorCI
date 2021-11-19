@@ -1,8 +1,8 @@
-import os, osproc, asyncdispatch, re, json, strutils, strformat
-import libcurl
+import os, osproc, asyncdispatch, json, strutils, strformat
 import torsocks
 import ".." / [types]
 import sys, bridges
+from utils import torlog, torrc
 
 export torsocks
 
@@ -24,6 +24,7 @@ proc getTorStatus*(cfg: Config): Future[TorStatus] {.async.} =
   let
     torch = await isTor(cfg)
     bridges = await getBridgeStatuses()
+
   result.isOnline = torch.isTor
   result.exitIp = torch.ipAddr
   result.useObfs4 = bridges.obfs4
@@ -38,7 +39,7 @@ proc renewTorExitIp*(): Future[bool] {.async.} =
     return true
   
 proc restartTor*() {.async.} =
-  restartService("tor")
+  restartService "tor"
   
 proc getTorLog*(): Future[string] {.async.} =
   if not fileExists(torlog):
