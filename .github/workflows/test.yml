@@ -9,7 +9,7 @@ on:
       - main
       - devel
 
-  pull_request
+  pull_request:
     paths-ignore:
       - 'LICENCE'
       - '*.md'
