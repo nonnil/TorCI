@@ -1,6 +1,21 @@
 name: Test TorCI
   
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - 'LICENCE'
+      - '*.md'
+    branches:
+      - main
+      - devel
+
+  pull_request
+    paths-ignore:
+      - 'LICENCE'
+      - '*.md'
+    branches:
+      - main
+      - devel
   
 jobs:
   test:
