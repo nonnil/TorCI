@@ -5,7 +5,7 @@ import types, config, query, utils, strutils
 import asyncdispatch
 import lib / [session, tor, bridges, torbox, hostAp, fallbacks, wifiScanner, wirelessManager]
 import lib / sys as libsys
-import lib / utils as utl
+import lib / consts
 
 const configPath {.strdefine.} = "./torci.conf"
 let (cfg, _) = getConfig(configpath)

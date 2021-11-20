@@ -5,7 +5,7 @@ proc renderObfs4Ctl*(): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
-        text "Bridges Control"
+        text "Actions"
       form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
         table(class="full-width box-table"):
           tbody():
@@ -73,15 +73,15 @@ proc renderInputObfs4*(): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
-        text "Add Obfs4 Bridges"
+        text "Add Bridges"
       form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
         textarea(
           class="textarea bridge-input",
           name="input-bridges",
           placeholder="e.g.\n" &
           "obfs4 xxx.xxx.xxx.xxx:xxxx FINGERPRINT cert=abcd.. iat-mode=0\n" &
-          "meek_lite 192.0.2.2:2 97700DFE9F483596DDA6264C4D7DF7641E1E39CE url=https://meek.azureedge.net/ front=ajax.aspnetcdn.com\n" &
-          "snowflake 192.0.2.3:1 2B280B23E1107BB62ABFC40DDCC8824814F80A72",
+          "meek_lite 192.0.2.2:2 FINGERPRINT url=https://meek.torbox.ch/ front=ajax.torbox.ch\n" &
+          "snowflake 192.0.2.3:1 FINGERPRINT",
           required=""
         )
-        button(class="btn-apply", `type`="submit", name="bridges-ctl", value="1"): text "Add Bridges"
+        button(class="btn-apply", `type`="submit", name="bridges-ctl", value="1"): text "Add"

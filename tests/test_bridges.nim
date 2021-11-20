@@ -7,7 +7,7 @@ import ../ src / types
 import std / nativesockets
 import torrc_template
 
-suite "Bridges validity":
+suite "Bridges parse":
   const
     o = "obfs4 122.148.194.24:993 07784768F54CF66F9D588E19E8EE3B0FA702711B cert=m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg iat-mode=0"
     m = "meek_lite 192.0.2.2:2 97700DFE9F483596DDA6264C4D7DF7641E1E39CE url=https://meek.azureedge.net/ front=ajax.aspnetcdn.com"
@@ -17,7 +17,7 @@ suite "Bridges validity":
   let meekazure: Meekazure = parseMeekazure(m)
   let snowflake: Snowflake = parseSnowflake(s)
 
-  test "obfs4 validity":
+  test "obfs4 parse":
     check:
       obfs4.ipaddr == "122.148.194.24"
       obfs4.port == 993.Port
@@ -25,17 +25,38 @@ suite "Bridges validity":
       obfs4.cert == "m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg"
       obfs4.iatMode == "0"
   
-  test "meekazure validity":
+  test "meekazure parse":
     check:
       meekazure.ipaddr == "192.0.2.2"
       meekazure.port == 2.Port
       meekazure.fingerprint == "97700DFE9F483596DDA6264C4D7DF7641E1E39CE"
 
-  test "snowflake validity":
+  test "snowflake parse":
     check:
       snowflake.ipaddr == "192.0.2.3"
       snowflake.port == 1.Port
       snowflake.fingerprint == "2B280B23E1107BB62ABFC40DDCC8824814F80A72"
+
+suite "Bridges validity":
+  const
+    o = "obfs4 122.148.194.24:993 07784768F54CF66F9D588E19E8EE3B0FA702711B cert=m3jPGnUyZMWHT9Riioob95s1czvGs3HiZ64GIT3QbH/AZDVlF/YEXu/OtyYZ1eObKnTjcg iat-mode=0"
+    m = "meek_lite 192.0.2.2:2 97700DFE9F483596DDA6264C4D7DF7641E1E39CE url=https://meek.azureedge.net/ front=ajax.aspnetcdn.com"
+    s = "snowflake 192.0.2.3:1 2B280B23E1107BB62ABFC40DDCC8824814F80A72"
+  
+  test "obfs4 validity":
+    check:
+      o.isObfs4()
+      not m.isObfs4()
+  
+  test "meekazure validity":
+    check:
+      m.isMeekazure()
+      not o.isMeekazure()
+
+  test "snowflake validity":
+    check:
+      s.isSnowflake()
+      not s.isMeekazure()
 
 suite "Check fingerprint of Tor bridges":
   test "Fingerprint hashing":
@@ -187,3 +208,22 @@ suite "Bridge actions":
 
     check:
       torrc == torrc_activated_snowflake.deactivateSnowflake()
+
+  test "Add bridges":
+    const newBridges: string = """
+obfs4 185.220.101.221:38395 1BBABB8B42EF34BA93D0D4F37F7CAAAAF9EAA512 cert=p9L6+25s8bnfkye1ZxFeAE4mAGY7DH4Gaj7dxngIIzP9BtqrHHwZXdjMK0RVIQ34C7aqZw iat-mode=0
+
+meek_lite 192.0.2.2:2 97700DFE9F483596DDA6264C4D7DF7641E1E39CE url=https://meek.azureedge.net/ front=ajax.aspnetcdn.com
+snowflake 192.0.2.3:1 2B280B23E1107BB62ABFC40DDCC8824814F80A72
+"""
+    proc addBridges(bridges: string): string =
+      result = torrc
+      for bridge in bridges.splitLines:
+        if (bridge.len > 0) and
+        bridge.isObfs4() or
+        bridge.isMeekazure() or
+        bridge.isSnowflake():
+          result &= "Bridge " & bridge & "\n"
+
+    check:
+      torrc_added_bridges == newBridges.addBridges()

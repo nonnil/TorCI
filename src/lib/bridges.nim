@@ -2,7 +2,7 @@ import std / [os, osproc, re, asyncdispatch, strutils]
 import ".." / [types]
 import std / [sha1, json, uri]
 import torsocks, binascii, sys
-from utils import torrc
+from consts import torrc
 
 proc restartTor() =
   restartService "tor"
@@ -195,10 +195,10 @@ proc isObfs4*(bridge: string): bool =
     return false
 
 proc isMeekazure*(bridge: string): bool =
-  let s = bridge.splitLines()
+  let s = bridge.splitWhitespace()
 
   if s.len == 5 and
-  s[0] == "meekazure" and
+  s[0] == "meek_lite" and
   s[1].match(re"(\d+\.){3}(\d+):\d+") and
   s[2].match(re".+") and
   s[3].match(re"url=.+") and
@@ -220,36 +220,50 @@ proc isSnowflake*(bridge: string): bool =
   else:
     return false
 
-proc addObfs4*(bridge: string): Future[tuple[res: bool, msg: string]] {.async.} =
-  if bridge.isObfs4():
-    var rc = readFile(torrc)
-    rc &= "\n" & bridge
-    torrc.writeFile(rc)
-    return (true, "")
+proc addBridges*(bridges: string): Future[tuple[failure: int, success: int]] {.async.} =
+  try:
+    var
+      rc = readFile torrc
+      bs: string
 
-proc addObfs4*(bridges: seq[string]): Future[seq[tuple[res: bool, msg: string]]] {.async.} =
-  for bridge in bridges:
-    let ret = waitFor addObfs4(bridge)
-    if not ret.res:
-      result.add ret
+    for bridge in bridges.splitLines:
+      if bridge.len > 0:
+
+        if bridge.isObfs4() or
+        bridge.isMeekazure() or
+        bridge.isSnowflake():
+          bs &= "Bridge " & bridge & "\n"
+          inc result.success
+        
+        else:
+          inc result.failure
+
+    if result.success > 0:
+      rc &= bs
+      torrc.writeFile rc
+        # if not ret.res:
+        #   result.add ret
+  except IOError: return
 
 proc activateMeekazure*() {.async.} =
-  var rc = readFile torrc
+  try:
+    var rc = readFile torrc
 
-  deactivateBridgeRelay()
-  await deactivateObfs4()
+    deactivateBridgeRelay()
+    await deactivateObfs4()
 
-  rc = rc.replacef(re"[^#]Bridge obfs4\s(.*)", "\n#Bridge obfs4 $1")
-  rc = rc.replacef(re"[^#]Bridge snowflake\s(.*)", "\n#Bridge snowflake $1")
-  rc = rc.replacef(re"[^#]ClientTransportPlugin snowflake\s(.*)", "\n#ClientTransportPlugin snowflake $1")
-  rc = rc.replacef(re"#UseBridges\s(\d+)", "UseBridges $1")
-  rc = rc.replacef(re"#UpdateBridgesFromAuthority\s(\d+)", "UpdateBridgesFromAuthority $1")
-  rc = rc.replacef(re"#ClientTransportPlugin meek_lite,obfs4\s(.*)", "ClientTransportPlugin meek_lite,obfs4 $1")
-  rc = rc.replacef(re"#Bridge meek_lite\s(.*)", "Bridge meek_lite $1")
+    rc = rc.replacef(re"[^#]Bridge obfs4\s(.*)", "\n#Bridge obfs4 $1")
+    rc = rc.replacef(re"[^#]Bridge snowflake\s(.*)", "\n#Bridge snowflake $1")
+    rc = rc.replacef(re"[^#]ClientTransportPlugin snowflake\s(.*)", "\n#ClientTransportPlugin snowflake $1")
+    rc = rc.replacef(re"#UseBridges\s(\d+)", "UseBridges $1")
+    rc = rc.replacef(re"#UpdateBridgesFromAuthority\s(\d+)", "UpdateBridgesFromAuthority $1")
+    rc = rc.replacef(re"#ClientTransportPlugin meek_lite,obfs4\s(.*)", "ClientTransportPlugin meek_lite,obfs4 $1")
+    rc = rc.replacef(re"#Bridge meek_lite\s(.*)", "Bridge meek_lite $1")
 
-  torrc.writefile rc
+    torrc.writefile rc
 
-  restartTor()
+    restartTor()
+  except IOError: return
       
 proc deactivateMeekazure*() {.async.} =
   var rc = readFile torrc

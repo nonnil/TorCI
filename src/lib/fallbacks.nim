@@ -2,7 +2,7 @@ import os, osproc, re, strutils, strformat, logging
 import asyncdispatch
 import ".." / [types]
 import sys, hostAp
-from utils import hostapd, hostapdBak
+from consts import hostapd, hostapdBak
 
 proc hostapdFallback*() {.async.} =
   try:

@@ -2,7 +2,7 @@ import os, osproc, asyncdispatch, json, strutils, strformat
 import torsocks
 import ".." / [types]
 import sys, bridges
-from utils import torlog, torrc
+from consts import torlog, torrc
 
 export torsocks
 

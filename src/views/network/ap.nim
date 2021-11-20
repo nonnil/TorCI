@@ -1,7 +1,7 @@
 import karax / [karaxdsl, vdom]
 import ../ renderutils
 import ../ ../ types
-from ../ ../ lib / utils import model3
+from ../ ../ lib / consts import model3
 
 proc renderChannelSelect(hd: SystemInfo, band: string): VNode
 
@@ -9,7 +9,7 @@ proc renderHostApControl*(conf: HostApConf): VNode =
   buildHtml(tdiv(class="columns width-38")):
     tdiv(class="box"):
       tdiv(class="box-header"):
-        text "HostAP Control"
+        text "Actions"
       tdiv(class="card-padding"):
         form(`method`="post", action="/net/apctl", enctype="multipart/form-data"):
           if conf.isActive:
@@ -22,7 +22,7 @@ proc renderHostApConf*(conf: HostApConf, sysInfo: SystemInfo): VNode =
   buildHtml(tdiv(class="columns width-58")):
     tdiv(class="box"):
       tdiv(class="box-header"):
-        text "HostAP Configuration"
+        text "Config"
         tdiv(class="btn edit-button"):
           icon "sliders"
           input(class="opening-button", `type`="radio", name="popout-button", value="open")
@@ -51,7 +51,7 @@ proc renderHostApConf*(conf: HostApConf, sysInfo: SystemInfo): VNode =
                 label(class="card-title"): text "Password"
                 input(`type`="password", name="password", placeholder="Please enter 8 to 64 characters") 
               button(`type`="submit", class="btn btn-apply saveBtn", name="saveBtn"):
-                text "Save change"
+                text "Save"
       table(class="full-width box-table"):
         tbody():
           tr():

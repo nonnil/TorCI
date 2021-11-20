@@ -3,7 +3,7 @@ import std / strutils
 import ../ views / [temp, network]
 import ".." / [types, query, utils]
 import ".." / lib / [sys, tor, bridges, torbox, session, hostAp, fallbacks, wifiScanner, wirelessManager]
-from ../ lib / utils as utl import model3
+from ../ lib / consts as utl import model3
 
 export network
 
@@ -291,13 +291,21 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
             redirect "/bridges"
 
         if input.len > 0:
-          let fails = await addObfs4(input.splitLines())
-          if fails.len == 0:
-            notifies.add Notify(status: success, msg: "Added bridges")
+          let (failure, success) = await addBridges(input)
+          if failure == 0 and
+          success > 0:
+            notifies.add Notify(status: Status.success, msg: "Added bridges")
 
+          elif failure > 0 and
+          success > 0:
+            notifies.add Notify(status: warn, msg: "Added bridges")
+
+          elif failure > 0 and
+          success == 0:
+            notifies.add Notify(status: Status.failure, msg: "fail")
+          
           else:
-            for (res, msg) in fails:
-              notifies.add Notify(status: failure, msg: msg)
+            redirect "bridges"
 
           respBridges(notifies)
 
