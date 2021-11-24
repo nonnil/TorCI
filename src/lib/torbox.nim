@@ -2,12 +2,25 @@ import os, osproc, asyncdispatch
 import re, strutils, strformat
 import sys
 import ".." / [types, utils]
+import nativesockets
 from consts import torrc, runfile
 
 const
   iptable = "/sbin" / "iptables"
   modprobe = "/sbin" / "modprobe"
   dnsprog = "dnsmasq"
+
+# getTorboxVersion for test
+proc getTorboxVersion*(hname: var string): string {.forTest.} =
+  if hname.match(re"TorBox(\d){3}"):
+    hname.delete(0..5)
+    result = hname.insertSep('.', 1)
+
+proc getTorboxVersion*(): string =
+  var hname = getHostname()
+  if hname.match(re"TorBox(\d){3}"):
+    hname.delete(0, 5)
+    result = hname.insertSep('.', 1)
 
 proc setCaptive*(serverIface, clientWln, clientEth: IfaceKind) =
   

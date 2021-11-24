@@ -32,7 +32,7 @@ proc renderBridgeActions*(bridgesSta: BridgeStatuses): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
-        text "Bridges Control"
+        text "Actions"
       form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
         table(class="full-width box-table"):
           tbody():
@@ -73,7 +73,7 @@ proc renderInputObfs4*(): VNode =
   buildHtml(tdiv(class="columns width-50")):
     tdiv(class="box"):
       tdiv(class="box-header"):
-        text "Add Bridges"
+        text "Add a bridge"
       form(`method`="post", action="/net/bridges", enctype="multipart/form-data"):
         textarea(
           class="textarea bridge-input",
@@ -84,4 +84,5 @@ proc renderInputObfs4*(): VNode =
           "snowflake 192.0.2.3:1 FINGERPRINT",
           required=""
         )
-        button(class="btn-apply", `type`="submit", name="bridges-ctl", value="1"): text "Add"
+        button(class="btn-apply", `type`="submit", name="bridges-ctl", value="1"):
+          text "Enter"

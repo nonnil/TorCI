@@ -155,7 +155,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
           respApConf(
             Notify(
               status: success,
-              msg: "Configuration successful. Please restart this Access Point to apply the changes"
+              msg: "Configuration successful. Please restart the access point to apply the change"
             )
           )
 
@@ -259,54 +259,44 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
           input: string = request.formData.getOrDefault("input-bridges").body
           action = request.formData.getOrDefault("bridge-action").body
 
+        if input.len > 0:
+          let (failure, success) = await addBridges(input)
+          if failure == 0 and
+          success > 0:
+            notifies.add Notify(status: Status.success, msg: "Bridge has been added")
+
+          elif failure > 0 and
+          success > 0:
+            notifies.add Notify(status: warn, msg: "Some bridges failed to add")
+
+          else:
+            notifies.add Notify(status: Status.failure, msg: "Failed to bridge add")
+          
         if action.len > 0:
           case action
 
           of "obfs4-activate-all":
             await activateObfs4(ActivateObfs4Kind.all)
-            redirect "/bridges"
 
           of "obfs4-activate-online":
             await activateObfs4(ActivateObfs4Kind.online)
-            redirect "/bridges"
 
           of "obfs4-deactivate":
             await deactivateObfs4()
-            redirect "/bridges"
 
           of "meekazure-activate":
             await activateMeekazure()
-            redirect "/bridges"
 
           of "meekazure-deactivate":
             await deactivateMeekazure()
-            redirect "/bridges"
 
           of "snowflake-activate":
             await activateSnowflake()
-            redirect "/bridges"
 
           of "snowflake-deactivate":
             await deactivateSnowflake()
-            redirect "/bridges"
 
-        if input.len > 0:
-          let (failure, success) = await addBridges(input)
-          if failure == 0 and
-          success > 0:
-            notifies.add Notify(status: Status.success, msg: "Added bridges")
-
-          elif failure > 0 and
-          success > 0:
-            notifies.add Notify(status: warn, msg: "Added bridges")
-
-          elif failure > 0 and
-          success == 0:
-            notifies.add Notify(status: Status.failure, msg: "fail")
-          
-          else:
-            redirect "bridges"
-
+        if notifies.len > 0:
           respBridges(notifies)
-
-        redirect "/bridges"
+        else:
+          redirect "bridges"

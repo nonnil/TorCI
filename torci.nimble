@@ -19,3 +19,6 @@ requires "bcrypt >= 0.2.1"
 
 task scss, "Generate css":
   exec "nim r tools/gencss"
+
+task tests, "Run tests":
+  exec "nimble -d:test test -y"

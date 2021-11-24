@@ -7,9 +7,15 @@ import lib / [session, tor, bridges, torbox, hostAp, fallbacks, wifiScanner, wir
 import lib / sys as libsys
 import lib / consts
 
+{.passL: "-flto", passC: "-flto", optimization: size.}
+# {.passC: "/usr/include/x86_64-linux-musl".}
+# {.passL: "-I/usr/include/x86_64-linux-musl".}
+
 const configPath {.strdefine.} = "./torci.conf"
 let (cfg, _) = getConfig(configpath)
-let sysInfo = getSystemInfo()
+var sysInfo = getSystemInfo()
+let torboxVer = getTorboxVersion()
+sysInfo.torboxVer = torboxVer
 
 routingStatus(cfg, sysInfo)
 routingNet(cfg, sysInfo)

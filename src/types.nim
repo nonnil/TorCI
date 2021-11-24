@@ -121,6 +121,7 @@ type
     model*: string
     uptime*: int
     localtime*: int
+    torboxVer*: string
 
   Network* = ref object of Wifi
     # wifiList: WifiList

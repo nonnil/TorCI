@@ -34,7 +34,7 @@ proc renderSystemInfo(cfg: Config, sys: SystemInfo): VNode =
             td():
               strong():
                 tdiv():
-                  text cfg.torboxVer
+                  text if sys.torboxVer.len > 0: sys.torboxVer else: "Unknown"
           tr():
             td(): text "TorCI Version"
             td():

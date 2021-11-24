@@ -104,17 +104,19 @@ proc getSystemInfo*(): SystemInfo =
     procDir = "/proc"
     procVersion = procDir / "version"
     procCpuinfo = procDir / "cpuinfo"
-  # try:
-  let
-    version = readFile(procVersion)
-    cpuinfo = readFile(procCpuinfo)
-  result = SystemInfo(
-    kernelVersion: version.parseCpuinfo("kernelVersion"),
-    model: cpuinfo.parseCpuinfo("model"),
-    architecture: cpuinfo.parseCpuinfo("architecture")
-  )
-  # except:
-  #   return
+
+  try:
+    let
+      version = readFile(procVersion)
+      cpuinfo = readFile(procCpuinfo)
+
+    result = SystemInfo(
+      kernelVersion: version.parseCpuinfo("kernelVersion"),
+      model: cpuinfo.parseCpuinfo("model"),
+      architecture: cpuinfo.parseCpuinfo("architecture")
+    )
+
+  except IOError: return
 
 proc eraseLogs*(): Future[Status] {.async.} =
   const find = "sudo find /var/log -type f"

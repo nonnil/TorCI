@@ -10,7 +10,7 @@ proc renderChangePasswd*(): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="box"):
       tdiv(class="box-header"):
-        text "Change password"
+        text "User password"
       form(`method`="post", action="/sys/passwd", enctype="multipart/form-data"):
         table(class="full-width box-table"):
           tbody():
@@ -29,7 +29,7 @@ proc renderChangePasswd*(): VNode =
               td():
                 strong():
                   input(`type`="password", `required`="", name="re_newPassword")
-        button(class="btn-apply", `type`="submit", name="postType", value="chgPasswd"): text "Change password"
+        button(class="btn-apply", `type`="submit", name="postType", value="chgPasswd"): text "Apply"
         
 proc renderChangePassControlPort*(): VNode =
   buildHtml(tdiv(class="columns")):
