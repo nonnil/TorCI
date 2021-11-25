@@ -106,11 +106,6 @@ proc renderPanel*(v: VNode): VNode =
   buildHtml(tdiv(class="main-panel")):
     v
 
-proc renderContainer*(v: VNode): VNode =
-  buildHtml(tdiv(class="container-inside")):
-    tdiv(class="container-inside")
-    renderPanel(v)
-
 proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: string = "", menu = Menu()): string =
   let node = buildHtml(html(lang="en")):
     renderHead(cfg, title)
