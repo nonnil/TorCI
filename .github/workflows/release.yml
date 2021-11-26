@@ -39,7 +39,7 @@ jobs:
 
           # mkdir -p amd64_dir
           # mkdir -p arm_dir
-          mkdir $dir
+          mkdir -p $dir
 
           # Set env
           ARCH=${{ matrix.arch }}
