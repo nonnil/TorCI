@@ -21,14 +21,41 @@ jobs:
   build-artifact:
     name: Build artifact
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dist:
+          - buster
+          - bullseye
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: build
         run: |
-          docker build -t torci:release -f build/pre build
+          amd64_dir=artifact/${{ matrix.dist }}/amd64/torci
+          arm_dir=artifact/${{ matrix.dist }}/arm/torci
+
+          # mkdir -p amd64_dir
+          # mkdir -p arm_dir
+
+          docker build -t torci:release -f build/${{ matrix.dist }} build
           docker run --rm -v `pwd`:/src/torci torci:release
-          file torci
+
+          # Copy resources
+          cp public amd64_dir/public
+          cp torci.nimble torci.conf config.nims LICENCE amd64_dir
+          
+          cp public arm_dir/public
+          cp torci.nimble torci.conf config.nims LICENCE arm_dir
+
+          archive_name_amd64=torci-${{ matrix.dist }}_amd64.tar.gz
+          archive_name_arm=torci-${{ matrix.dist }}_arm.tar.gz
+
+          tar -czvf $archive_name_amd64 amd64_dir
+          tar -czvf $archive_name_arm arm_dir
+          
+          ls -lah | grep torci
+        shell: bash
 
   # create-release:
   #   needs: [build-artifact]
