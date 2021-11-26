@@ -55,8 +55,7 @@ jobs:
           archive_name_amd64=torci-${{ matrix.dist }}_amd64.tar.gz
           archive_name_arm=torci-${{ matrix.dist }}_arm.tar.gz
 
-          tar -czvf $archive_name_amd64 amd64_dir
-          tar -czvf $archive_name_arm arm_dir
+          tar -czvf $archive_name_amd64 $dir
           
           tree
         shell: bash
