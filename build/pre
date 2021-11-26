@@ -15,4 +15,3 @@ RUN curl -o "/etc/hostapd/hostapd.conf" -A "Mozilla/5.0 (Windows NT 10.0; rv:91.
 RUN adduser --disabled-password --gecos "" torbox && echo "torbox:torbox" | chpasswd
 
 RUN nimble build -d:release -y && nimble scss
-CMD ["./torci"]

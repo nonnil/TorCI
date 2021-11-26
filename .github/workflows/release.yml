@@ -1,0 +1,46 @@
+name: release
+
+on:
+  push:
+    # tags:
+    #   - 'v*.*.*'
+    paths-ignore:
+      - 'LICENCE'
+      - '*.md'
+    branches:
+      - main
+      - devel
+
+env:
+  APP_NAME: 'TorCI'
+  NIM_VERSION: '1.6.0'
+  MAINTAINER: 'Luca'
+  DESC: 'Configuration Interface for TorBox'
+
+jobs:
+  build-artifact:
+    name: Build artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: build
+        run: |
+          docker build -t torci:release build/pre
+          docker run --rm -v `pwd`:/src/ torci:release
+          file torci
+
+  # create-release:
+  #   needs: [build-artifact]
+  #   - name: Create Release
+  #     id: create_release
+  #     uses: actions/create-release@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     with:
+  #       tag_name: ${{ github.ref }}
+  #       release_name: ${{ github.ref }}
+  #       body: |
+  #         ${{ steps.Changelog.outputs.changelog }}
+  #       draft: false
+  #       prerelease: false
