@@ -23,11 +23,6 @@ WORKDIR /src/torci
 # RUN nimble install -y
 
 CMD \
-mkdir -p artifact/buster/amd64/torci && \
-mkdir -p artifact/buster/arm/torci && \
 export PATH="${PATH}":$HOME/.nimble/nim/bin:$HOME/.nimble/bin && \
-nimble --os:linux --cpu:amd64 -d:strip -d:release -y build && \
-cp torci artifact/buster/amd64/torci && \
-nimble --os:linux --cpu:arm -d:strip -d:release -y build && \
-cp torci artifact/buster/arm/torci && \
+nimble --os:linux --cpu:$ARCH -d:strip -d:release -y build && \
 nimble scss

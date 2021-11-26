@@ -26,35 +26,41 @@ jobs:
         dist:
           - buster
           # - bullseye
+        arch:
+          - amd64
+          - arm
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: build
         run: |
-          amd64_dir=artifact/${{ matrix.dist }}/amd64/torci
-          arm_dir=artifact/${{ matrix.dist }}/arm/torci
+          dir=artifact/${{ matrix.dist }}/${{ matrix.arch }}/torci
 
           # mkdir -p amd64_dir
           # mkdir -p arm_dir
+          mkdir $dir
+
+          # Set env
+          ARCH=${{ matrix.arch }}
 
           docker build -t torci:release -f build/${{ matrix.dist }} build
-          docker run --rm -v `pwd`:/src/torci torci:release
+          docker run --rm -v `pwd`:/src/torci torci:release -e $ARCH
+
+          # Move bin
+          mv torci $dir
 
           # Copy resources
-          cp -r public amd64_dir/public
-          cp torci.nimble torci.conf config.nims LICENCE amd64_dir
+          cp -r public $dir/public
+          cp torci.nimble torci.conf config.nims LICENCE $dir
           
-          cp -r public arm_dir/public
-          cp torci.nimble torci.conf config.nims LICENCE arm_dir
-
           archive_name_amd64=torci-${{ matrix.dist }}_amd64.tar.gz
           archive_name_arm=torci-${{ matrix.dist }}_arm.tar.gz
 
           tar -czvf $archive_name_amd64 amd64_dir
           tar -czvf $archive_name_arm arm_dir
           
-          ls -lah | grep torci
+          tree
         shell: bash
 
   # create-release:
