@@ -42,10 +42,10 @@ jobs:
           docker run --rm -v `pwd`:/src/torci torci:release
 
           # Copy resources
-          cp public amd64_dir/public
+          cp -r public amd64_dir/public
           cp torci.nimble torci.conf config.nims LICENCE amd64_dir
           
-          cp public arm_dir/public
+          cp -r public arm_dir/public
           cp torci.nimble torci.conf config.nims LICENCE arm_dir
 
           archive_name_amd64=torci-${{ matrix.dist }}_amd64.tar.gz
