@@ -27,7 +27,7 @@ jobs:
       - name: build
         run: |
           docker build -t torci:release -f build/pre build
-          docker run --rm -v `pwd`:/src/ torci:release
+          docker run --rm -v `pwd`:/src/torci torci:release
           file torci
 
   # create-release:
