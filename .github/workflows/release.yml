@@ -45,7 +45,7 @@ jobs:
           ARCH=${{ matrix.arch }}
 
           docker build -t torci:release -f build/${{ matrix.dist }} build
-          docker run --rm -v `pwd`:/src/torci torci:release -e $ARCH
+          docker run --rm -v `pwd`:/src/torci -e $ARCH torci:release
 
           # Move bin
           mv torci $dir
