@@ -37,15 +37,13 @@ jobs:
         run: |
           dir=artifact/${{ matrix.dist }}/${{ matrix.arch }}/torci
 
-          # mkdir -p amd64_dir
-          # mkdir -p arm_dir
           mkdir -p $dir
 
           # Set env
           ARCH=${{ matrix.arch }}
 
-          docker build -t torci:release -f build/${{ matrix.dist }} build
-          docker run --rm -v `pwd`:/src/torci -e $ARCH torci:release
+          docker build -t torci:release --build-arg ARCH=${{ matrix.arch }} -f build/${{ matrix.dist }} build
+          docker run --rm -v `pwd`:/src/torci torci:release
 
           # Move bin
           mv torci $dir

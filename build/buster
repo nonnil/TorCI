@@ -19,6 +19,7 @@ RUN curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
 
 # COPY . /src/torci
 WORKDIR /src/torci
+ARG ARCH
 
 # RUN nimble install -y
 

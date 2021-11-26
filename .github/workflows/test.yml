@@ -5,6 +5,8 @@ on:
     paths-ignore:
       - 'LICENCE'
       - '*.md'
+      - 'buster'
+      - 'release.yml'
     branches:
       - main
       - devel
