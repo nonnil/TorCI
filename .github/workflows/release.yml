@@ -102,7 +102,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ create-release.create_release.outputs.upload_url }}
           # upload_url: ${{ steps.vars.outputs.upload_url }}
           asset_path: torci-${{ matrix.dist }}_${{ matrix.arch }}.tar.gz
           asset_name: torci-${{ matrix.dist }}_${{ matrix.arch }}.tar.gz
