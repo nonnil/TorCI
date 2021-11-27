@@ -67,6 +67,7 @@ jobs:
     needs:
       - build-artefact
     steps:
+      - uses: actions/checkout@v2
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -80,6 +81,7 @@ jobs:
             Anyway
           draft: false
           prerelease: false
+
       - name: Write upload_url to file
         run: echo '${{ steps.create-release.outputs.upload_url }}' > upload_url.txt
 
