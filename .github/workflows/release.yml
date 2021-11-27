@@ -59,7 +59,7 @@ jobs:
         shell: bash
       - uses: actions/upload-artifact@v2
         with:
-          name: artefact-${{ matrix.os }}_${{ matrix.arch }}
+          name: artefact-${{ matrix.dist }}_${{ matrix.arch }}
           path: $archive_name
 
   create-release:
