@@ -60,7 +60,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: artefact-${{ matrix.dist }}_${{ matrix.arch }}
-          path: $archive_name
+          path: torci-*.tar.gz
 
   create-release:
     runs-on: ubuntu-latest
