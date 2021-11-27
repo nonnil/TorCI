@@ -94,7 +94,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: artefact-${{ matrix.os }}_${{ matrix.arch }}
+          name: artefact-${{ matrix.dist }}_${{ matrix.arch }}
 
       - name: Upload Release Asset
         id: upload-release-asset
