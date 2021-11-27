@@ -35,9 +35,9 @@ jobs:
         uses: actions/checkout@v2
       - name: Create artefact
         run: |
-          dir=artefact/${{ matrix.dist }}/${{ matrix.arch }}/torci
+          torci_dir=artefact/torci
 
-          mkdir -p $dir
+          mkdir -p $torci_dir
 
           # Set env
           ARCH=${{ matrix.arch }}
@@ -46,15 +46,15 @@ jobs:
           docker run --rm -v `pwd`:/src/torci -e ARCH=${{ matrix.arch }} torci:release
 
           # Move binary
-          mv torci $dir
+          mv torci $torci_dir
 
           # Copy resources
-          cp -r public $dir/public
-          cp torci.nimble torci.conf config.nims LICENCE $dir
+          cp -r public $torci_dir/public
+          cp torci.nimble torci.conf config.nims LICENCE $torci_dir
           
           archive_name=torci-${{ matrix.dist }}_${{ matrix.arch }}.tar.gz
 
-          tar -czvf $archive_name $dir
+          tar -czvf $archive_name -C artefact torci
           
         shell: bash
       - uses: actions/upload-artifact@v2
@@ -86,14 +86,6 @@ jobs:
       - name: upload_url
         run: echo "::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}"
 
-      # - name: Write upload_url to file
-      #   run: echo '${{ steps.create-release.outputs.upload_url }}' > upload_url.txt
-
-      # - uses: actions/upload-artifact@v2
-      #   with:
-      #     name: create-release
-      #     path: upload_url.txt
-
   upload-release:
     runs-on: ubuntu-latest
     needs: create-release
@@ -108,14 +100,6 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: artefact-${{ matrix.dist }}_${{ matrix.arch }}
-
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: create-release
-
-      # - id: vars
-      #   run: |
-      #     echo "::set-output name=upload_url::$(cat upload_url.txt)"
 
       - name: Upload Release Asset
         id: upload-release-asset
