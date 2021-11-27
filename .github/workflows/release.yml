@@ -2,14 +2,14 @@ name: release
 
 on:
   push:
-    # tags:
-    #   - 'v*.*.*'
-    paths-ignore:
-      - 'LICENCE'
-      - '*.md'
-    branches:
-      - main
-      - devel
+    tags:
+      - 'v*.*.*'
+    # paths-ignore:
+    #   - 'LICENCE'
+    #   - '*.md'
+    # branches:
+    #   - main
+    #   - devel
 
 env:
   APP_NAME: 'TorCI'
