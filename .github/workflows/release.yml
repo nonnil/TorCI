@@ -93,6 +93,7 @@ jobs:
       matrix:
         dist:
           - buster
+          - bullseye
         arch:
           - amd64
           - arm
