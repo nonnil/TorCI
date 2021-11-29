@@ -1,0 +1,19 @@
+FROM debian:bullseye-slim as bullseye
+MAINTAINER nilnilnilnil@protonmail.com
+EXPOSE 1984
+ENV DEBIAN_FRONTEND=noninteractive
+# RUN USER=root apk --no-cache add libsass-dev libffi-dev pcre-dev openssl-dev openssh-client openssl sudo tor wpa_supplicant dhcpcd openrc bsd-compat-headers
+RUN apt update && \
+apt install -y build-essential libsass-dev openssl git curl \
+binutils-arm-linux-gnueabi \
+gcc-arm-linux-gnueabihf
+
+RUN curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+
+# COPY . /src/torci
+WORKDIR /src/torci
+
+CMD \
+export PATH="${PATH}":$HOME/.nimble/nim/bin:$HOME/.nimble/bin && \
+nimble --os:linux --cpu:$ARCH -d:strip -d:release -y build && \
+nimble scss

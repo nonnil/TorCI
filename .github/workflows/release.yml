@@ -25,7 +25,7 @@ jobs:
       matrix:
         dist:
           - buster
-          # - bullseye
+          - bullseye
         arch:
           - amd64
           - arm
@@ -79,7 +79,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
           body: |
-            - Anyway
+            Anyway
           draft: false
           prerelease: false
 

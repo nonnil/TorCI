@@ -6,6 +6,7 @@ on:
       - 'LICENCE'
       - '*.md'
       - 'buster'
+      - 'bullseye'
       - 'release.yml'
     branches:
       - main
