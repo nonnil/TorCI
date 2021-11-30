@@ -32,6 +32,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Install toolchain
+        run: sudo apt install gcc-arm-linux-gnueabihf
+
       - name: Cache choosenim
         id: cache-choosenim
         uses: actions/cache@v2
