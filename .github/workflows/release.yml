@@ -38,6 +38,8 @@ jobs:
           binutils-arm-linux-gnueabihf \
           gcc-arm-linux-gnueabihf \
           build-essential libsass-dev openssl curl \
+          libcrypt-dev:armhf
+        shell: bash
 
       - name: Cache choosenim
         id: cache-choosenim
