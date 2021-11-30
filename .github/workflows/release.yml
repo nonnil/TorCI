@@ -34,10 +34,10 @@ jobs:
 
       - name: Install toolchain
         run: |
-        sudo apt install -y \
-        binutils-arm-linux-gnueabihf \
-        gcc-arm-linux-gnueabihf \
-        build-essential libsass-dev openssl curl \
+          sudo apt install -y \
+          binutils-arm-linux-gnueabihf \
+          gcc-arm-linux-gnueabihf \
+          build-essential libsass-dev openssl curl \
 
       - name: Cache choosenim
         id: cache-choosenim
