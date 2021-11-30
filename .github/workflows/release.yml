@@ -18,83 +18,6 @@ env:
   DESC: 'Configuration Interface for TorBox'
 
 jobs:
-  build-ubuntu:
-    name: Build artefact
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dist:
-          - ubuntu
-        arch:
-          - amd64
-          - arm
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install toolchain
-        run: |
-          sudo dpkg --add-architecture armhf
-          sudo apt update
-          sudo apt install -y \
-          binutils-arm-linux-gnueabihf \
-          gcc-arm-linux-gnueabihf \
-          build-essential libsass-dev openssl curl \
-          libcrypt-dev:armhf
-        shell: bash
-
-      - name: Cache choosenim
-        id: cache-choosenim
-        uses: actions/cache@v2
-        with:
-          path: ~/.choosenim
-          key: ${{ runner.os }}-choosenim-${{ env.NIM_VERSION }}
-
-      - name: Cache nimble
-        id: cache-nimble
-        uses: actions/cache@v2
-        with:
-          path: ~/.nimble
-          key: ${{ runner.os }}-nimble-${{ env.NIM_VERSION }}-${{ hashFiles('torci.nimble') }}
-          restore-keys: |
-            ${{ runner.os }}-nimble-${{ env.NIM_VERSION }}-
-
-      - name: Setup Nim
-        uses: jiro4989/setup-nim-action@v1
-        with:
-          nim-version: ${{ env.NIM_VERSION }}
-            
-      - name: Install packages
-        run: nimble install -y
-
-      - name: Build project
-        run: nimble --os:linux --cpu:${{ matrix.arch }} -d:strip -d:release -y build
-
-      - name: Pack
-        run: |
-          torci_dir=artefact/torci
-
-          mkdir -p $torci_dir
-
-          # Move binary
-          mv torci $torci_dir
-
-          # Copy resources
-          cp -r public $torci_dir/public
-          cp torci.nimble torci.conf config.nims LICENCE $torci_dir
-          
-          archive_name=torci-${{ matrix.dist }}_${{ matrix.arch }}.tar.gz
-
-          tar -czvf $archive_name -C artefact torci
-          
-        shell: bash
-
-      - name: Upload artefact
-        uses: actions/upload-artifact@v2
-        with:
-          name: artefact-${{ matrix.dist }}_${{ matrix.arch }}
-          path: torci-*.tar.gz
-
   build-artefact:
     name: Build artefact
     runs-on: ubuntu-latest
@@ -130,7 +53,7 @@ jobs:
           cp -r public $torci_dir/public
           cp torci.nimble torci.conf config.nims LICENCE $torci_dir
           
-          archive_name=torci-${{ matrix.dist }}_${{ matrix.arch }}.tar.gz
+          archive_name=torci_${{ matrix.arch }}.tar.gz
 
           tar -czvf $archive_name -C artefact torci
           
@@ -138,7 +61,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: artefact-${{ matrix.dist }}_${{ matrix.arch }}
-          path: torci-*.tar.gz
+          path: torci_*.tar.gz
 
   create-release:
     runs-on: ubuntu-latest
@@ -172,7 +95,6 @@ jobs:
       matrix:
         dist:
           - debian
-          - ubuntu
         arch:
           - amd64
           - arm
@@ -188,6 +110,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: torci-${{ matrix.dist }}_${{ matrix.arch }}.tar.gz
-          asset_name: torci-${{ matrix.dist }}_${{ matrix.arch }}.tar.gz
+          asset_path: torci_${{ matrix.arch }}.tar.gz
+          asset_name: torci_${{ matrix.arch }}.tar.gz
           asset_content_type: application/tar+gzip
