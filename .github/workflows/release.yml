@@ -18,14 +18,81 @@ env:
   DESC: 'Configuration Interface for TorBox'
 
 jobs:
+  build-ubuntu:
+    name: Build artefact
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dist:
+          - ubuntu
+        arch:
+          - amd64
+          - arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache choosenim
+        id: cache-choosenim
+        uses: actions/cache@v2
+        with:
+          path: ~/.choosenim
+          key: ${{ runner.os }}-choosenim-${{ env.NIM_VERSION }}
+
+      - name: Cache nimble
+        id: cache-nimble
+        uses: actions/cache@v2
+        with:
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-${{ env.NIM_VERSION }}-${{ hashFiles('torci.nimble') }}
+          restore-keys: |
+            ${{ runner.os }}-nimble-${{ env.NIM_VERSION }}-
+
+      - name: Setup Nim
+        uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: ${{ env.NIM_VERSION }}
+            
+      - name: Install packages
+        run: nimble install -y
+
+      - name: Build project
+        run: nimble --os:linux --cpu:${{ matrix.arch }} -d:strip -d:release -y build
+
+      - name: Pack
+        run: |
+          torci_dir=artefact/torci
+
+          mkdir -p $torci_dir
+
+          # Move binary
+          mv torci $torci_dir
+
+          # Copy resources
+          cp -r public $torci_dir/public
+          cp torci.nimble torci.conf config.nims LICENCE $torci_dir
+          
+          archive_name=torci-${{ matrix.dist }}_${{ matrix.arch }}.tar.gz
+
+          tar -czvf $archive_name -C artefact torci
+          
+        shell: bash
+
+      - name: Upload artefact
+        uses: actions/upload-artifact@v2
+        with:
+          name: artefact-${{ matrix.dist }}_${{ matrix.arch }}
+          path: torci-*.tar.gz
+
   build-artefact:
     name: Build artefact
     runs-on: ubuntu-latest
     strategy:
       matrix:
         dist:
+          - debian
+        codename:
           - buster
-          - bullseye
         arch:
           - amd64
           - arm
@@ -42,7 +109,7 @@ jobs:
           # Set env
           ARCH=${{ matrix.arch }}
 
-          docker build -t torci:release -f build/${{ matrix.dist }} build
+          docker build -t torci:release -f build/${{ matrix.codename }} build
           docker run --rm -v `pwd`:/src/torci -e ARCH=${{ matrix.arch }} torci:release
 
           # Move binary
@@ -65,6 +132,7 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     needs:
+      - build-ubuntu
       - build-artefact
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -92,8 +160,8 @@ jobs:
     strategy:
       matrix:
         dist:
-          - buster
-          - bullseye
+          - debian
+          - ubuntu
         arch:
           - amd64
           - arm
