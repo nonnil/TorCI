@@ -7,7 +7,7 @@ on:
       - '*.md'
       - 'buster'
       - 'bullseye'
-      - 'release.yml'
+      - '.github/workflows/release.yml'
     branches:
       - main
       - devel
