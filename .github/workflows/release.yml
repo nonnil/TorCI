@@ -35,6 +35,7 @@ jobs:
       - name: Install toolchain
         run: |
           sudo dpkg --add-architecture armhf
+          sudo apt update
           sudo apt install -y \
           binutils-arm-linux-gnueabihf \
           gcc-arm-linux-gnueabihf \
