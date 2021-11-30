@@ -2,7 +2,7 @@ import std / [times, uri]
 import std / nativesockets
 
 type
-  Session* = object
+  Session* = ref object
     token*: string
     expireTime*: DateTime
     uname*: string
