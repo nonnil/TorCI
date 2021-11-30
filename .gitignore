@@ -11,3 +11,4 @@ nimcache/
 /src/views/confs.nim
 /src/routes/confs.nim
 *.bak
+bullseye
