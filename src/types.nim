@@ -10,6 +10,10 @@ type
   
   SessionList* = seq[Session]
 
+  NotifyBox* = ref object
+    token*: string
+    path*: string
+
   Spwd* {.importc: "struct spwd", header: "<shadow.h>".} = ptr object
     name* {.importc: "sp_namp".}: cstring
     passwd* {.importc: "sp_pwdp".}: cstring
@@ -59,7 +63,7 @@ type
     bridgeMode*: bool
     connectedVpn*: bool
 
-  Status* = enum
+  State* = enum
     success 
     warn
     failure
@@ -69,13 +73,13 @@ type
     online
     offline
     
-  Notify* = ref object
-    status*: Status
+  Result* = ref object
+    state*: State
     msg*: string
     
-  Notifies* = seq[Notify]
+  Notifies* = seq[Result]
   
-  HostApConf* = object
+  HostApConf* = ref object
     isActive*: bool
     iface*: IfaceKind
     ssid*: string
@@ -89,9 +93,9 @@ type
     iface*: IfaceKind
     withCaptive*: bool
   
-  Menu* = ref object
-    text*: seq[string]
-    anker*: seq[string]
+  Tabs* = ref object
+    texts*: seq[string]
+    links*: seq[string]
   
   IfaceKind* = enum
     unkwnIface = "unkwnIface"
