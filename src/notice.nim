@@ -30,9 +30,3 @@ iterator items*(n: Notifies): tuple[i: int, n: Notice] {.inline.} =
   while i < n.len:
     yield (i, n.notice[i])
     inc i
-
-iterator body*(n: Notifies): Notice {.inline.} =
-  var i: int
-  while i < n.len:
-    yield n.notice[i]
-    inc i
