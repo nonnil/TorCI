@@ -1,12 +1,12 @@
 import os, osproc, asyncdispatch, json, strutils, strformat
 import torsocks
-import ".." / [types]
+import ".." / [ types, settings ]
 import sys, bridges
 from consts import torlog, torrc
 
 export torsocks
 
-proc isTor*(cfg: Config): Future[tuple[isTor: bool, ipAddr: string]] {.async.} =
+proc isTor*(): Future[tuple[isTor: bool, ipAddr: string]] {.async.} =
   try:
     const
       destHost = "https://check.torproject.org/api/ip"
@@ -20,9 +20,9 @@ proc isTor*(cfg: Config): Future[tuple[isTor: bool, ipAddr: string]] {.async.} =
   except:
     return
 
-proc getTorStatus*(cfg: Config): Future[TorStatus] {.async.} =
+proc getTorStatus*(): Future[TorStatus] {.async.} =
   let
-    torch = await isTor(cfg)
+    torch = await isTor()
     bridges = await getBridgeStatuses()
 
   result.isOnline = torch.isTor
@@ -37,6 +37,10 @@ proc renewTorExitIp*(): Future[bool] {.async.} =
   echo "renewTor IP: ", &"\"{newIp.output}\""
   if newIp.output == "250 OK":
     return true
+
+method hasNewExitIp*(tor: TorStatus): bool {.base.} =
+  let `new` = await getTorStatus()
+  if tor.exitIp != `new`.exitIp: return true
   
 proc restartTor*() {.async.} =
   restartService "tor"
