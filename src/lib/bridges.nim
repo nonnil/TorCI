@@ -1,11 +1,59 @@
 import std / [os, osproc, re, asyncdispatch, strutils]
-import ".." / [types]
 import std / [sha1, json, uri]
+import results
+import ".." / [types]
 import torsocks, binascii, sys
 from consts import torrc
 
 proc restartTor() =
   restartService "tor"
+
+type
+  BridgeKind* = enum
+    obfs4, snowflake, meekazure = "meek_lite"
+
+  Bridge* = ref object of RootObj
+    kind: BridgeKind
+    useBridges: bool
+    isBridgeRelay: bool
+    activeCount: uint
+    deactiveCount: uint
+    totalCount: uint
+
+method kind*(bridge: Bridge): BridgeKind {.base.} =
+  bridge.kind
+
+method isObfs4*(bridge: Bridge): bool {.base.} =
+  bridge.kind == obfs4
+
+method isSnowflake*(bridge: Bridge): bool {.base.} =
+  bridge.kind == snowflake
+
+method isMeekazure*(bridge: Bridge): bool {.base.} =
+  bridge.kind == meekazure
+
+method reload*(bridge: var Bridge): Result[bool, IOError] {.base.} =
+  if not torrc.fileExists:
+    result.err IOError(msg: "torrc not found")
+  let rc = readFile(torrc)
+  for line in rc.splitLines():
+    if line.startsWith("Use Bridges 1"):
+      bridge.useBridges = true
+      continue
+
+    elif line.startsWith("Bridge obfs4 "):
+      bridge.kind = obfs4
+      continue
+
+    elif line.startsWith("Bridge meek_lite "):
+      bridge.kind = meekazure
+      continue
+
+    elif line.startsWith("Bridge snowflake "):
+      bridge.kind = snowflake
+      continue
+
+  result.ok(true)
 
 proc getBridgeStatuses*(): Future[BridgeStatuses] {.async.} =
   try:
