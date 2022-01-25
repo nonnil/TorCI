@@ -1,4 +1,9 @@
-import os, osproc, asyncdispatch, json, strutils, strformat
+import std / [
+  os, osproc, asyncdispatch,
+  json, strutils, strformat,
+  options
+]
+import results, validateip
 import torsocks
 import ".." / [ types, settings ]
 import sys, bridges
@@ -6,41 +11,72 @@ from consts import torlog, torrc
 
 export torsocks
 
-proc isTor*(): Future[tuple[isTor: bool, ipAddr: string]] {.async.} =
-  try:
-    const
-      destHost = "https://check.torproject.org/api/ip"
-    let
-      torch = await destHost.torsocks(cfg)
-    if torch.len != 0:
-      let jObj = parseJson(torch)
-      if $jObj["IsTor"] == "true":
-        result.isTor = true
-      result.ipAddr = jObj["IP"].getStr()
-  except:
-    return
-
-proc getTorStatus*(): Future[TorStatus] {.async.} =
-  let
-    torch = await isTor()
-    bridges = await getBridgeStatuses()
-
-  result.isOnline = torch.isTor
-  result.exitIp = torch.ipAddr
-  result.useObfs4 = bridges.obfs4
-  result.useMeekAzure = bridges.meekAzure
-  result.useSnowflake = bridges.snowflake
+type
+  Tor* = ref object of RootObj
+    ipaddr: string
+    port: Port
+    setting*: TorSettings
+    status*: TorStatus
   
+  TorSettings* = ref object
+    bridge: Bridge
+
+  TorStatus* = ref object
+    isOnline: bool
+    isVPN: bool
+    exitIp: string
+  
+  R = Result[bool, string]
+
+method getIpaddr*(tor: Tor): Option[string] {.base.} =
+  return some(tor.ipaddr)
+
+method getPort*(tor: Tor): Option[Port] {.base.} =
+  return some(tor.port)
+
+method bridge*(tor: Tor): Bridge {.base.} =
+  tor.setting.bridge
+
+method isTor*(tor: var Tor): R {.base.} =
+  const destHost = "https://check.torproject.org/api/ip"
+  let checkTor = await destHost.torsocks(tor.getIpaddr.get, tor.getPort.get)
+  if checkTor.len == 0: result.err "connection failed"
+  let jObj = parseJson(checkTor)
+  if $jObj["IsTor"] == "true":
+    tor.status.isOnline = true
+    tor.status.exitIp = jObj["IP"].getStr()
+    result.ok true
+  
+method isOnline*(tor: Tor): bool {.base.} =
+  tor.status.isOnline
+
+method hasNewExitIp*(tor: Tor): bool {.base.} =
+  var `new` = new Tor
+  let _ = `new`.isTor
+  if tor.status.exitIp != `new`.status.exitIp:
+    tor.status.exitIp = `new`.status.exitIp
+    return true
+
+method reload*(setting: var TorSettings): Result[bool, IOError] {.base.} =
+  ?setting.bridge.reload
+
+method reload*(tor: var Tor): Result[bool, IOError] {.base.} =
+  ?tor.setting.reload
+  ?tor.isTor
+
+proc ipaddr*(tor: var Tor, ipaddr: string) =
+  if not isValidIp4(ipaddr, "local"):
+    raise newException(ValueError, "")
+  tor.ipaddr = ipaddr
+
+proc port*(tor: var Tor, port: Port) =
+  tor.port = port
+
 proc renewTorExitIp*(): Future[bool] {.async.} =
   const cmd = "sudo -u debian-tor tor-prompt --run 'SIGNAL NEWNYM'"
   let newIp = execCmdEx(cmd)
-  echo "renewTor IP: ", &"\"{newIp.output}\""
   if newIp.output == "250 OK":
     return true
-
-method hasNewExitIp*(tor: TorStatus): bool {.base.} =
-  let `new` = await getTorStatus()
-  if tor.exitIp != `new`.exitIp: return true
   
 proc restartTor*() {.async.} =
   restartService "tor"
