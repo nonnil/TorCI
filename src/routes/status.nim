@@ -1,31 +1,14 @@
-import jester, asyncdispatch
+import options, asyncdispatch
+import jester, results
+import impl_status
+import ".." / [ types, notice ]
 import ../ views / [temp, status]
-import ".." / [types]
 import ".." / lib / [session, sys, tor, wirelessManager]
-#import sugar
+# import sugar
 
-export status
+export status, impl_status
 
-template respIo*() =
-  resp renderNode(
-    renderStatusPane(cfg, torS, iface, crNet, sysInfo),
-    request,
-    cfg,
-    user.uname,
-    "Status"
-  )
-
-template respIo*(n: Notifies) =
-  resp renderNode(
-    renderStatusPane(cfg, torS, iface, crNet, sysInfo),
-    request,
-    cfg,
-    user.uname,
-    "Status",
-    notifies=n
-  )
-
-proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
+proc routingStatus*() =
   router status:
 
     before "/io":
@@ -34,46 +17,15 @@ proc routingStatus*(cfg: Config, sysInfo: SystemInfo) =
     get "/io":
       let user = await getUser(request)
       if user.isLoggedIn:
-        let
-          torS = await getTorStatus(cfg)
-          iface = await getActiveIface()
-          wlan = iface.input
-          crNet = await currentNetwork(wlan)
-        respIo()
+        respIO
       else:
         redirect "/login"
 
     post "/io":
       let user = await getUser(request)
       if user.isLoggedIn:
-        let rTor = request.formData.getOrDefault("tor-request").body
-
-        if rTor.len > 0:
-          case rTor
-          of "new-circuit":
-            let
-              prevS = await getTorStatus(cfg)
-              prevIp = prevS.exitIp
-
-            discard renewTorExitIp()
-
-            let
-              torS = await getTorStatus(cfg)
-              iface = await getActiveIface()
-              wlan = iface.input
-              crNet = await currentNetwork(wlan)
-
-            let newIp = torS.exitIp
-          
-            if prevIp != newIp:
-              respIo(Notifies(@[Notify(status: success, msg: "Exit node has been changed.")]))
-            else:
-              respIo(Notifies(@[Notify(status: failure, msg: "Request new exit node failed. Please try again later.")]))
-
-          of "restart-tor":
-            await restartTor()
-            redirect "/io"
-
+        let notifies = await postIO(request)
+        if notifies.isSome:
+          respIO(notifies.get)
         redirect "/io"
-
       redirect "/login"
