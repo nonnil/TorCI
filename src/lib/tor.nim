@@ -6,8 +6,7 @@ import std / [
 import results, validateip
 import torsocks
 import ".." / [ types, settings ]
-import sys, bridges
-from consts import torlog, torrc
+import torcfg, bridges, sys
 
 export torsocks
 
@@ -26,7 +25,7 @@ type
     isVPN: bool
     exitIp: string
   
-  R = Result[bool, string]
+  R = Result[void, string]
 
 method getIpaddr*(tor: Tor): Option[string] {.base.} =
   return some(tor.ipaddr)
@@ -39,13 +38,13 @@ method bridge*(tor: Tor): Bridge {.base.} =
 
 method isTor*(tor: var Tor): R {.base.} =
   const destHost = "https://check.torproject.org/api/ip"
-  let checkTor = await destHost.torsocks(tor.getIpaddr.get, tor.getPort.get)
+  let checkTor = waitFor destHost.torsocks(tor.getIpaddr.get, tor.getPort.get)
   if checkTor.len == 0: result.err "connection failed"
   let jObj = parseJson(checkTor)
   if $jObj["IsTor"] == "true":
     tor.status.isOnline = true
     tor.status.exitIp = jObj["IP"].getStr()
-    result.ok true
+    result.ok
   
 method isOnline*(tor: Tor): bool {.base.} =
   tor.status.isOnline
@@ -57,10 +56,14 @@ method hasNewExitIp*(tor: Tor): bool {.base.} =
     tor.status.exitIp = `new`.status.exitIp
     return true
 
-method reload*(setting: var TorSettings): Result[bool, IOError] {.base.} =
+method reload*(setting: var TorSettings): Result[void, string] {.base.} =
   ?setting.bridge.reload
 
-method reload*(tor: var Tor): Result[bool, IOError] {.base.} =
+method reload*(tor: var Tor): Result[void, string] {.base.} =
+  ?tor.setting.reload
+  ?tor.isTor
+
+proc reload*(tor: var Tor): Future[Result[void, string]] {.async.} =
   ?tor.setting.reload
   ?tor.isTor
 
