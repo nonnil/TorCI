@@ -1,3 +1,4 @@
+# import std / options
 from types import State
 
 type
@@ -16,6 +17,9 @@ method getMsg*(n: Notice): string {.base.} =
 
 method len*(n: Notifies): int {.base.} =
   n.notice.len
+
+method isEmpty*(n: Notifies): bool {.base.} =
+  n.len == 0
 
 proc new*(): Notifies =
   Notifies()
