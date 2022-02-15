@@ -1,6 +1,6 @@
 import libcurl
 import asyncdispatch, strutils
-import ../types
+import ../ ../types
 
 proc curlWriteFn(
   buffer: cstring,

@@ -3,7 +3,8 @@ import jester
 import tabs
 import ../ views / [ temp, network ]
 import ".." / [ types, query, utils, notice ]
-import ".." / lib / [ sys, tor, bridges, torbox, session, hostAp, fallbacks, wifiScanner, wirelessManager ]
+import ".." / lib / [ sys, torbox, session, hostAp, fallbacks, wifiScanner, wirelessManager ]
+import ../ lib / tor / tor
 import network / wireless
 
 export network, wireless

@@ -3,7 +3,7 @@ import re, strutils, strformat
 import sys
 import ".." / [types, utils]
 import nativesockets
-import torcfg
+import tor / torcfg
 
 const
   iptable = "/sbin" / "iptables"

@@ -7,7 +7,8 @@ import routes / [ status, network, sys, tabs ]
 import types, config, query, utils, notice
 import settings as torciSettings
 import asyncdispatch
-import lib / [session, tor, bridges, torbox, hostAp, fallbacks, wifiScanner, wirelessManager]
+import lib / [ session, torbox, hostAp, fallbacks, wifiScanner, wirelessManager ]
+import lib / tor / tor
 import lib / sys as libsys
 
 {.passL: "-flto", passC: "-flto", optimization: size.}

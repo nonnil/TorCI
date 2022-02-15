@@ -2,7 +2,7 @@ import karax / [ karaxdsl, vdom, vstyles ]
 import tables, asyncdispatch, strformat
 import ".." / [ types ]
 from ".." / settings import cfg, sysInfo
-import ".." / lib / [ tor, bridges ]
+import ../ lib / tor / tor
 
 const defStr = "None"
 

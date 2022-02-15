@@ -1,8 +1,9 @@
 import std / [ os, osproc, re, asyncdispatch, strutils ]
 import std / [ sha1, json, uri ]
 import results
-import ".." / [ types ]
-import torcfg, torsocks, binascii, sys
+import ".." / ".." / [ types ]
+import ".." / [ binascii, sys ]
+import torcfg, torsocks
 
 proc restartTor() =
   restartService "tor"

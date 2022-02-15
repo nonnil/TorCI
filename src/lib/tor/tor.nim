@@ -4,11 +4,10 @@ import std / [
   options
 ]
 import results, validateip
-import torsocks
-import ".." / [ types, settings ]
-import torcfg, bridges, sys
+import torsocks, torcfg, bridges
+import ".." / [ sys ]
 
-export torsocks
+export torsocks, bridges
 
 type
   Tor* = ref object of RootObj

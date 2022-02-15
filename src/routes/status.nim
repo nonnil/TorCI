@@ -3,7 +3,8 @@ import jester
 import tabs, impl_status
 import ".." / [ types, notice ]
 import ../ views / [ temp, status ]
-import ".." / lib / [ session, sys, tor, wirelessManager ]
+import ".." / lib / [ session, sys, wirelessManager ]
+import ../ lib / tor / tor
 # import sugar
 
 export status, impl_status

@@ -3,7 +3,7 @@ import results
 import jester
 import tabs
 import ".." / [ types, notice ]
-import ".." / lib / [ tor ]
+import ../ lib / tor / tor
 
 template respIO*() =
   var tor = new Tor
