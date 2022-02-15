@@ -6,7 +6,7 @@ import jester
 import bcrypt 
 import results
 import ".."/[ types ]
-import clib / [ ccrypt, shadow ]
+import clib / [ c_crypt, shadow ]
 
 type
   User* = ref object of RootObj

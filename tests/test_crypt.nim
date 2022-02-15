@@ -1,6 +1,6 @@
 import std / unittest, system
 import strformat
-import ../ src / lib / clib / crypt
+import ../ src / lib / clib / c_crypt
 
 suite "Encrypt password":
   test "do crypt":
@@ -9,4 +9,4 @@ suite "Encrypt password":
       salt = "FRuqFx.gDQotf"
 
     check:
-      shadow == $ccrypt("nim", fmt"$6${cstring salt}")
+      shadow == $crypt("nim", fmt"$6${cstring salt}")
