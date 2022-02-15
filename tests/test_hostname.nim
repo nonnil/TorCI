@@ -2,7 +2,7 @@ import unittest
 import ../ src / utils
 import ../ src / lib / torbox
 
-runTest:
+test:
   suite "torbox":
     test "Check TorBox version":
       var hostname = "TorBox050"
