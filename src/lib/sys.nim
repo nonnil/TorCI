@@ -1,6 +1,6 @@
 import asyncdispatch, strutils, sequtils, strformat, re, tables
 import os, osproc
-import ".."/[types, utils]
+import ".."/[ types, utils ]
 
 proc startService*(s: string) =
   const cmd = "sudo systemctl start "
@@ -118,7 +118,7 @@ proc getSystemInfo*(): SystemInfo =
 
   except IOError: return
 
-proc eraseLogs*(): Future[Status] {.async.} =
+proc eraseLogs*(): Future[State] {.async.} =
   const find = "sudo find /var/log -type f"
   try:
     let 

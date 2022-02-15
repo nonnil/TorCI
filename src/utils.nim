@@ -1,11 +1,11 @@
 import std / strutils
 import types
 
-template forTest*(nim: untyped) =
+template test*(nim: untyped) =
   when defined test:
     nim
 
-template runTest*(nim: untyped) =
+template test*(nim: untyped) =
   when defined test:
     nim
   else:

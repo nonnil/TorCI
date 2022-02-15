@@ -1,25 +1,22 @@
+import std / [ strutils, options ]
 import jester
-import views / [temp, login, renderutils]
-import routes / [status, network, sys]
-import types, config, query, utils, strutils
+import results
+
+import views / [ temp, login, renderutils ]
+import routes / [ status, network, sys, tabs ]
+import types, config, query, utils, notice
+import settings as torciSettings
 import asyncdispatch
 import lib / [session, tor, bridges, torbox, hostAp, fallbacks, wifiScanner, wirelessManager]
 import lib / sys as libsys
-import lib / consts
 
 {.passL: "-flto", passC: "-flto", optimization: size.}
 # {.passC: "/usr/include/x86_64-linux-musl".}
 # {.passL: "-I/usr/include/x86_64-linux-musl".}
 
-const configPath {.strdefine.} = "./torci.conf"
-let (cfg, _) = getConfig(configpath)
-var sysInfo = getSystemInfo()
-let torboxVer = getTorboxVersion()
-sysInfo.torboxVer = torboxVer
-
-routingStatus(cfg, sysInfo)
-routingNet(cfg, sysInfo)
-routingSys(cfg)
+routingStatus()
+routingNet(sysInfo)
+routingSys()
 
 settings:
   port = Port(cfg.port)
@@ -28,35 +25,38 @@ settings:
 
 routes:
   get "/":
-    let user = await getUser(request)
-    if user.isLoggedIn:
+    loggedIn:
       redirect "/io"
-    redirect "/login"
   
   get "/login":
-    let user = await getUser(request)
-    if not user.isLoggedIn:
-      # resp renderNode(renderPanel(renderLoginPanel()), request, cfg)
-      resp renderFlat(renderLogin(), cfg, "Login")
-    redirect "/"
+    loggedIn:
+      resp renderFlat(renderLogin(), "Login")
   
   post "/login":
-    let user = await getUser(request)
-    if not user.isLoggedIn:
+    template respLogin() =
+      resp renderFlat(renderLogin(), "Login", notifies = notifies)
+
+    var notifies: Notifies = new(Notifies)
+
+    notLoggedIn:
       let
         username = request.formData.getOrDefault("username").body
         password = request.formData.getOrDefault("password").body
-        expireTime = await getExpireTime()
-        ret = await login(username, password, expireTime)
-      if ret.res:
-        setCookie("torci", ret.token, expires = expireTime, httpOnly = true)
-        redirect "/"
 
-    resp renderFlat(renderLogin(), cfg, notify = Notify(status: failure, msg: "Invalid username or password"))
+        login = await login(username, password)
+
+      if login.isOk:
+        setCookie("torci", login.get.token, expires = login.get.expire, httpOnly = true)
+        redirect "/"
+    
+      else:
+        notifies.add(failure, login.error)
+        respLogin()
+
+      respLogin()
   
   post "/logout":
-    let user = await getUser(request)
-    if user.isLoggedIn:
+    loggedIn:
       let signout = request.formData.getOrDefault("signout").body
       if signout == "1":
         if await logout(request):
@@ -68,10 +68,10 @@ routes:
     redirect "/net/bridges"
   
   error Http404:
-    resp renderFlat(renderError("404 Not Found"), cfg)
+    resp renderFlat(renderError("404 Not Found"), "404 Not Found")
     
   error Exception:
-    resp renderFlat(renderError("Something went wrong"), cfg)
+    resp renderFlat(renderError("Something went wrong"), "Error")
 
   extend status, ""
   extend network, "/net"

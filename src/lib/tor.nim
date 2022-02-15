@@ -63,9 +63,9 @@ method reload*(tor: var Tor): Result[void, string] {.base.} =
   ?tor.setting.reload
   ?tor.isTor
 
-proc reload*(tor: var Tor): Future[Result[void, string]] {.async.} =
-  ?tor.setting.reload
-  ?tor.isTor
+# proc reload*(tor: var Tor): Future[Result[void, string]] {.async.} =
+#   ?tor.setting.reload
+#   ?tor.isTor
 
 proc ipaddr*(tor: var Tor, ipaddr: string) =
   if not isValidIp4(ipaddr, "local"):

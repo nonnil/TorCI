@@ -1,15 +1,7 @@
-import std / [times, uri]
-import std / nativesockets
+import std / [ uri ]
+import std / [ nativesockets ]
 
 type
-  Session* = ref object
-    token*: string
-    expireTime*: DateTime
-    uname*: string
-    # createdTime*: DateTime
-  
-  SessionList* = seq[Session]
-
   NotifyBox* = ref object
     token*: string
     path*: string
@@ -54,15 +46,6 @@ type
     port*: Port
     fingerprint*: string
 
-  TorStatus* = object
-    isOnline*: bool
-    exitIp*: string
-    useObfs4*: bool
-    useMeekAzure*: bool
-    useSnowflake*: bool
-    bridgeMode*: bool
-    connectedVpn*: bool
-
   State* = enum
     success 
     warn
@@ -73,12 +56,6 @@ type
     online
     offline
     
-  Result* = ref object
-    state*: State
-    msg*: string
-    
-  Notifies* = seq[Result]
-  
   HostApConf* = ref object
     isActive*: bool
     iface*: IfaceKind
@@ -92,10 +69,6 @@ type
   Query* = object
     iface*: IfaceKind
     withCaptive*: bool
-  
-  Tabs* = ref object
-    texts*: seq[string]
-    links*: seq[string]
   
   IfaceKind* = enum
     unkwnIface = "unkwnIface"

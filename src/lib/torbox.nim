@@ -3,15 +3,16 @@ import re, strutils, strformat
 import sys
 import ".." / [types, utils]
 import nativesockets
-from consts import torrc, runfile
+import torcfg
 
 const
   iptable = "/sbin" / "iptables"
   modprobe = "/sbin" / "modprobe"
   dnsprog = "dnsmasq"
+  runfile* = "/home" / "torbox" / "torbox" / "run" / "torbox.run"
 
 # getTorboxVersion for test
-proc getTorboxVersion*(hname: var string): string {.forTest.} =
+proc getTorboxVersion*(hname: var string): string {.test.} =
   if hname.match(re"TorBox(\d){3}"):
     hname.delete(0..5)
     result = hname.insertSep('.', 1)

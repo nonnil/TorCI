@@ -1,8 +1,15 @@
-import asyncdispatch, tables, osproc, sequtils, strutils, strformat
-import re, os
+import std / [ strutils, strformat ]
+import std / [ os, osproc, asyncdispatch, re, tables ]
+import std / options
+
 import ".." / [types, utils]
 import sys
-from consts as libutils import hostapd, hostapdBak, crda
+
+const
+  model3* = "Raspberry Pi 3 Model B Rev"
+  hostapd* = "/etc" / "hostapd" / "hostapd.conf"
+  crda* = "/etc" / "default" / "crda"
+  hostapdBakup* = "/etc" / "hostapd" / "hostapd.conf.tbx"
 
 #proc getModuleName*(net: NetInterfaces; name: NetInterKind): Future[string] {.async.} =
 # const
@@ -29,12 +36,11 @@ proc parseConf*(s: seq[string]): Future[TableRef[string, string]] {.async.} =
   #var tuple_data = tuple[string, string]
   var table = newTable[string, string]()
   for v in s:
-    if v != "":
-      if not v.startsWith("#"):
-        let parsedStr = split(v, "=")
-        #for i in parsed_str:
-        #table.({parsed_str[0]: parsed_str[1]}.newTable)
-        table[parsedStr[0]] = parsedStr[1]
+    if (v.len > 0) and (not v.startsWith("#")):
+      let parsedStr = split(v, "=")
+      #for i in parsed_str:
+      #table.({parsed_str[0]: parsed_str[1]}.newTable)
+      table[parsedStr[0]] = parsedStr[1]
   return table
 
 proc isValid(s, flag: string): tuple[ret: bool, msg: string]=
@@ -150,14 +156,14 @@ proc setHostApConf*(conf: OrderedTable[string, string]): Future[
     allgreen: bool,
     rets: seq[
       tuple[
-        status: Status,
+        state: State,
         msg: string
       ]
     ]
   ]
   ] {.async.} =
   try:
-    copyFile(hostapd, hostapdBak)
+    copyFile(hostapd, hostapdBakup)
     var
       fr = readFile(hostapd)
       existsBad: bool

@@ -2,7 +2,7 @@ import os, osproc, re, strutils, strformat, logging
 import asyncdispatch
 import ".." / [types]
 import sys, hostAp
-from consts import hostapd, hostapdBak
+import hostAp
 
 proc hostapdFallback*() {.async.} =
   try:
@@ -25,7 +25,7 @@ proc hostapdFallback*() {.async.} =
 
     if not isActive:
       echo("hostapd is not active")
-      copyFile hostapdBak, hostapd
+      copyFile hostapdBakup, hostapd
 
       if hasStaticIp(wlan1):
         echo("wlan1 has static ip")
