@@ -1,10 +1,12 @@
-import karax/[karaxdsl, vdom, vstyles]
+import karax / [ karaxdsl, vdom, vstyles ]
 import tables, asyncdispatch, strformat
-import ../types
+import ".." / [ types ]
+from ".." / settings import cfg, sysInfo
+import ".." / lib / [ tor, bridges ]
 
 const defStr = "None"
 
-proc renderSystemInfo(cfg: Config, sys: SystemInfo): VNode =
+proc renderSystemInfo(): VNode =
   buildHtml(tdiv(class="columns full-width")):
     tdiv(class="card card-padding card-sys"):
       tdiv(class="card-header"):
@@ -16,25 +18,25 @@ proc renderSystemInfo(cfg: Config, sys: SystemInfo): VNode =
             td():
               strong():
                 tdiv():
-                  text if sys.model.len != 0: sys.model else: defStr
+                  text if sysInfo.model.len != 0: sysInfo.model else: defStr
           tr():
             td(): text "Kernel"
             td():
               strong():
                 tdiv():
-                  text if sys.kernelVersion.len != 0: sys.kernelVersion else: defStr
+                  text if sysINfo.kernelVersion.len != 0: sysInfo.kernelVersion else: defStr
           tr():
             td(): text "Architecture"
             td():
               strong():
                 tdiv():
-                  text if sys.architecture.len != 0: sys.architecture else: defStr
+                  text if sysInfo.architecture.len != 0: sysInfo.architecture else: defStr
           tr():
             td(): text "TorBox Version"
             td():
               strong():
                 tdiv():
-                  text if sys.torboxVer.len > 0: sys.torboxVer else: "Unknown"
+                  text if sysInfo.torboxVer.len > 0: sysInfo.torboxVer else: "Unknown"
           tr():
             td(): text "TorCI Version"
             td():
@@ -42,7 +44,7 @@ proc renderSystemInfo(cfg: Config, sys: SystemInfo): VNode =
                 tdiv():
                   text cfg.torciVer
 
-proc renderTorInfo(torS: TorStatus): VNode =
+proc renderTorInfo(tor: Tor): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="card card-padding card-tor"):
       tdiv(class="card-header"):
@@ -54,7 +56,7 @@ proc renderTorInfo(torS: TorStatus): VNode =
             td():
               strong(style={display: "flex"}):
                 tdiv():
-                  text if torS.isOnline: "Online" else: "Offline"
+                  text if tor.isOnline: "Online" else: "Offline"
                 form(`method`="post", action="/io", enctype="multipart/form-data"):
                   button(class="btn-flat", `type`="submit", name="tor-request", value="new-circuit"):
                     svg(class="new-circuit", loading="lazy", alt="new circuit", width="25px", height="25px", viewBox="0 0 16 16", version="1.1"):
@@ -76,19 +78,19 @@ proc renderTorInfo(torS: TorStatus): VNode =
             td():
               strong():
                 tdiv():
-                  text if torS.useObfs4: "On" else: "Off"
+                  text if tor.bridge.isObfs4: "On" else: "Off"
           tr():
             td(): text "Meek-Azure"
             td():
               strong():
                 tdiv():
-                  text if torS.useMeekAzure: "On" else: "Off"
+                  text if tor.bridge.isMeekazure: "On" else: "Off"
           tr():
             td(): text "Snowflake"
             td():
               strong():
                 tdiv():
-                  text if torS.useSnowflake: "On" else: "Off"
+                  text if tor.bridge.isSnowflake: "On" else: "Off"
 
 proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string]): VNode =
   buildHtml(tdiv(class="columns")):
@@ -128,8 +130,8 @@ proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string
                 tdiv():
                   text if iface.hasVpn: "is Up" else: defStr
 
-proc renderStatusPane*(cfg: Config, torS: TorStatus, iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string], sysInfo: SystemInfo): VNode =
+proc renderStatusPane*(tor: Tor, iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string]): VNode =
   buildHtml(tdiv(class="cards")):
-    renderTorInfo(torS)
+    renderTorInfo(tor)
     renderNetworkInfo(iface, crNet)
-    renderSystemInfo(cfg, sysInfo)
+    renderSystemInfo()

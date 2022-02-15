@@ -1,8 +1,9 @@
-import karax/[karaxdsl, vdom, vstyles]
+import std / [ options, typetraits ]
+import karax / [ karaxdsl, vdom, vstyles ]
 import jester
 import renderutils
-import ".."/types
-import typetraits
+import ".." / [ types, notice, settings ]
+import ".." / routes / [ tabs ]
 # import re, os
 
 const
@@ -27,20 +28,7 @@ proc renderHead(cfg: Config, title: string = ""): VNode =
         text cfg.title
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
 
-proc renderSubMenu*(req: Request; menu: Menu): VNode =
-  buildHtml(tdiv(class="sub-menu")):
-    ul(class="menu-table"):
-      for i, v in menu.text:
-        li(class=getSubmenuClass(req.pathInfo, menu.anker[i])):
-          #echo links.high
-          if menu.anker.high < i:
-            a(class="menu-link"):
-              text v
-          else:
-            a(class="menu-link", href=menu.anker[i]):
-              text v
-
-proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNode =
+proc renderNav(req: Request; username: string; tab: Tab = new Tab): VNode =
   result = buildHtml(header(class="headers")):
     nav(class="nav-container"):
       tdiv(class="inner-nav"):
@@ -82,8 +70,8 @@ proc renderNav(cfg: Config; req: Request; username: string; menu = Menu()): VNod
                   tdiv(class="btn-text"): text "Log out"
         # tdiv(class="logout-button"):
         #   icon "logout"
-    if menu.text.len != 0:
-      renderSubMenu(req, menu)
+    if not tab.isEmpty:
+      tab.render(req.pathInfo)
 
 proc renderError*(e: string): VNode =
   buildHtml():
@@ -94,7 +82,7 @@ proc renderError*(e: string): VNode =
         tdiv(class="error-panel"):
           span(): text e
           
-proc renderClose*(): VNode =
+proc renderClosed*(): VNode =
   buildHtml():
     tdiv(class="warn-panel"):
       icon "attention", class="warn-icon"
@@ -106,14 +94,14 @@ proc renderPanel*(v: VNode): VNode =
   buildHtml(tdiv(class="main-panel")):
     v
 
-proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: string = "", menu = Menu()): string =
+proc renderNode*(v: VNode; req: Request; username: string; title: string = "", tab: Tab = new Tab): string =
   let node = buildHtml(html(lang="en")):
     renderHead(cfg, title)
     body:
-      if menu.text.len != 0:
-        renderNav(cfg, req, username, menu)
+      if tab.isEmpty:
+        renderNav(req, username)
       else:
-        renderNav(cfg, req, username)
+        renderNav(req, username, tab)
       tdiv(class="container"):
         v
   result = doctype & $node
@@ -121,23 +109,23 @@ proc renderNode*(v: VNode; req: Request; cfg: Config; username: string; title: s
 proc renderNode*(
   v: VNode;
   req: Request;
-  cfg: Config;
   username: string;
   title: string = "",
-  menu = Menu();
-  notify: Notify): string =
+  tab: Tab = new Tab;
+  notifies: Notifies): string =
 
   let node = buildHtml(html(lang="en")):
     renderHead(cfg, title)
     body:
-      if menu.text.len != 0:
-        renderNav(cfg, req, username, menu)
+      if tab.len != 0:
+        renderNav(req, username, tab)
+
       else:
-        renderNav(cfg, req, username)
-      # if notify.msg.len > 0:
-      if notify.msg.len != 0:
+        renderNav(req, username)
+
+      for i, n in notifies.items:
         let colour =
-          case notify.status
+          case n.getState
           of success:
             colourGreen
 
@@ -151,86 +139,43 @@ proc renderNode*(
             colourGray
 
         tdiv(class="notify-bar"):
-          input(class="ignore-notify", `type`="checkbox", name="ignoreNotify")
-          tdiv(class="notify-message", style={backgroundColor: colour}):
-            text notify.msg
+          input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
+          tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
+            text n.getMsg
       tdiv(class="container"):
         v
   result = doctype & $node
 
-proc renderNode*(
-  v: VNode;
-  req: Request;
-  cfg: Config;
-  username: string;
-  title: string = "",
-  menu = Menu();
-  notifies: Notifies): string =
-
-  let node = buildHtml(html(lang="en")):
-    renderHead(cfg, title)
-    body:
-      if menu.text.len != 0:
-        renderNav(cfg, req, username, menu)
-
-      else:
-        renderNav(cfg, req, username)
-
-      if notifies.len > 0 and
-      notifies[0].msg.len > 0:
-        for i, n in notifies:
-          if n.msg.len > 0:
-            let colour =
-              case n.status
-              of success:
-                colourGreen
-
-              of warn:
-                colourYellow
-
-              of failure:
-                colourRed
-
-              else:
-                colourGray
-
-            tdiv(class="notify-bar"):
-              input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
-              tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
-                text n.msg
-      tdiv(class="container"):
-        v
-  result = doctype & $node
-
-proc renderFlat*(v: VNode, cfg: Config, title: string = ""): string =
+proc renderFlat*(v: VNode, title: string = ""): string =
   let ret = buildHtml(html(lang="en")):
     renderHead(cfg, title)
     body:
       v
   result = doctype & $ret
 
-proc renderFlat*(v: VNode, cfg: Config, notify: Notify, title: string = ""): string =
+proc renderFlat*(v: VNode, title: string = "", notifies: Notifies): string =
   let ret = buildHtml(html(lang="en")):
     renderHead(cfg, title)
     body:
-      if notify.msg.len > 0:
-        let colour =
-          case notify.status
-          of success:
-            colourGreen
+      if not notifies.isEmpty:
+        for i, n in notifies.items:
+          let colour =
+            case n.getState
+            of success:
+              colourGreen
 
-          of warn:
-            colourYellow
+            of warn:
+              colourYellow
 
-          of failure:
-            colourRed
+            of failure:
+              colourRed
 
-          else:
-            colourGray
+            else:
+              colourGray
 
-        tdiv(class="notify-bar"):
-          input(class="ignore-notify", `type`="checkbox", name="ignoreNotify")
-          tdiv(class="notify-message", style={backgroundColor: colour}):
-            text notify.msg
+          tdiv(class="notify-bar"):
+            input(class="ignore-notify", `type`="checkbox", name="ignoreNotify")
+            tdiv(class="notify-message", style={backgroundColor: colour}):
+              text n.getMsg
       v
   result = doctype & $ret

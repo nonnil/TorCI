@@ -1,77 +1,56 @@
+import std / [ strutils, os ]
 import jester 
-import std / strutils
-import ../ views / [temp, network]
-import ".." / [types, query, utils]
-import ".." / lib / [sys, tor, bridges, torbox, session, hostAp, fallbacks, wifiScanner, wirelessManager]
-from ../ lib / consts as utl import model3
+import tabs
+import ../ views / [ temp, network ]
+import ".." / [ types, query, utils, notice ]
+import ".." / lib / [ sys, tor, bridges, torbox, session, hostAp, fallbacks, wifiScanner, wirelessManager ]
+import network / wireless
 
-export network
+export network, wireless
 
-template redirectLoginPage*() =
-  redirect "/login"
+var net_tab* = Tab.new
+net_tab.add("Bridges", "/net" / "bridges")
+net_tab.add("Interfaces", "/net" / "interfaces")
+net_tab.add("Wireless", "/net" / "wireless")
 
 template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string]) =
-  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, menu=tab)
+  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, request.getUserName, "Network management", net_tab)
 
-template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], notify: Notify) =
-  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, cfg, user.uname, menu=tab, notify = notify)
-  
-template respApConf*(n: Notify or Notifies) =
-  let
-    conf = await getHostApConf()
-    devs = await getConnectedDevs(conf.iface)
-  resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Wireless", menu=tab, n)
+template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string], n: Notifies) =
+  resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, request.getUserName, tab, n)
 
-template respApConf*() =
-  let
-    conf = await getHostApConf()
-    devs = await getConnectedDevs(conf.iface)
-  resp renderNode(renderHostApPane(conf, sysInfo, devs), request, cfg, user.uname, "Wireless", menu=tab)
-  
-template respBridges*(n: Notify | Notifies = Notify()) =
+template respBridges*() =
   let bridgesSta = await getBridgeStatuses()
-  resp renderNode(renderBridgesPage(bridgesSta), request, cfg, user.uname, "Bridges", menu=tab, n)
+  resp renderNode(renderBridgesPage(bridgesSta), request, request.getUserName, "Bridges", net_tab)
 
-template respRefuse*() =
-  resp renderNode(renderClose(), request, cfg, user.uname, menu=tab)
+template respBridges*(n: Notifies) =
+  let bridgesSta = await getBridgeStatuses()
+  resp renderNode(renderBridgesPage(bridgesSta), request, request.getUserName, "Bridges", net_tab, n)
 
-proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
+template respMaintenance*() =
+  resp renderNode(renderClosed(), request, request.getUserName, "Under maintenance", net_tab)
+
+proc routingNet*(sysInfo: SystemInfo) =
+  routerWireless(sysInfo)
+
   router network:
-    const crPath = "/net"
 
-    let tab = Menu(
-      text: @["Bridges", "Interfaces", "Wireless"],
-      anker: @[crPath & "/bridges", crPath & "/interfaces", crPath & "/wireless"]
-    )
+    extend wireless, ""
 
     var net: Network = new Network
 
     get "/bridges":
-      let user = await getUser(request)
-      if user.isLoggedIn:
+      loggedIn:
         respBridges()
 
-      redirectLoginPage()
-
     get "/interfaces":
-      let user = await getUser(request)
-      if user.isLoggedIn:
-        respRefuse()
-        resp renderNode(renderInterfaces(), request, cfg, user.uname, menu=tab)
-
-      redirectLoginPage()
-    
-    get "/wireless":
-      let user = await getUser(request)
-      if user.isLoggedIn:
-        respApConf()
-
-      redirectLoginPage()
+      loggedIn:
+        respMaintenance()
+        # resp renderNode(renderInterfaces(), request, request.getUserName, "Interfaces", tab)
 
     get "/interfaces/set/?":
-      let user = await getUser(request)
-      if user.isLoggedIn:
-        respRefuse()
+      loggedIn:
+        respMaintenance()
         let
           query = initQuery(request.params)
           iface = query.iface
@@ -80,7 +59,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         # let query = initQuery(params(request))
         
         if not ifaceExists(iface):
-          redirect crPath & "/interfaces"
+          redirect "interfaces"
 
         case iface
         of wlan0, wlan1:
@@ -94,7 +73,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
             clientWln = wlan0
             clientEth = eth0
 
-          else: redirect crPath & "/interfaces"
+          else: redirect "interfaces"
           
           hostapdFallbackKomplex(clientWln, clientEth)
           editTorrc(iface, clientWln, clientEth)
@@ -104,16 +83,15 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
           # if wifiScanResult.code:
           # resp renderNode(renderWifiConfig(@"interface", wifiScanResult, currentNetwork), request, cfg, tab)
           if query.withCaptive:
-            redirect crPath & "/interfaces/join/?iface=" & $iface & "&captive=1"
+            redirect "interfaces/join/?iface=" & $iface & "&captive=1"
 
-          redirect crPath & "/interfaces/join/?iface=" & $iface
+          redirect "interfaces/join/?iface=" & $iface
         else: redirect "interfaces"
 
-      redirectLoginPage()
-    
     get "/interfaces/join/?":
-      let user = await getUser(request)
-      if user.isLoggedIn:
+      # let user = await getUser(request)
+      # if user.isLoggedIn:
+      loggedIn:
         let
           query = initQuery(request.params)
           iface = query.iface
@@ -131,48 +109,8 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         else:
           redirect "interfaces"
 
-      redirectLoginPage()
-
-    post "/wireless":
-      let user = await getUser(request)
-      if user.isLoggedIn:
-        let
-          band = if sysInfo.model == model3: "g"
-                 else: request.formData.getOrDefault("band").body
-          channel = request.formData.getOrDefault("channel").body
-
-        let conf: OrderedTable[string, string] = {
-          "ssid": request.formData.getOrDefault("ssid").body,
-          "band": band,
-          "channel": if channel.len != 1: "" else: channel,
-          "hideSsid": request.formData.getOrDefault("ssidCloak").body,
-          "password": request.formData.getOrDefault("password").body
-        }.toOrderedTable()
-
-        let ret = await setHostApConf(conf)
-
-        if ret.allgreen:
-          respApConf(
-            Notify(
-              status: success,
-              msg: "Configuration successful. Please restart the access point to apply the change"
-            )
-          )
-
-        elif ret.rets.len > 0:
-          var notifies: Notifies
-          for v in ret.rets:
-            notifies.add Notify(status: v.status, msg: v.msg)
-          respApConf(notifies)
-
-        else:
-          redirect "wireless"
-
-      redirect "/login"
-    
     post "/apctl":
-      let user = await getUser(request)
-      if user.isLoggedIn:
+      loggedIn:
         let ctl = request.formData.getOrDefault("ctl").body
         
         case ctl
@@ -191,8 +129,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
         redirect "wireless"
 
     post "/interfaces/join/@wlan":
-      let user = await getUser(request)
-      if user.isLoggedIn:
+      loggedIn:
         var clientWln, clientEth: IfaceKind
         let
           iface = parseIface(@"wlan")
@@ -200,10 +137,10 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
           withCaptive = if captive == "1": true else: false
 
         if not ifaceExists(iface):
-          redirect crPath & "/interfaces"
+          redirect "interfaces"
 
         elif not net.scanned:
-          redirect crPath & "/interfaces"
+          redirect "interfaces"
 
         case iface
         of wlan0, wlan1:
@@ -217,7 +154,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
             clientWln = wlan0
             clientEth = eth0
 
-          else: redirect crPath & "/interfaces"
+          else: redirect "interfaces"
 
           let
             essid = request.formData.getOrDefault("essid").body
@@ -232,7 +169,7 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
 
           if not net.isEss:
             if password.len == 0:
-              redirect crPath & "/interfaces"
+              redirect "interfaces"
 
           if (essid.len != 0) or (bssid.len != 0):
             let con = await connect(net, (essid: essid, bssid: bssid, password: password))
@@ -242,18 +179,16 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
                 setCaptive(iface, clientWln, clientEth)
               setInterface(iface, clientWln, clientEth)
               saveIptables()
-              redirect crPath & "/interfaces"
+              redirect "interfaces"
             net = new Network
 
-          redirect crPath & "/interfaces"
+          redirect "interfaces"
         else:
-          redirect crPath & "/interfaces"
+          redirect "interfaces"
         # newConnect()
-      redirectLoginPage
       
     post "/bridges":
-      let user = await getUser(request)
-      if user.isLoggedIn:
+      loggedIn:
         var notifies: Notifies
         let
           input: string = request.formData.getOrDefault("input-bridges").body
@@ -263,14 +198,14 @@ proc routingNet*(cfg: Config, sysInfo: SystemInfo) =
           let (failure, success) = await addBridges(input)
           if failure == 0 and
           success > 0:
-            notifies.add Notify(status: Status.success, msg: "Bridge has been added")
+            notifies.add State.success, "Bridge has been added"
 
           elif failure > 0 and
           success > 0:
-            notifies.add Notify(status: warn, msg: "Some bridges failed to add")
+            notifies.add State.warn, "Some bridges failed to add"
 
           else:
-            notifies.add Notify(status: Status.failure, msg: "Failed to bridge add")
+            notifies.add State.failure, "Failed to bridge add"
           
         if action.len > 0:
           case action

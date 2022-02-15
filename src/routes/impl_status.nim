@@ -1,11 +1,13 @@
 import options, asyncdispatch
-import results, jester
+import results
+import jester
+import tabs
 import ".." / [ types, notice ]
 import ".." / lib / [ tor ]
 
 template respIO*() =
   var tor = new Tor
-  await tor.reload()
+  let ret = tor.reload()
 
   let
     iface = await getActiveIface()
@@ -15,13 +17,13 @@ template respIO*() =
   resp renderNode(
     renderStatusPane(tor, iface, crNet),
     request,
-    user.uname,
+    request.getUserName,
     "Status"
   )
 
 template respIO*(n: Notifies) =
   var tor = new Tor
-  await tor.reload()
+  let ret = tor.reload()
 
   let
     iface = await getActiveIface()
@@ -31,12 +33,10 @@ template respIO*(n: Notifies) =
   resp renderNode(
     renderStatusPane(tor, iface, crNet),
     request,
-    user.uname,
+    request.getUserName,
     "Status",
     notifies=n
   )
-
-# proc getIO*(r: jester.Request) {.async.} =
 
 proc postIO*(r: jester.Request): Future[Option[Notifies]] {.async.} =
   let req = r.formData.getOrDefault("tor-request").body
@@ -54,7 +54,7 @@ proc postIO*(r: jester.Request): Future[Option[Notifies]] {.async.} =
         notifies.add success, "Exit node has been changed."
 
       elif res.isErr:
-        notifies.add failure, res.error.msg
+        notifies.add failure, res.error
 
       else:
         notifies.add failure, "Request new exit node failed. Please try again later."
