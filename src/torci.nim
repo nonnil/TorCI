@@ -20,7 +20,7 @@ routingNet(sysInfo)
 routingSys()
 
 settings:
-  port = Port(cfg.port)
+  port = cfg.port
   staticDir = cfg.staticDir
   bindAddr = cfg.address
 
