@@ -1,12 +1,12 @@
-import options, asyncdispatch
+import options, asyncdispatch, nativesockets
 import results
 import jester
 import tabs
-import ".." / [ types, notice ]
+import ".." / [ types, notice, settings ]
 import ../ lib / tor / tor
 
 template respIO*() =
-  var tor = new Tor
+  var tor: Tor = init(cfg.torAddress, cfg.torPort)
   let ret = tor.reload()
 
   let
@@ -22,7 +22,7 @@ template respIO*() =
   )
 
 template respIO*(n: Notifies) =
-  var tor = new Tor
+  var tor: Tor = init(cfg.torAddress, cfg.torPort)
   let ret = tor.reload()
 
   let
@@ -44,7 +44,7 @@ proc postIO*(r: jester.Request): Future[Option[Notifies]] {.async.} =
   if req.len > 0:
     case req
     of "new-circuit":
-      var tor = new Tor
+      var tor: Tor = init(cfg.torAddress, cfg.torPort)
       let res = tor.reload
 
       discard renewTorExitIp()

@@ -74,6 +74,11 @@ proc ipaddr*(tor: var Tor, ipaddr: string) =
 proc port*(tor: var Tor, port: Port) =
   tor.port = port
 
+proc init*(ipaddr: string, port: Port): Tor =
+  result = Tor.new
+  ipaddr(result, ipaddr)
+  port(result, port)
+
 proc renewTorExitIp*(): Future[bool] {.async.} =
   const cmd = "sudo -u debian-tor tor-prompt --run 'SIGNAL NEWNYM'"
   let newIp = execCmdEx(cmd)

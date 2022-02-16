@@ -126,15 +126,3 @@ type
   #   kind*: NetInterKind
   #   status*: Status
     #eth0*, eth1*, wlan0*, wlan1*, pop0*, usb0*, tun0*: Status
-
-  Config* = ref object
-    address*: string
-    port*: int
-    useHttps*: bool
-    title*: string
-    torciVer*: string
-    torboxVer*: string
-    hostname*: string
-    staticDir*: string
-    torAddress*: string
-    torPort*: string
