@@ -75,7 +75,7 @@ proc port*(tor: var Tor, port: Port) =
   tor.port = port
 
 proc init*(ipaddr: string, port: Port): Tor =
-  result = Tor.new
+  new result
   ipaddr(result, ipaddr)
   port(result, port)
 

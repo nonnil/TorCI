@@ -1,7 +1,7 @@
 import std / [ os, osproc, re, asyncdispatch, strutils ]
 import std / [ sha1, json, uri ]
 import results
-import ".." / ".." / [ types ]
+import ".." / ".." / [ types, settings ]
 import ".." / [ binascii, sys ]
 import torcfg, torsocks
 
@@ -130,14 +130,14 @@ proc parseSnowflake*(s: string): Snowflake =
     fingerprint: el[2],
   )
   
-proc isRunning*(bridge: Obfs4 | Meekazure | Snowflake, conf: Config): Future[bool] {.async.} =
+proc isRunning*(bridge: Obfs4 | Meekazure | Snowflake): Future[bool] {.async.} =
 
   const destHost = "https://onionoo.torproject.org" / "details?lookup="
   let fp = bridge.fingerprint
 
   let
     hash = secureHash(a2bHex(fp))
-    ret = await (destHost & $hash).torsocks(conf)
+    ret = await (destHost & $hash).torsocks(cfg)
 
   if ret.len > 0:
     let

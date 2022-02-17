@@ -1,6 +1,12 @@
 import libcurl
 import asyncdispatch, strutils
-import ../ ../types
+import ../ ../ settings
+
+type
+  Protocol* = enum
+    GET = "get",
+    POST = "post"
+
 
 proc curlWriteFn(
   buffer: cstring,
@@ -13,7 +19,7 @@ proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string 
 proc torsocks*(url: string, cfg: Config, prtc: Protocol = GET): Future[string] {.async.} =
   let
     address = cfg.torAddress
-    port = cfg.torPort.parseInt.Port
+    port = cfg.torPort
   result = url.socks5(address, port, prtc)
 
 proc torsocks*(url: string, address: string = "127.0.0.1", port: Port = 9050.Port, prtc: Protocol = GET): Future[string] {.async.} =
