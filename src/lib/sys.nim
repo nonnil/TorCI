@@ -2,8 +2,55 @@ import std / [
   asyncdispatch, strutils, strformat,
   re, tables, os, osproc
 ]
+import results, validateip
 import ".." / [ types ]
 import hostap
+import sys / [ iface ]
+
+type
+  Devices* = ref object
+    devs: seq[Device]
+
+  Device* = ref object
+    macaddr: string
+    ipaddr: string
+    signal: string
+
+proc ipaddr*(device: var Device, ipaddr: string): Result[void, string] =
+  if ipaddr.isValidIp4("local"):
+    device.ipaddr = ipaddr
+    result.ok
+
+  result.err "Invalid ip address"
+
+proc isMAC*(mac: string): bool =
+  var separate: char
+
+  if mac.count(':') == 5: separate = ':'
+  elif mac.count('-') == 5: separate = '-'
+  else: return
+
+  let columns = mac.split(separate)
+  if columns.len == 6:
+    for s in columns:
+      if s.len == 2:
+        if (s[0] notin HexDigits) or
+           (s[1] notin HexDigits):
+          return
+    return true
+
+proc macaddr*(device: var Device, macaddr: string): Result[void, string] =
+  if macaddr.isMAC:
+    device.macaddr = macaddr
+    result.ok
+
+  result.err "Invalid MAC address"
+
+proc signal*(device: var Device, signal: string): Result[void, string] =
+  device.signal = signal
+
+proc add*(devices: var Devices, device: Device) =
+  devices.devs.add device
 
 proc restartDhcpServer*() =
   const cmd = "sudo systemctl restart isc-dhcp-server"
@@ -135,9 +182,9 @@ proc getActiveIface*(): Future[ActiveIfaceList] {.async.} =
       let vv = v.splitWhitespace()
       case vv[0]
       of "default":
-        result.input = vv[^1].parseIface
+        result.input = vv[^1].parseIfaceKind()
       of "192.168.42.0":
-        result.output = vv[^1].parseIface
+        result.output = vv[^1].parseIfaceKind()
       of "tun0":
         result.hasVpn = true
   except: return
@@ -151,9 +198,9 @@ proc changePasswd*(currentPasswd, newPasswd, rnewPasswd: string; username: strin
   if cmdCode == 0:
     result = true
 
-proc getDevsSignal*(wlan: IfaceKind): OrderedTable[string, string] =
+proc getDeviceSignal*(iface: IfaceKind): Future[OrderedTable[string, string]] {.async.} =
   let
-    iw = &"iw dev {$wlan} station dump"
+    iw = &"iw dev {$iface} station dump"
     iwOut= execCmdEx(iw).output
 
   if iwOut.len > 0:
@@ -162,28 +209,34 @@ proc getDevsSignal*(wlan: IfaceKind): OrderedTable[string, string] =
     for i, line in lines:
       if line.startsWith("Station"):
         # sts.add i
-        var macaddr, signal: string
-        let parsed = line.splitWhitespace(maxsplit=2)
-        macaddr = parsed[1]
+                    #signal
+        var macaddr, _: string
+        let splitted = line.splitWhitespace(maxsplit=2)
+        macaddr = splitted[1]
 
         for j in (i + 1).. (lines.len - 1):
           if lines[j].startsWith(re"\s.*signal:"):
             echo i, lines[j]
-            let parsed = lines[j].split("\t", maxsplit=2)
-            result[macaddr] = parsed[2]
+            let splitted = lines[j].split("\t", maxsplit=2)
+            result[macaddr] = splitted[2]
             break
 
-proc getConnectedDevs*(wlan: IfaceKind): Future[ConnectedDevs] {.async.} = 
+proc getDevices*(iface: IfaceKind): Future[Devices] {.async.} = 
   let
-    arp = &"arp -i {$wlan}"
-    arpOut = execCmdEx(arp).output
-    iw = getDevsSignal(wlan)
+    cmd = &"arp -i {$iface}"
+    arp = execCmdEx(cmd).output
+    iw = waitFor getDeviceSignal(iface)
     
-  if arpOut.len > 0:
-    for line in arpOut.splitLines():
+  if arp.len > 0:
+    for line in arp.splitLines():
       if line.startsWith("Address"):
         continue
 
       elif line.len > 0:
-        let parsed = line.splitWhitespace()
-        result.add (macaddr: parsed[2], ipaddr: parsed[0], signal: iw.getOrDefault(parsed[2]))
+        let splitted = line.splitWhitespace()
+        var device = Device.new
+        discard ipaddr(device, splitted[0])
+        discard macaddr(device, splitted[2])
+        discard signal(device, iw.getOrDefault(splitted[2]))
+        result.add(device)
+        # result.add (macaddr: [2], ipaddr: parsed[0], signal: iw.getOrDefault(parsed[2]))
