@@ -1,5 +1,6 @@
 # import std / options
 from types import State
+import results
 
 type
   Notice = ref object of RootObj
