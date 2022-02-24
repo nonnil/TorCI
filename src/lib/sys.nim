@@ -182,21 +182,23 @@ proc getActiveIface*(): Future[ActiveIfaceList] {.async.} =
       let vv = v.splitWhitespace()
       case vv[0]
       of "default":
+        let iface = vv[^1].parseIfaceKind()
         result.input = vv[^1].parseIfaceKind()
       of "192.168.42.0":
         result.output = vv[^1].parseIfaceKind()
       of "tun0":
         result.hasVpn = true
+
   except: return
 
 # proc hasVpn*(): Future[bool] {.async.} =
 
-proc changePasswd*(currentPasswd, newPasswd, rnewPasswd: string; username: string = "torbox"): Future[bool] {.async.} =
+proc changePasswd*(current, `new`, renew: string; username: string = "torbox"): Future[Result[void, string]] {.async.} =
   let
-    cmdPasswd = &"(echo \"{currentPasswd}\"; sleep 1; echo \"{newPasswd}\"; sleep 1; echo \"{rnewPasswd}\") | passwd {username} >/dev/null 2>&1"
+    cmdPasswd = &"(echo \"{current}\"; sleep 1; echo \"{`new`}\"; sleep 1; echo \"{renew}\") | passwd {username} >/dev/null 2>&1"
     cmdCode = execCmd(cmdPasswd)
   if cmdCode == 0:
-    result = true
+    result.ok
 
 proc getDeviceSignal*(iface: IfaceKind): Future[OrderedTable[string, string]] {.async.} =
   let
