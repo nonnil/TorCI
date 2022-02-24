@@ -2,7 +2,7 @@ import std / [ unittest, options ]
 import ".." / src / lib / sys / iface
 
 suite "iface":
-  test "":
+  test "parse Iface":
     let
       n = parseIfaceKind("nil")
       wlan0 = parseIfaceKind("wlan0")
