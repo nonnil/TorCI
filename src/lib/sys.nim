@@ -1,6 +1,6 @@
 import std / [
   asyncdispatch, strutils, strformat,
-  re, tables, os, osproc
+  re, tables, os, osproc, options
 ]
 import results, validateip
 import ".." / [ types ]
@@ -8,6 +8,11 @@ import hostap
 import sys / [ iface ]
 
 type
+  IO* = ref object
+    internet: IfaceKind
+    hostap: IfaceKind
+    vpnIsActive: bool
+
   Devices* = ref object
     devs: seq[Device]
 
@@ -15,6 +20,32 @@ type
     macaddr: string
     ipaddr: string
     signal: string
+
+method getInternet*(io: IO): Option[IfaceKind] {.base.} =
+  if len($io.internet) != 0:
+    return some(io.internet)
+
+method getHostap*(io: IO): Option[IfaceKind] {.base.} =
+  if len($io.hostap) != 0:
+    return some io.hostap
+
+method vpnIsActive*(io: IO): bool {.base.} =
+  io.vpnIsActive
+
+proc internet*(io: var IO, iface: IfaceKind) =
+  io.internet = iface
+
+proc hostap*(io: var IO, iface: IfaceKind): Result[void, string] =
+  case iface
+  of wlan0, wlan1:
+    io.hostap = iface
+    result.ok
+  
+  else:
+    result.err "should be set to wireless interface"
+
+proc vpn*(io: var IO, isAcitve: bool) =
+  io.vpnIsActive = isAcitve
 
 proc ipaddr*(device: var Device, ipaddr: string): Result[void, string] =
   if ipaddr.isValidIp4("local"):
@@ -170,7 +201,8 @@ proc eraseLogs*(): Future[State] {.async.} =
   except Exception:
     result = failure
 
-proc getActiveIface*(): Future[ActiveIfaceList] {.async.} =
+proc getIO*(): Future[IO] {.async.} =
+  var result = IO.new
   const routeCmd = "sudo timeout 5 sudo route"
   let
     routeRes = execCmdEx(routeCmd)
@@ -183,11 +215,14 @@ proc getActiveIface*(): Future[ActiveIfaceList] {.async.} =
       case vv[0]
       of "default":
         let iface = vv[^1].parseIfaceKind()
-        result.input = vv[^1].parseIfaceKind()
+        if iface.isSome:
+          internet(result, iface.get)
       of "192.168.42.0":
-        result.output = vv[^1].parseIfaceKind()
+        let iface = vv[^1].parseIfaceKind()
+        if iface.isSome:
+          discard hostap(result, iface.get)
       of "tun0":
-        result.hasVpn = true
+        vpn(result, true)
 
   except: return
 
