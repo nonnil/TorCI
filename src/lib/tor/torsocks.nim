@@ -7,23 +7,22 @@ type
     GET = "get",
     POST = "post"
 
-
 proc curlWriteFn(
   buffer: cstring,
   size: int,
   count: int,
   outstream: pointer): int
 
-proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): string
+proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): Future[string] {.async.}
 
 proc torsocks*(url: string, cfg: Config, prtc: Protocol = GET): Future[string] {.async.} =
   let
     address = cfg.torAddress
     port = cfg.torPort
-  result = url.socks5(address, port, prtc)
+  result = waitFor url.socks5(address, port, prtc)
 
 proc torsocks*(url: string, address: string = "127.0.0.1", port: Port = 9050.Port, prtc: Protocol = GET): Future[string] {.async.} =
-  result = url.socks5(address, port, prtc)
+  result = waitFor url.socks5(address, port, prtc)
 
 proc curlWriteFn(
   buffer: cstring,
@@ -35,7 +34,7 @@ proc curlWriteFn(
   outbuf[] &= buffer
   result = size * count
 
-proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): string =
+proc socks5(url, address: string, port: Port, prt: Protocol = GET, data: string = ""): Future[string] {.async.} =
   let curl = easy_init()
   let webData: ref string = new string
   discard curl.easy_setopt(
