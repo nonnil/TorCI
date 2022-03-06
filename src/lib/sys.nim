@@ -8,6 +8,14 @@ import hostap
 import sys / [ iface ]
 
 type
+  SystemInfo* = object
+    architecture*: string
+    kernelVersion*: string
+    model*: string
+    uptime*: int
+    localtime*: int
+    torboxVer*: string
+
   IO* = ref object
     internet: IfaceKind
     hostap: IfaceKind
@@ -21,6 +29,9 @@ type
     ipaddr: string
     signal: string
 
+method getDevs*(devs: Devices): seq[Device] {.base.} =
+  devs.devs
+
 method getInternet*(io: IO): Option[IfaceKind] {.base.} =
   if len($io.internet) != 0:
     return some(io.internet)
@@ -28,6 +39,18 @@ method getInternet*(io: IO): Option[IfaceKind] {.base.} =
 method getHostap*(io: IO): Option[IfaceKind] {.base.} =
   if len($io.hostap) != 0:
     return some io.hostap
+
+method getMacaddr*(dev: Device): Option[string] {.base.} =
+  if dev.macaddr.len > 0:
+    return some(dev.macaddr)
+
+method getIpaddr*(dev: Device): Option[string] {.base.} =
+  if dev.ipaddr.len > 0:
+    return some(dev.ipaddr)
+
+method getSignal*(dev: Device): Option[string] {.base.} =
+  if dev.signal.len > 0:
+    return some(dev.signal)
 
 method vpnIsActive*(io: IO): bool {.base.} =
   io.vpnIsActive
@@ -186,7 +209,7 @@ proc getSystemInfo*(): SystemInfo =
 
   except IOError: return
 
-proc eraseLogs*(): Future[State] {.async.} =
+proc eraseLogs*(): Future[Result[void, string]] {.async.} =
   const find = "sudo find /var/log -type f"
   try:
     let 
@@ -197,9 +220,9 @@ proc eraseLogs*(): Future[State] {.async.} =
       let _ = execCmd(&"sudo rm " & $v)
       let _ = execCmd("sleep 1")
     discard execShellCmd("sudo rm /home/torbox/.bash_hitstory; sudo histroy -c")
-    result = success
+    result.ok
   except Exception:
-    result = failure
+    result.err "failure"
 
 proc getIO*(): Future[IO] {.async.} =
   var result = IO.new

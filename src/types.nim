@@ -51,14 +51,6 @@ type
 
   WifiList* = seq[Wifi]
 
-  SystemInfo* = object
-    architecture*: string
-    kernelVersion*: string
-    model*: string
-    uptime*: int
-    localtime*: int
-    torboxVer*: string
-
   Network* = ref object of Wifi
     # wifiList: WifiList
     wlan*: IfaceKind
