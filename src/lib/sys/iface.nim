@@ -1,5 +1,4 @@
 import std / [
-  os, osproc,
   options, strutils
 ]
 
@@ -30,3 +29,10 @@ proc parseIfaceKind*(iface: string): Option[IfaceKind] =
     let ret = parseEnum[IfaceKind](iface)
     return some(ret)
   except: return none(IfaceKind)
+
+proc isIface*(iface: IfaceKind): bool =
+  if iface in { wlan0, wlan1, eth0, eth1, ppp0, usb0, tun0 }:
+    return true
+  # let ret = iface.parseIfaceKind()
+  # ret.isSome:
+  #   return true
