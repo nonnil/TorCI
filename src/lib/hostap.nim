@@ -1,5 +1,7 @@
-import std / [ options, strutils,
-  os, osproc, asyncdispatch, re, tables
+import std / [
+  options, strutils,
+  os, osproc, asyncdispatch, 
+  strformat, re, tables
 ]
 import results
 import karax / [ karaxdsl, vdom ]
@@ -44,6 +46,12 @@ const
     "ad": (40, 1), "ae": (44, 0), "af": (44, 1),
     "ag": (48, 0), "ah": (48, 1)
   }.toOrderedTable()
+
+method getConf*(hostap: HostAp): HostApConf {.base.} =
+  hostap.conf
+
+method getStatus*(hostap: HostAp): HostApStatus {.base.} =
+  hostap.status
 
 method getIface*(hostapConf: HostApConf): Option[IfaceKind] {.base.} =
   if hostapConf.iface.isIface:
@@ -377,8 +385,8 @@ proc renderChannelSelect*(band: char): VNode =
       option(value="ag"): text "48 at 40 MHz"
       option(value="ah"): text "48 at 80 MHz"
 
-proc render*(hostap: HostApConf): VNode =
-  buildHtml(tdiv(class="columns width-58")):
+proc render*(hostap: HostApConf, width = 58): VNode =
+  buildHtml(tdiv(class=fmt"columns width-{$width}")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Config"
@@ -460,8 +468,8 @@ proc render*(hostap: HostApConf): VNode =
                   tdiv():
                     text "No password has been set"
 
-proc render*(status: HostApStatus): VNode =
-  buildHtml(tdiv(class="columns width-38")):
+proc render*(status: HostApStatus, width = 38): VNode =
+  buildHtml(tdiv(class=fmt"columns width-{$width}")):
     tdiv(class="box"):
       tdiv(class="box-header"):
         text "Actions"
