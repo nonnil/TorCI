@@ -76,7 +76,7 @@ proc render*(hostap: HostApConf, width = 58): VNode =
                 input(`type`="radio", name="band", value="g"): text "2.5GHz"
                 input(`type`="radio", name="band", value="a"): text "5GHz"
               tdiv(class="card-table"):
-                label(class="card-title"): text "channel"
+                label(class="card-title"): text "Channel"
                 renderChannelSelect(hostap.getBand.get)
               tdiv(class="card-table"):
                 if hostap.isHidden:
