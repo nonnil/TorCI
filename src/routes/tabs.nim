@@ -1,9 +1,9 @@
-import std / [ macros, options, tables, strutils ]
+import std / [ macros, options, tables, os, sugar, strutils, strformat ]
 import karax / [ vdom, karaxdsl ]
 
 type
   Tabs* = ref object
-    list: TableRef[string, Tab]
+    list: OrderedTableRef[string, Tab]
 
   Tab* = ref object
     tab: seq[TabField]
@@ -43,8 +43,17 @@ proc add*(tab: var Tab, label, link: string) =
   let field: TabField = TabField(label: label, link: link)
   tab.tab.add field
 
-proc `[]=`*(tabs: Tabs, path: string, tab: Tab) =
-  tabs.list[path] = tab
+proc newTabs*(): Tabs =
+  result = new Tabs
+  # initialize table
+  result.list = newOrderedTable[string, Tab]()
+
+proc `[]`*(tabs: Tabs, name: string): Tab =
+  tabs.list[name]
+
+# proc getOrDefault*(tabs: tabs, key: string): Tab =
+proc `[]=`*(tabs: Tabs, attribute: string, tab: Tab) =
+  tabs.list[attribute] = tab
 
 iterator items*(tab: Tab): tuple[i: int, label, link: Option[string]] {.inline.} =
   var i: int
@@ -71,17 +80,30 @@ macro tab*(node: NimNode) =
       let op = newAssignment(nnkBracketExpr.newTree(ident, asgn[0]), asgn[1])
       result.add op
 
+proc joinPath(node: NimNode): string =
+  expectKind(node, nnkInfix)
+  # let sample = newStmtList(newCall(ident("newLit"), infix(newLit("/tor"), "/", newLit("browser"))))
+  # debugEcho $sample
+  # debugEcho repr newLit("/tor" / "browser" / "lts")
+  # dumpLisp:
+  #   newLit("/tor" / "browser")
+  let (left, op, right) = node.unpackInfix()
+  if eqIdent(op, "/"):
+    case left.kind
+    of nnkStrLit:
+      result = fmt"{left}/{right}"
+    of nnkInfix:
+      result = fmt"{joinPath(left)}/{right}"
+    else: return
+  # let n = newLit((node))
+  # echo "joinPath: ", newLit(repr(node))
+  # echo "[2] joinPath: ", "\"", $n, "\""
+  # result = $n
+
 proc createTab*(node: NimNode): Tab =
   expectKind(node, nnkStmtList)
 
   result = new Tab
-
-  # var tab = new Tab
-  # let
-  #   ident = newIdentNode("tab")
-  #   `new` = nnkCommand.newTree(ident("new"), ident("Tab"))
-
-  # result.add newVarStmt(ident, `new`)
 
   for asgn in node.children:
     expectKind(asgn, nnkAsgn)
@@ -89,7 +111,26 @@ proc createTab*(node: NimNode): Tab =
     # expectKind(asgn[1], nnkStrLit)
     # let op = newAssignment(nnkBracketExpr.newTree(ident, asgn[0]), asgn[1])
     # let right = newAssignment(ident("str"), asgn[1])
-    result.add $asgn[0], $asgn[1]
+    let r = asgn[1]
+    # let rs = $r
+    # let rs = newLit("/tor" / "browser")
+    # echo astGenRepr newLit r
+    # echo "rs: ", asgn[1]
+    # echo "repr: ", repr r
+    # echo "repr: ", astGenRepr newLit r
+    var right: string
+    case asgn[1].kind
+    of nnkStrLit:
+      right = $asgn[1]
+
+    of nnkInfix:
+      # right = $newlit(asgn[1])
+      right = joinPath(asgn[1])
+
+    else:
+      return
+
+    result.add $asgn[0], right
 
 macro tabs*(node: untyped) =
   expectKind(node, nnkStmtList)
@@ -99,8 +140,8 @@ macro tabs*(node: untyped) =
   # var tabs = new Tabs
   let
     tabsIdent = newIdentNode("tabs")
-    `new` = nnkCommand.newTree(ident("new"), ident("Tabs"))
-  result.add newVarStmt(tabsIdent, `new`)
+    newTabs = newCall("newTabs")
+  result.add newVarStmt(tabsIdent, newTabs)
 
   for asgn in node.children:
     expectKind(asgn, nnkAsgn)
@@ -117,10 +158,13 @@ macro tabs*(node: untyped) =
         left = asgn[1][0]
         right = asgn[1][1]
       expectKind(right, nnkStmtList)
-      if left != ident("tab"): return
-      let tab = createTab(right)
-      let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), newLit(tab))
-      result.add op
+
+      if eqIdent(left, "tab"):
+        let tab = createTab(right)
+        let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), newLit(tab))
+        # let op = newCall(ident("add"), tabsIdent, asgn[0], newLit(tab))
+        result.add op
+
   when defined(debugTabs):
     echo repr result
 
