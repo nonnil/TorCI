@@ -82,11 +82,6 @@ macro tab*(node: NimNode) =
 
 proc joinPath(node: NimNode): string =
   expectKind(node, nnkInfix)
-  # let sample = newStmtList(newCall(ident("newLit"), infix(newLit("/tor"), "/", newLit("browser"))))
-  # debugEcho $sample
-  # debugEcho repr newLit("/tor" / "browser" / "lts")
-  # dumpLisp:
-  #   newLit("/tor" / "browser")
   let (left, op, right) = node.unpackInfix()
   if eqIdent(op, "/"):
     case left.kind
@@ -95,10 +90,6 @@ proc joinPath(node: NimNode): string =
     of nnkInfix:
       result = fmt"{joinPath(left)}/{right}"
     else: return
-  # let n = newLit((node))
-  # echo "joinPath: ", newLit(repr(node))
-  # echo "[2] joinPath: ", "\"", $n, "\""
-  # result = $n
 
 proc createTab*(node: NimNode): Tab =
   expectKind(node, nnkStmtList)
@@ -111,13 +102,6 @@ proc createTab*(node: NimNode): Tab =
     # expectKind(asgn[1], nnkStrLit)
     # let op = newAssignment(nnkBracketExpr.newTree(ident, asgn[0]), asgn[1])
     # let right = newAssignment(ident("str"), asgn[1])
-    let r = asgn[1]
-    # let rs = $r
-    # let rs = newLit("/tor" / "browser")
-    # echo astGenRepr newLit r
-    # echo "rs: ", asgn[1]
-    # echo "repr: ", repr r
-    # echo "repr: ", astGenRepr newLit r
     var right: string
     case asgn[1].kind
     of nnkStrLit:
