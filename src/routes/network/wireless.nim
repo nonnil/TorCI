@@ -1,58 +1,73 @@
+import std / [ options ]
+import results
 import jester
-import ".." / [ tabs ]
-import ".." / ".." / [ types, notice ]
+import ".." / [ impl_network ]
+import ".." / ".." / lib / [ sys, session, hostap ]
+import ".." / ".." / [ types, notice, settings ]
 import ".." / ".." / views / [ temp, network ]
-import ".." / ".." / lib / [ sys, session, hostAp ]
+import impl_wireless
 
-template respApConf*(n: Notifies) =
-  let
-    conf = await getHostApConf()
-    devs = await getConnectedDevs(conf.iface)
-  resp renderNode(renderHostApPane(conf, sysInfo, devs), request, request.getUserName, "Wireless", notifies=n)
+export impl_wireless
 
-template respApConf*() =
-  let
-    conf = await getHostApConf()
-    devs = await getConnectedDevs(conf.iface)
-  resp renderNode(renderHostApPane(conf, sysInfo, devs), request, request.getUserName, "Wireless")
-
-proc routerWireless*(sysInfo: SystemInfo) =
+proc routerWireless*() =
   router wireless:
     get "/wireless/@hash":
       loggedIn:
-        respApConf()
+        resp await hostapConf(request)
 
     get "/wireless":
       loggedIn:
-        respApConf()
+        resp await hostapConf(request)
 
     post "/wireless":
       loggedIn:
+        # let ret = await doConfigHostap(request, tab)
+        # if isSome(ret):
+        #   resp ret.get
+  
         let
-          band = if sysInfo.model == hostAp.model3: "g"
-                 else: request.formData.getOrDefault("band").body
+          band = if sysInfo.model == hostap.model3: "g"
+                else: request.formData.getOrDefault("band").body
           channel = request.formData.getOrDefault("channel").body
+          ssid = request.formData.getOrDefault("ssid").body
+          cloak = request.formData.getOrDefault("ssidCloak").body
+          password = request.formData.getOrDefault("password").body
+        
+        var
+          notifies: Notifies = new()
+          hostapConf: HostApConf = HostApConf.new
 
-        let conf: OrderedTable[string, string] = {
-          "ssid": request.formData.getOrDefault("ssid").body,
-          "band": band,
-          "channel": if channel.len != 1: "" else: channel,
-          "hideSsid": request.formData.getOrDefault("ssidCloak").body,
-          "password": request.formData.getOrDefault("password").body
-        }.toOrderedTable()
+        block:
+          let ret = hostapConf.ssid ssid
+          if ret.isErr: notifies.add failure, ret.error
 
-        let ret = await setHostApConf(conf)
+        block:
+          let ret = hostapConf.band band
+          if ret.isErr: notifies.add failure, ret.error
 
-        var notifies: Notifies = new()
-        if ret.allgreen:
-          notifies.add success, "configuration successful. please restart the access point to apply the change"
-          respApConf(notifies)
+        block:
+          let ret = hostapConf.channel channel
+          if ret.isErr: notifies.add failure, ret.error
 
-        elif ret.rets.len > 0:
-          var notifies: Notifies
-          for v in ret.rets:
-            notifies.add v.state, v.msg
-          respApConf(notifies)
+        block:
+          hostapConf.cloak if cloak == "1": true else: false
 
-        else:
-          redirect "wireless"
+        block:
+          let ret = hostapConf.password password
+          if ret.isErr: notifies.add failure, ret.error
+
+        hostapConf.write()
+
+        if notifies.isEmpty:
+          notifies.add success, "configuration successful. please restart the access point to apply the changes"
+
+        var 
+          hostap: HostAp = HostAp.new
+          conf = await getHostApConf()
+          devs = await getDevices(conf.getIface.get)
+
+        let isActive = await hostapdIsActive()
+        hostap.active isActive
+
+        # resp renderNode(renderHostApPane(hostap, sysInfo, devs), request, request.getUserName, "Wireless", tab, notifies=notifies)
+        resp renderNode(renderHostApPane(hostap, devs), request, request.getUserName, "Wireless", netTab(), notifies=notifies)

@@ -1,13 +1,18 @@
-import std / [ strutils ]
-import jester 
+import std / [ options, strutils ]
+import results
+import jester
 import impl_network
 import ../ views / [ temp, network ]
-import ".." / [ types, notice ]
-import ".." / lib / [ session, hostap, fallbacks ]
+import ".." / [ types, notice, settings ]
+import ".." / lib / [ sys, session, hostap, fallbacks ]
 import ../ lib / tor / tor
+# import ../ lib / sys / iface
 import network / [ wireless, impl_wireless ]
 
-export network, impl_network, wireless, impl_wireless
+export network, impl_network
+export wireless, impl_wireless
+
+routerWireless()
 
 # routerwireless()
 proc routingNet*() =
@@ -16,6 +21,7 @@ proc routingNet*() =
 
     # extend wireless, ""
     # let tab = netTab()
+    extend wireless, "/net"
 
     get "/bridges":
       loggedIn:
