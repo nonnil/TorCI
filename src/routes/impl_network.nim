@@ -3,7 +3,7 @@ import tabs
 import ".." / [ notice, types ]
 import ".." / lib / [ sys, session, hostap ]
 
-func netTab*(): Tabs =
+func netTab*(): Tab =
   var tab = Tab.new
   tab.add("Bridges", "/net" / "bridges")
   tab.add("Interfaces", "/net" / "interfaces")

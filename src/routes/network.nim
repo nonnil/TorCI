@@ -3,7 +3,7 @@ import jester
 import impl_network
 import ../ views / [ temp, network ]
 import ".." / [ types, notice ]
-import ".." / lib / [ sys, torbox, session, hostap ]
+import ".." / lib / [ sys, torbox, session, hostap, fallbacks ]
 import ../ lib / tor / tor
 import network / [ wireless, impl_wireless ]
 
