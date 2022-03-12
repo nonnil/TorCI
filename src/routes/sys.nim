@@ -8,11 +8,13 @@ import ".." / lib / session
 
 export sys 
 
-proc routingSys*() =
+func sysTab*(): Tab =
   var tab = Tab.new
   tab.add("Password", "/sys" / "passwd")
   tab.add("Logs", "/sys" / "logs")
   tab.add("Update", "/sys" / "update")
+
+proc routingSys*() =
 
   router sys:
     get "/sys":
@@ -33,17 +35,17 @@ proc routingSys*() =
 
           if erase.isOk:
             notifies.add success, "Complete erase logs"
-            resp renderNode(renderLogs(), request, request.getUsername, "", tab, notifies)
+            resp renderNode(renderLogs(), request, request.getUsername, "", sysTab(), notifies)
 
           notifies.add failure, "Failure erase logs"
-          resp renderNode(renderLogs(), request, request.getUsername, "", tab, notifies)
+          resp renderNode(renderLogs(), request, request.getUsername, "", sysTab(), notifies)
 
     get "/sys/passwd":
       loggedIn:
         # resp renderNode(renderCard("Change Passwd", renderPasswd()), request, cfg, tabForSys)
-        resp renderNode(renderChangePasswd(), request, request.getUserName, "", tab)
+        resp renderNode(renderChangePasswd(), request, request.getUserName, "", sysTab())
       redirect "/login"
     
     get "/sys/eraselogs":
       loggedIn:
-        resp renderNode(renderLogs(), request, request.getUsername, "", tab)
+        resp renderNode(renderLogs(), request, request.getUsername, "", sysTab())
