@@ -1,7 +1,7 @@
 import std / [ os ]
 import tabs 
 import ".." / [ notice, types ]
-import ".." / lib / [ sys, session, hostap ]
+import ".." / lib / [ session, hostap ]
 
 func netTab*(): Tab =
   var tab = Tab.new

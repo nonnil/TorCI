@@ -3,7 +3,7 @@ import jester
 import impl_network
 import ../ views / [ temp, network ]
 import ".." / [ types, notice ]
-import ".." / lib / [ sys, torbox, session, hostap, fallbacks ]
+import ".." / lib / [ session, hostap, fallbacks ]
 import ../ lib / tor / tor
 import network / [ wireless, impl_wireless ]
 
@@ -17,7 +17,6 @@ proc routingNet*() =
     # extend wireless, ""
     # let tab = netTab()
 
-    var net: Network = new Network
     get "/bridges":
       loggedIn:
         respBridges()
