@@ -1,7 +1,6 @@
 import options, asyncdispatch
 import jester
-import tabs, impl_status
-import ".." / [ types, notice ]
+import impl_status
 import ../ views / [ temp, status ]
 import ".." / lib / [ session, sys, wirelessManager ]
 import ../ lib / tor / tor
@@ -21,7 +20,13 @@ proc routingStatus*() =
 
     post "/io":
       loggedIn:
-        let notifies = await postIO(request)
-        if notifies.isSome:
-          respIO(notifies.get)
+        # await doTorRequest(request)
+        let ret = await doTorRequest(request)
+        if ret.isSome:
+          resp ret.get
+
         redirect "/io"
+        # let notifies = await postIO(request)
+        # if notifies.isSome:
+        #   respIO(notifies.get)
+        # redirect "/io"
