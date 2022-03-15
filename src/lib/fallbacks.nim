@@ -1,8 +1,10 @@
-import os, osproc, re, strutils, strformat, logging
-import asyncdispatch
-import ".." / [types]
-import sys, hostAp
-import hostAp
+import std / [
+  options,
+  os, osproc,
+  re, strutils, strformat,
+  asyncdispatch, logging ]
+import sys, hostap
+import sys / [ iface, service ]
 
 proc hostapdFallback*() {.async.} =
   try:
@@ -21,7 +23,7 @@ proc hostapdFallback*() {.async.} =
       f = f.replace("interface=wlan1", "interface=wlan0")
       writeFile hostapd, f
 
-    let isActive = waitFor getHostApStatus()
+    let isActive = waitFor hostapdIsActive()
 
     if not isActive:
       echo("hostapd is not active")
@@ -92,14 +94,16 @@ proc hostapdFallbackKomplex*(wlan, eth: IfaceKind) =
     ifup(wlan)
     
   # If wlan0 or wlan1 is not acting as AP then we have to do something about it!
-  let conf = waitFor getHostApConf()
-  if conf.iface == unkwnIface:
+  let
+    conf = waitFor getHostApConf()
+    iface = conf.getIface
+  if iface.isNone:
     try:
       var f = readFile(hostapd)
       f = f.replace(re"interface=.*", "interface=" & $wlan)
       restartService("hostapd")
       sleep 5
-      if not waitFor getHostApStatus():
+      if not waitFor hostapdIsActive():
         f = f.multiReplace(
           @[
             ("hw_mode=a", "hw_mode=g"),
