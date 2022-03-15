@@ -1,7 +1,8 @@
 import karax / [ karaxdsl, vdom, vstyles ]
-import tables, asyncdispatch, strformat
+import std / [ options ]
 import ".." / [ types ]
 from ".." / settings import cfg, sysInfo
+import ".." / lib / [ sys, hostap ]
 import ../ lib / tor / tor
 
 const defStr = "None"
@@ -56,7 +57,7 @@ proc renderTorInfo(tor: Tor): VNode =
             td():
               strong(style={display: "flex"}):
                 tdiv():
-                  text if tor.isOnline: "Online" else: "Offline"
+                  text if tor.isTor: "Online" else: "Offline"
                 form(`method`="post", action="/io", enctype="multipart/form-data"):
                   button(class="btn-flat", `type`="submit", name="tor-request", value="new-circuit"):
                     svg(class="new-circuit", loading="lazy", alt="new circuit", width="25px", height="25px", viewBox="0 0 16 16", version="1.1"):
@@ -92,7 +93,7 @@ proc renderTorInfo(tor: Tor): VNode =
                 tdiv():
                   text if tor.bridge.isSnowflake: "On" else: "Off"
 
-proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string]): VNode =
+proc renderNetworkInfo(io: IO, crNet: tuple[ssid, ipAddr: string]): VNode =
   buildHtml(tdiv(class="columns")):
     tdiv(class="card card-padding card-sky"):
       tdiv(class="card-header"):
@@ -104,13 +105,15 @@ proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string
             td():
               strong():
                 tdiv():
-                  text if iface.input != unkwnIface: $iface.input else: defStr
+                  let internet = io.getInternet
+                  text if internet.isSome: $internet.get else: defStr
           tr():
             td(): text "Host AP"
             td():
               strong():
                 tdiv():
-                  text if iface.output != unkwnIface: $iface.output else: defStr
+                  let hostap = io.getHostap
+                  text if hostap.isSome: $hostap.get else: defStr
           tr():
             td(): text "SSID"
             td():
@@ -128,10 +131,10 @@ proc renderNetworkInfo(iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string
             td():
               strong():
                 tdiv():
-                  text if iface.hasVpn: "is Up" else: defStr
+                  text if io.vpnIsActive: "is Up" else: defStr
 
-proc renderStatusPane*(tor: Tor, iface: ActiveIfaceList, crNet: tuple[ssid, ipAddr: string]): VNode =
+proc renderStatusPane*(tor: Tor, io: IO, crNet: tuple[ssid, ipAddr: string]): VNode =
   buildHtml(tdiv(class="cards")):
     renderTorInfo(tor)
-    renderNetworkInfo(iface, crNet)
+    renderNetworkInfo(io, crNet)
     renderSystemInfo()
