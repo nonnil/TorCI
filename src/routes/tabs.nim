@@ -66,24 +66,6 @@ iterator items*(tab: Tab): tuple[i: int, label, link: Option[string]] {.inline.}
     if f.isSome:
       yield (i, f.get.getLabel, f.get.getLink)
 
-macro tab*(node: NimNode) =
-  expectKind(node, nnkStmtList)
-
-  result = newStmtList()
-
-  # var tab = new Tab
-  let
-    ident = newIdentNode("tab")
-    `new` = nnkCommand.newTree(ident("new"), ident("Tab"))
-
-  result.add newVarStmt(ident, `new`)
-
-  for asgn in node.children:
-    expectKind(asgn, nnkAsgn)
-    if asgn[1].kind == nnkIdent:
-      let op = newAssignment(nnkBracketExpr.newTree(ident, asgn[0]), asgn[1])
-      result.add op
-
 proc joinPath(node: NimNode): string =
   expectKind(node, nnkInfix)
   let (left, op, right) = node.unpackInfix()
@@ -94,31 +76,6 @@ proc joinPath(node: NimNode): string =
     of nnkInfix:
       result = fmt"{joinPath(left)}/{right}"
     else: return
-
-# proc createTab*(node: NimNode): Tab =
-#   expectKind(node, nnkStmtList)
-
-#   result = new Tab
-
-#   for asgn in node.children:
-#     expectKind(asgn, nnkAsgn)
-#     expectKind(asgn[0], nnkStrLit)
-#     # expectKind(asgn[1], nnkStrLit)
-#     # let op = newAssignment(nnkBracketExpr.newTree(ident, asgn[0]), asgn[1])
-#     # let right = newAssignment(ident("str"), asgn[1])
-#     var right: string
-#     case asgn[1].kind
-#     of nnkStrLit:
-#       right = $asgn[1]
-
-#     of nnkInfix:
-#       # right = $newlit(asgn[1])
-#       right = joinPath(asgn[1])
-
-#     else:
-#       return
-
-#     result.add $asgn[0], right
 
 proc createTab(node: NimNode): NimNode =
   expectKind(node, nnkStmtList)
@@ -155,54 +112,9 @@ proc createTab(node: NimNode): NimNode =
     result.add command
   result.add tmp
 
-proc createTabs*(node: NimNode): NimNode =
-  expectKind(node, nnkStmtList)
-  # var tabs = new Tabs
-  let
-    tabsIdent = newIdentNode("tabs")
-    newTabs = newCall("newTabs")
-  result = newStmtList()
-  result.add newVarStmt(tabsIdent, newTabs)
-  # result = newTabs
-  for asgn in node.children:
-    expectKind(asgn, nnkAsgn)
-    expectKind(asgn[0], nnkStrLit)
-    # tabs["some"] = tab
-    if asgn[1].kind == nnkIdent:
-      # let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), asgn[1])
-      let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), asgn[1])
-      result.add op
-
-    # tabs[asgn[0]] = Tab:
-    #   "some" = "/some"
-    elif asgn[1].kind == nnkCall:
-      let
-        left = asgn[1][0]
-        right = asgn[1][1]
-      expectKind(right, nnkStmtList)
-
-      if eqIdent(left, "tab"):
-        let tab = createTab(right)
-        # let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), newLit(tab))
-        # let op = newAssignment(nnkBracketExpr.newTree(result, asgn[0]), newLit(tab))
-        let op = newCall(ident("add"), tabsIdent, asgn[0], newLit(tab))
-        # result.add op
-        result.add op
-
 macro buildTab*(node: untyped): Tab =
   # expectKind(node, nnkStmtList)
   result = createTab(node)
-
-
-  # result = newStmtList()
-
-
-  when defined(debugTabs):
-    echo repr result
-
-macro buildTabs*(node: untyped): Tabs =
-  # expectKind(node, nnkStmtList)
-  result = createTabs(node)
 
 
   # result = newStmtList()
