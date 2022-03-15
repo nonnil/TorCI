@@ -18,6 +18,7 @@ requires "libcurl >= 1.0.0"
 requires "bcrypt >= 0.2.1"
 requires "result >= 0.3.0"
 requires "validateip >= 0.1.2"
+requires "optionsutils >= 1.2.0"
 
 task scss, "Generate css":
   exec "nim r tools/gencss"
