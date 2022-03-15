@@ -16,7 +16,8 @@ import lib / sys as libsys
 # {.passL: "-I/usr/include/x86_64-linux-musl".}
 
 routingStatus()
-routingNet(sysInfo)
+# routerWireless()
+routingNet()
 routingSys()
 
 settings:
@@ -76,4 +77,5 @@ routes:
 
   extend status, ""
   extend network, "/net"
+  # extend wireless, "/net"
   extend sys, ""
