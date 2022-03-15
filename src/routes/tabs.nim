@@ -1,4 +1,4 @@
-import std / [ macros, options, tables, os, sugar, strutils, strformat ]
+import std / [ macros, options, tables, strutils, strformat ]
 import karax / [ vdom, karaxdsl ]
 
 type
@@ -40,6 +40,10 @@ proc getLink*(tab: TabField): Option[string] =
     return some tab.link
 
 proc add*(tab: var Tab, label, link: string) =
+  let field: TabField = TabField(label: label, link: link)
+  tab.tab.add field
+
+proc add*(tab: Tab, label, link: string) =
   let field: TabField = TabField(label: label, link: link)
   tab.tab.add field
 
@@ -91,10 +95,42 @@ proc joinPath(node: NimNode): string =
       result = fmt"{joinPath(left)}/{right}"
     else: return
 
-proc createTab*(node: NimNode): Tab =
+# proc createTab*(node: NimNode): Tab =
+#   expectKind(node, nnkStmtList)
+
+#   result = new Tab
+
+#   for asgn in node.children:
+#     expectKind(asgn, nnkAsgn)
+#     expectKind(asgn[0], nnkStrLit)
+#     # expectKind(asgn[1], nnkStrLit)
+#     # let op = newAssignment(nnkBracketExpr.newTree(ident, asgn[0]), asgn[1])
+#     # let right = newAssignment(ident("str"), asgn[1])
+#     var right: string
+#     case asgn[1].kind
+#     of nnkStrLit:
+#       right = $asgn[1]
+
+#     of nnkInfix:
+#       # right = $newlit(asgn[1])
+#       right = joinPath(asgn[1])
+
+#     else:
+#       return
+
+#     result.add $asgn[0], right
+
+proc createTab(node: NimNode): NimNode =
   expectKind(node, nnkStmtList)
 
-  result = new Tab
+  # result = new Tab
+  result = newTree(nnkStmtListExpr)
+  let
+    tmp = genSym(nskLet, "tab")
+    call = newCall(bindSym"new", ident("Tab"))
+  # result = newStmtList(sym, call)
+  result.add newTree(nnkStmtList, newLetStmt(tmp, call))
+  # result = newTree(nnkStmtList, newLetStmt(tmp, call))
 
   for asgn in node.children:
     expectKind(asgn, nnkAsgn)
@@ -114,24 +150,26 @@ proc createTab*(node: NimNode): Tab =
     else:
       return
 
-    result.add $asgn[0], right
+    # result.add $asgn[0], right
+    let command = newCall(bindSym("add"), tmp, asgn[0], newLit(right))
+    result.add command
+  result.add tmp
 
-macro tabs*(node: untyped) =
+proc createTabs*(node: NimNode): NimNode =
   expectKind(node, nnkStmtList)
-
-  result = newStmtList()
-
   # var tabs = new Tabs
   let
     tabsIdent = newIdentNode("tabs")
     newTabs = newCall("newTabs")
+  result = newStmtList()
   result.add newVarStmt(tabsIdent, newTabs)
-
+  # result = newTabs
   for asgn in node.children:
     expectKind(asgn, nnkAsgn)
     expectKind(asgn[0], nnkStrLit)
     # tabs["some"] = tab
     if asgn[1].kind == nnkIdent:
+      # let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), asgn[1])
       let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), asgn[1])
       result.add op
 
@@ -145,9 +183,30 @@ macro tabs*(node: untyped) =
 
       if eqIdent(left, "tab"):
         let tab = createTab(right)
-        let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), newLit(tab))
-        # let op = newCall(ident("add"), tabsIdent, asgn[0], newLit(tab))
+        # let op = newAssignment(nnkBracketExpr.newTree(tabsIdent, asgn[0]), newLit(tab))
+        # let op = newAssignment(nnkBracketExpr.newTree(result, asgn[0]), newLit(tab))
+        let op = newCall(ident("add"), tabsIdent, asgn[0], newLit(tab))
+        # result.add op
         result.add op
+
+macro buildTab*(node: untyped): Tab =
+  # expectKind(node, nnkStmtList)
+  result = createTab(node)
+
+
+  # result = newStmtList()
+
+
+  when defined(debugTabs):
+    echo repr result
+
+macro buildTabs*(node: untyped): Tabs =
+  # expectKind(node, nnkStmtList)
+  result = createTabs(node)
+
+
+  # result = newStmtList()
+
 
   when defined(debugTabs):
     echo repr result
