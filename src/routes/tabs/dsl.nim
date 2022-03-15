@@ -40,6 +40,7 @@ proc createTab(node: NimNode): NimNode =
     else:
       return
 
+    # Represent
     # result.add "Tor", "/tor" / "projet"
     let command = newCall(bindSym("add"), tmp, asgn[0], newLit(right))
     # final value
