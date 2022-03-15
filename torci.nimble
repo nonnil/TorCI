@@ -1,7 +1,7 @@
 # Package
 
 version       = "0.1.3"
-author        = "Luca"
+author        = "Luca (@nonnil)"
 description   = "Configuration Interface for TorBox."
 license       = "GPL-3.0"
 srcDir        = "src"
