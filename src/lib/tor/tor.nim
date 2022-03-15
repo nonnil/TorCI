@@ -5,7 +5,8 @@ import std / [
 ]
 import results, validateip
 import torsocks, torcfg, bridges
-import ".." / [ sys ]
+import ../ sys / [ service ]
+import ../ ../ settings
 
 export torsocks, bridges
 
@@ -20,11 +21,13 @@ type
     bridge: Bridge
 
   TorStatus* = ref object
-    isOnline: bool
+    isTor: bool
     isVPN: bool
     exitIp: string
   
   R = Result[void, string]
+
+proc init*(ipaddr: string, port: Port): Tor
 
 method getIpaddr*(tor: Tor): Option[string] {.base.} =
   return some(tor.ipaddr)
@@ -35,25 +38,78 @@ method getPort*(tor: Tor): Option[Port] {.base.} =
 method bridge*(tor: Tor): Bridge {.base.} =
   tor.setting.bridge
 
-method isTor*(tor: var Tor): R {.base.} =
+proc exitIp*(status: var TorStatus, exitIp: string): R =
+  if exitIp.isValidIp4("local"):
+    status.exitIp = exitIp
+    result.ok
+  result.err "Invalid IP address"
+
+proc exitIp*(tor: var Tor, exitIp: string): R =
+  ?exitIp(tor, exitIp)
+
+method getExitIp*(status: TorStatus): Option[string] {.base.} =
+  if status.exitIp.len > 0:
+    return some status.exitIp
+
+method getExitIp*(tor: Tor): Option[string] {.base.} =
+  return tor.status.getExitIp
+
+# method isTor*(tor: var Tor): R {.base.} =
+#   const destHost = "https://check.torproject.org/api/ip"
+#   let checkTor = waitFor destHost.torsocks(tor.getIpaddr.get, tor.getPort.get)
+#   if checkTor.len == 1: result.err "connection failed"
+#   let jObj = parseJson(checkTor)
+#   if $jObj["IsTor"] == "true":
+#     tor.status.isOnline = true
+#     tor.status.exitIp = jObj["IP"].getStr()
+#     result.ok
+
+method isTor*(status: TorStatus): bool {.base.} =
+  status.isTor
+
+method isTor*(tor: Tor): bool {.base.} =
+  isTor(tor.status)
+
+proc checkTor*(tor: Tor): Future[Result[TorStatus, string]] {.async.} =
   const destHost = "https://check.torproject.org/api/ip"
   let checkTor = waitFor destHost.torsocks(tor.getIpaddr.get, tor.getPort.get)
   if checkTor.len == 0: result.err "connection failed"
   let jObj = parseJson(checkTor)
   if $jObj["IsTor"] == "true":
-    tor.status.isOnline = true
-    tor.status.exitIp = jObj["IP"].getStr()
-    result.ok
-  
-method isOnline*(tor: Tor): bool {.base.} =
-  tor.status.isOnline
+    var ts = TorStatus.new
+    ts.isTor = true
+    let _ = exitIp(ts, jObj["IP"].getStr())
+    result.ok ts
 
-method hasNewExitIp*(tor: Tor): bool {.base.} =
-  var `new` = new Tor
-  let _ = `new`.isTor
-  if tor.status.exitIp != `new`.status.exitIp:
-    tor.status.exitIp = `new`.status.exitIp
-    return true
+proc isTor*(tor: var Tor): R =
+  let ret = waitFor checkTor(tor)
+  if ret.isOk:
+    tor.status = ret.get
+# method isOnline*(tor: Tor): bool {.base.} =
+#   tor.status.isOnline
+
+method compareExitIp*(first, second: TorStatus): bool {.base.} =
+  let
+    firstIp = first.getExitIp
+    secondIp = second.getExitIp
+  
+  if isSome(firstIp) and isSome(secondIp):
+    if firstIp.get == secondIp.get:
+      return true
+
+method hasNewExitIp*(tor: var Tor): bool {.base.} =
+  var `new` = init(cfg.torAddress, cfg.torPort)
+  let ret = waitFor `new`.checkTor
+
+  if ret.isErr: return false
+
+  let
+    status = ret.get
+    exitIp = status.getExitIp
+  if tor.status.exitIp != exitIp.get:
+    let ret = exitIp(tor, exitIp.get)
+    if ret.isOk:
+      return true
 
 method reload*(setting: var TorSettings): Result[void, string] {.base.} =
   ?setting.bridge.reload

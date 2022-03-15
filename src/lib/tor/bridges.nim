@@ -2,7 +2,8 @@ import std / [ os, osproc, re, asyncdispatch, strutils ]
 import std / [ sha1, json, uri ]
 import results
 import ".." / ".." / [ types, settings ]
-import ".." / [ binascii, sys ]
+import ".." / [ binascii ]
+import ../ sys / [ service ]
 import torcfg, torsocks
 
 proc restartTor() =
@@ -31,6 +32,29 @@ method isSnowflake*(bridge: Bridge): bool {.base.} =
 
 method isMeekazure*(bridge: Bridge): bool {.base.} =
   bridge.kind == meekazure
+
+# method reload*(bridge: var Bridge): Result[void, string] {.base.} =
+#   if not torrc.fileExists:
+#     result.err "torrc not found"
+#   let rc = readFile(torrc)
+#   for line in rc.splitLines():
+#     if line.startsWith("Use Bridges 1"):
+#       bridge.useBridges = true
+#       continue
+
+#     elif line.startsWith("Bridge obfs4 "):
+#       bridge.kind = obfs4
+#       continue
+
+#     elif line.startsWith("Bridge meek_lite "):
+#       bridge.kind = meekazure
+#       continue
+
+#     elif line.startsWith("Bridge snowflake "):
+#       bridge.kind = snowflake
+#       continue
+
+#   result.ok()
 
 method reload*(bridge: var Bridge): Result[void, string] {.base.} =
   if not torrc.fileExists:
