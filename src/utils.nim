@@ -1,6 +1,3 @@
-import std / strutils
-import types
-
 template test*(nim: untyped) =
   when defined test:
     nim
@@ -10,6 +7,3 @@ template test*(nim: untyped) =
     nim
   else:
     quit(QuitFailure)
-
-proc parseIface*(iface: string): IfaceKind =
-  parseEnum[IfaceKind](iface, unkwnIface) 
