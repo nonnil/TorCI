@@ -1,7 +1,8 @@
 import strformat, strutils
 import os, osproc, asyncdispatch
 import wifiScanner
-import ".."/[types, utils]
+import ".." / [ types, utils ]
+import sys / iface
 
 # var network: Network = new Network
 
@@ -214,7 +215,7 @@ proc networkList*(network: Network): Future[WifiList] {.async.} =
   
 proc currentNetwork*(wlan: IfaceKind): Future[tuple[ssid, ipAddr: string]] {.async.} =
   # let wlan = wpa.wlan
-  if not wlan.inWlan:
+  if not wlan.isWlan:
     return
   try:
     let wpaStatus = execCmdEx(&"wpa_cli -i {wlan} status")

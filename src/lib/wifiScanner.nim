@@ -2,6 +2,7 @@ import tables, osproc, strutils, strformat
 import re
 import asyncdispatch
 import ../types
+import sys / [ iface ]
 # type
 
   # WlanKind* = enum
