@@ -1,9 +1,10 @@
 import os, osproc, asyncdispatch
 import re, strutils, strformat
 import sys
-import ".." / [types, utils]
+import ".." / [ types, utils ]
 import nativesockets
 import tor / torcfg
+import sys / [ iface, service ]
 
 const
   iptable = "/sbin" / "iptables"
