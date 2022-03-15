@@ -1,11 +1,10 @@
 import std / [
-  times, options, sugar, random,
-  sequtils, strutils, strformat
+  times, options, random,
+  strutils, strformat
 ]
 import jester
 import bcrypt 
 import results
-import ".."/[ types ]
 import clib / [ c_crypt, shadow ]
 
 type
@@ -76,10 +75,11 @@ method isLoggedIn*(req: jester.Request): bool {.base.} =
   if not req.cookies.hasKey("torci"): return
   let userToken = req.cookies["torci"]
   for i, user in userList.users:
-    if user.getToken == userToken:
-      if user.isExpired:
-        i.delete
-        return false
+    if user.isExpired:
+      i.delete
+      return false
+
+    elif user.getToken == userToken:
       return true
 
 # method isValidUser*(req: jester.Request): bool {.base.} =
