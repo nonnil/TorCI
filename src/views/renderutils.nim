@@ -1,5 +1,5 @@
 import jester
-import karax/[ vdom, karaxdsl, vstyles ]
+import karax/[ vdom, karaxdsl ]
 import strutils, re
 
 proc getCurrentTab*(r: Request): string =
