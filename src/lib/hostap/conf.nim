@@ -280,6 +280,7 @@ proc enableWlan*() {.async.} =
 
 method write*(hostapConf: HostApConf) {.base.} =
   try:
+    # backup the hostapd.conf
     copyFile(hostapd, hostapdBakup)
     var stream = readFile(hostapd)
     
