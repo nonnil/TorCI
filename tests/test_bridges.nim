@@ -98,7 +98,7 @@ suite "Request to Onionoo":
   test "Get bridges data":
     const
       fp = "07784768F54CF66F9D588E19E8EE3B0FA702711B"
-      hfp = "581674112383BEBF88E79C3328B71ADF79365B45"
+      hfp = "5481936581E23D2D178105D44DB6915AB06BFB7F"
 
     check:
       hfp.isFound()
