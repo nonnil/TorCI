@@ -1,8 +1,9 @@
 import std / unittest
-import std / [strutils, re]
-import std / [sha1, json]
-import std / [httpclient, asyncdispatch]
-import ../ src / lib / [binascii, bridges]
+import std / [ strutils, re ]
+import std / [ sha1, json ]
+import std / [ httpclient, asyncdispatch ]
+import ../ src / lib / [ binascii ]
+import ../ src / lib / tor / bridges
 import ../ src / types
 import std / nativesockets
 import torrc_template
