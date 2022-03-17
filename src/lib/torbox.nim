@@ -1,5 +1,6 @@
-import os, osproc, asyncdispatch
-import re, strutils, strformat
+import std / [ os, osproc, asyncdispatch,
+  re, strutils, strformat, sequtils
+]
 import sys
 import ".." / [ types, utils ]
 import nativesockets
@@ -12,17 +13,11 @@ const
   dnsprog = "dnsmasq"
   runfile* = "/home" / "torbox" / "torbox" / "run" / "torbox.run"
 
-# getTorboxVersion for test
-proc getTorboxVersion*(hname: var string): string {.test.} =
-  if hname.match(re"TorBox(\d){3}"):
-    hname.delete(0..5)
-    result = hname.insertSep('.', 1)
-
 proc getTorboxVersion*(): string =
   var hname = getHostname()
   if hname.match(re"TorBox(\d){3}"):
-    hname.delete(0, 5)
-    result = hname.insertSep('.', 1)
+    let version = hname[6 .. 8]
+    result = version.insertSep('.', 1)
 
 proc setCaptive*(serverIface, clientWln, clientEth: IfaceKind) =
   

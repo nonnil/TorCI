@@ -1,15 +1,18 @@
-import unittest
-import ../ src / utils
-import ../ src / lib / torbox
+import std / [ unittest, re, strutils ]
 
-test:
-  suite "torbox":
-    test "Check TorBox version":
-      var hostname = "TorBox050"
-      let h = getTorboxVersion(hostname)
+suite "torbox":
+  proc getTorboxVersion(hname: string): string =
+    if hname.match(re"TorBox(\d){3}"):
+      # hname.delete(0, 5)
+      let version = hname[6..8]
+      result = version.insertSep('.', 1)
 
-      check:
-        "0.5.0" == h
+  test "Check TorBox version":
+    var hostname = "TorBox050"
+    let h = getTorboxVersion(hostname)
+
+    check:
+      "0.5.0" == h
 
 # proc getTorboxVersion*(): string =
 #   var hname = $getHostname()
