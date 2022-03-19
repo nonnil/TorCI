@@ -1,3 +1,7 @@
+![Build Status](https://github.com/nonnil/TorCI/workflows/Test%20TorCI/badge.svg)
+![Lines of code](https://tokei.rs/b1/github/nonnil/torci?category=code)
+![Licence: GPL-3.0](https://img.shields.io/github/license/nonnil/TorCI)
+
 # TorCI
 
 TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbox). It is implemented in the [Nim](https://nim-lang.org) programming language.
