@@ -15,7 +15,7 @@ env:
   APP_NAME: 'TorCI'
   NIM_VERSION: '1.6.0'
   MAINTAINER: 'Luca'
-  DESC: 'Configuration Interface for TorBox'
+  DESC: 'Web-based GUI for TorBox'
 
 jobs:
   build-artefact:
