@@ -43,6 +43,7 @@ jobs:
           # Set env
           ARCH=${{ matrix.arch }}
 
+          # Build
           docker build -t torci:release -f build/${{ matrix.codename }} build
           docker run --rm -v `pwd`:/src/torci -e ARCH=${{ matrix.arch }} torci:release
 
