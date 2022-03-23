@@ -1,4 +1,4 @@
-import karax/[karaxdsl, vdom]
+import karax / [ karaxdsl, vdom ]
 
 proc renderLogin*(): VNode =
   buildHtml(tdiv(class="content")):
