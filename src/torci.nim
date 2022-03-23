@@ -31,7 +31,7 @@ routes:
       redirect "/io"
   
   get "/login":
-    loggedIn:
+    notLoggedIn:
       resp renderFlat(renderLogin(), "Login")
   
   post "/login":
