@@ -1,8 +1,12 @@
 # import std / options
-from types import State
 import results
 
 type
+  State* = enum
+    success 
+    warn
+    failure
+
   Notice = ref object of RootObj
     state: State
     msg: string
@@ -35,3 +39,32 @@ iterator items*(n: Notifies): tuple[i: int, n: Notice] {.inline.} =
   while i < n.len:
     yield (i, n.notice[i])
     inc i
+
+import std / [ strutils ]
+import karax / [ karaxdsl, vdom, vstyles ]
+method render*(notifies: Notifies): VNode {.base.} =
+  const
+    colourGreen = "#2ECC71"
+    colourYellow = ""
+    colourGray = "#afafaf"
+    colourRed = "#E74C3C"
+  result = new VNode
+  for i, n in notifies.items:
+    let colour =
+      case n.getState
+      of success:
+        colourGreen
+
+      of warn:
+        colourYellow
+
+      of failure:
+        colourRed
+
+      else:
+        colourGray
+
+    result = buildHtml(tdiv(class="notify-bar")):
+      input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
+      tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
+        text n.getMsg
