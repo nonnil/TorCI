@@ -29,16 +29,6 @@ type
     port*: Port
     fingerprint*: string
 
-  State* = enum
-    success 
-    warn
-    failure
-    active
-    normal
-    deactive
-    online
-    offline
-    
   Wifi* = object of RootObj
     bssid*: string
     channel*: string
