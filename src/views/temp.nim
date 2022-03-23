@@ -1,17 +1,12 @@
-import std / [ options, typetraits ]
-import karax / [ karaxdsl, vdom, vstyles ]
+import karax / [ karaxdsl, vdom ]
 import jester
 import renderutils
-import ".." / [ types, notice, settings ]
+import ".." / [ notice, settings ]
 import ".." / routes / [ tabs ]
 # import re, os
 
 const
   doctype = "<!DOCTYPE html>\n"
-  colourGreen = "#2ECC71"
-  colourYellow = ""
-  colourGray = "#afafaf"
-  colourRed = "#E74C3C"
   
 proc renderHead(cfg: Config, title: string = ""): VNode =
   buildHtml(head):
@@ -123,25 +118,7 @@ proc renderNode*(
       else:
         renderNav(req, username)
 
-      for i, n in notifies.items:
-        let colour =
-          case n.getState
-          of success:
-            colourGreen
-
-          of warn:
-            colourYellow
-
-          of failure:
-            colourRed
-
-          else:
-            colourGray
-
-        tdiv(class="notify-bar"):
-          input(`for`="notify-msg" & $i, class="ignore-notify", `type`="checkbox", name="ignoreNotify")
-          tdiv(id="notify-msg" & $i, class="notify-message", style={backgroundColor: colour}):
-            text n.getMsg
+      notifies.render()
       tdiv(class="container"):
         v
   result = doctype & $node
@@ -157,25 +134,6 @@ proc renderFlat*(v: VNode, title: string = "", notifies: Notifies): string =
   let ret = buildHtml(html(lang="en")):
     renderHead(cfg, title)
     body:
-      if not notifies.isEmpty:
-        for i, n in notifies.items:
-          let colour =
-            case n.getState
-            of success:
-              colourGreen
-
-            of warn:
-              colourYellow
-
-            of failure:
-              colourRed
-
-            else:
-              colourGray
-
-          tdiv(class="notify-bar"):
-            input(class="ignore-notify", `type`="checkbox", name="ignoreNotify")
-            tdiv(class="notify-message", style={backgroundColor: colour}):
-              text n.getMsg
+      notifies.render
       v
   result = doctype & $ret
