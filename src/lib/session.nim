@@ -3,9 +3,12 @@ import std / [
   strutils, strformat
 ]
 import jester
-import bcrypt 
+import bcrypt
 import results
 import clib / [ c_crypt, shadow ]
+import crypt
+when defined(debug):
+  import std / terminal
 
 type
   User* = ref object of RootObj
@@ -19,10 +22,13 @@ type
   
   UserList = ref object
     users: seq[User]
-
+  
 var userList: UserList = new UserList
 
 # method getUser*(req: jester.Request): User {.base.} =
+proc newUser*(): User =
+  result = new User
+  result.credential = new UserCredential
 
 method getToken*(user: User): string {.base.} =
   if user.credential.token.len > 0:
@@ -160,15 +166,25 @@ proc login*(username, password: string): Future[Result[tuple[token: string, expi
   try:
     let
       shadow = getShadow(cstring username)
-      splittedShadow = splitShadow($shadow.passwd)
-      crypted: string = $crypt(cstring password, cstring(&"${splittedShadow[1]}${splittedShadow[2]}"))
+      # splittedShadow = splitShadow($shadow.passwd)
+      ret = parseShadow($shadow.passwd)
+
+    if ret.isErr:
+      result.err ret.error
+      return
+
+    let crypted: string = crypt(password, fmtSalt(ret.get))
+    when defined(debug):
+      styledEcho(fgGreen, "Started login...")
+      styledEcho(fgGreen, "[passwd] ", $shadow.passwd)
+      styledEcho(fgGreen, "[Generated passwd] ", crypted)
     # var passwdV = spawnPasswd.split("$")
     # passwdV[3] = passwdV[3].splitWhitespace[0]
     
     if $shadow.passwd == crypted:
       let
         token = makeSessionKey()
-      var user = User.new 
+      var user = newUser()
       user.token(token)
       user.username(username)
       user.add
