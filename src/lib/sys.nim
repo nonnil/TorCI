@@ -190,16 +190,16 @@ proc parseCpuinfo(source, kind: string): string =
       if v.match(re"Model.*"):
         result = v.split(":")[1]
 
+const
+  procPath = "/proc"
+  versionPath = procPath / "version"
+  cpuinfoPath = procPath / "cpuinfo"
 proc getSystemInfo*(): SystemInfo = 
-  const
-    procDir = "/proc"
-    procVersion = procDir / "version"
-    procCpuinfo = procDir / "cpuinfo"
 
   try:
     let
-      version = readFile(procVersion)
-      cpuinfo = readFile(procCpuinfo)
+      version = readFile(versionPath)
+      cpuinfo = readFile(cpuinfoPath)
 
     result = SystemInfo(
       kernelVersion: version.parseCpuinfo("kernelVersion"),
@@ -208,6 +208,14 @@ proc getSystemInfo*(): SystemInfo =
     )
 
   except IOError: return
+
+proc getRpiModel*(): Future[string] {.async.} =
+  let
+    cpuinfo = readFile(cpuinfoPath)
+    lines = cpuinfo.splitLines
+  for v in lines:
+    if v.match(re"Model.*"):
+      result = v.split(":")[1]
 
 proc eraseLogs*(): Future[Result[void, string]] {.async.} =
   const find = "sudo find /var/log -type f"
