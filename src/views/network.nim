@@ -142,9 +142,9 @@ proc renderWifiConfig*(wlan: IfaceKind, withCaptive: bool; wifiInfo: WifiList; c
     #         input(`type`="password", name="wifi-password")
     #       button(`type`="submit", class="btn-join"): text "Join Network"
 
-proc renderHostApPane*(hostap: HostAp, devs: Devices): VNode =
+proc renderHostApPane*(hostap: HostAp, rpiModel: string, devs: Devices): VNode =
   buildHtml(tdiv(class="cards")):
-    render hostap.getConf
+    render hostap.getConf, rpiModel
     render hostap.getStatus
     renderConnectedDevs(devs)
     

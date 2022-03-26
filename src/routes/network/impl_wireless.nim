@@ -12,7 +12,8 @@ proc hostapConf*(request: jester.Request): Future[string] {.async.} =
     conf = await getHostApConf()
     iface = conf.getIface
     devs = await getDevices(iface.get)
-  return renderNode(renderHostApPane(hostap, devs), request, request.getUserName, "Wireless", netTab())
+  let rpiModel = await getRpiModel()
+  return renderNode(renderHostApPane(hostap, rpiModel, devs), request, request.getUserName, "Wireless", netTab())
 
 proc doConfigHostap*(request: jester.Request): Future[Option[string]] {.async.} =
   let
@@ -55,10 +56,11 @@ proc doConfigHostap*(request: jester.Request): Future[Option[string]] {.async.} 
     hostap: HostAp = HostAp.new
     conf = await getHostApConf()
     devs = await getDevices(conf.getIface.get)
+    rpiModel = await getRpiModel()
 
   let isActive = await hostapdIsActive()
   hostap.active isActive
 
   # resp renderNode(renderHostApPane(hostap, sysInfo, devs), request, request.getUserName, "Wireless", tab, notifies=notifies)
-  let ret = renderNode(renderHostApPane(hostap, devs), request, request.getUserName, "Wireless", netTab(), notifies=notifies)
+  let ret = renderNode(renderHostApPane(hostap, rpiModel, devs), request, request.getUserName, "Wireless", netTab(), notifies=notifies)
   return some(ret)

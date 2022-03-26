@@ -1,15 +1,13 @@
 import std / [ options, strformat ]
 import karax / [ karaxdsl, vdom ]
 import conf
-import ../ sys
-import ../ ../ settings
 import ../ ../ views / renderutils
 
 # procs for front-end
-proc renderChannelSelect*(band: char): VNode =
+proc renderChannelSelect*(band: char, rpiModel: string): VNode =
   buildHtml(select(name="channel")):
     option(selected="selected"): text "-- Select a channel --"
-    if sysInfo.model == model3:
+    if rpiModel == model3:
       option(value="ga"): text "1 at 20 MHz"
       option(value="gc"): text "2 at 20 MHz"
       option(value="ge"): text "3 at 20 MHz"
@@ -56,7 +54,7 @@ proc renderChannelSelect*(band: char): VNode =
       option(value="ag"): text "48 at 40 MHz"
       option(value="ah"): text "48 at 80 MHz"
 
-proc render*(hostap: HostApConf, width = 58): VNode =
+proc render*(hostap: HostApConf, rpiModel: string, width = 58): VNode =
   buildHtml(tdiv(class=fmt"columns width-{$width}")):
     tdiv(class="box"):
       tdiv(class="box-header"):
@@ -77,7 +75,7 @@ proc render*(hostap: HostApConf, width = 58): VNode =
                 input(`type`="radio", name="band", value="a"): text "5GHz"
               tdiv(class="card-table"):
                 label(class="card-title"): text "Channel"
-                renderChannelSelect(hostap.getBand.get)
+                renderChannelSelect(hostap.getBand.get, rpiModel)
               tdiv(class="card-table"):
                 if hostap.isHidden:
                   label(class="card-title"): text "Unhide SSID"

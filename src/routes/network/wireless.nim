@@ -66,8 +66,10 @@ proc routerWireless*() =
           conf = await getHostApConf()
           devs = await getDevices(conf.getIface.get)
 
+        let rpiModel = await getRpiModel()
+
         let isActive = await hostapdIsActive()
         hostap.active isActive
 
         # resp renderNode(renderHostApPane(hostap, sysInfo, devs), request, request.getUserName, "Wireless", tab, notifies=notifies)
-        resp renderNode(renderHostApPane(hostap, devs), request, request.getUserName, "Wireless", netTab(), notifies=notifies)
+        resp renderNode(renderHostApPane(hostap, rpiModel, devs), request, request.getUserName, "Wireless", netTab(), notifies=notifies)
