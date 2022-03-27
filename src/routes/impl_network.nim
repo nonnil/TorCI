@@ -4,10 +4,11 @@ import ".." / [ notice, types ]
 import ".." / lib / [ session, hostap ]
 
 func netTab*(): Tab =
-  var tab = Tab.new
-  tab.add("Bridges", "/net" / "bridges")
-  tab.add("Interfaces", "/net" / "interfaces")
-  tab.add("Wireless", "/net" / "wireless")
+  buildTab:
+    "Bridges" = "/net" / "bridges"
+    "Interfaces" = "/net" / "interfaces"
+    "Wireless" = "/net" / "wireless"
+
 
 template respNetworkManager*(wifiList: WifiList, curNet: tuple[ssid, ipAddr: string]) =
   resp renderNode(renderWifiConfig(iface, withCaptive, wifiList, curNet), request, request.getUserName, "Network management", netTab())
