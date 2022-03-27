@@ -1,17 +1,16 @@
 import options, asyncdispatch, nativesockets
 import results
 import jester
-import tabs
-import ".." / [ types, notice, settings ]
+import ".." / [ notice, settings ]
 import ".." / lib / sys
 import ../ lib / tor / tor
 import ../ lib / [ session, wirelessManager ]
 import ../ views / [ temp, status ]
-import tabs
 
 template respIO*() =
-  var tor: Tor = init(cfg.torAddress, cfg.torPort)
-  let ret = tor.reload()
+  let
+    tor: Tor = init(cfg.torAddress, cfg.torPort)
+    torStatus = waitFor tor.checkTor()
 
   let
     iface = await getIO()
@@ -26,8 +25,9 @@ template respIO*() =
   )
 
 template respIO*(n: Notifies) =
-  var tor: Tor = init(cfg.torAddress, cfg.torPort)
-  let ret = tor.reload()
+  let
+    tor: Tor = init(cfg.torAddress, cfg.torPort)
+    torStatus = waitFor tor.checkTor()
 
   let
     iface = await getActiveIface()

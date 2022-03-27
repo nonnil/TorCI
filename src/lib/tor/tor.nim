@@ -38,13 +38,13 @@ method getPort*(tor: Tor): Option[Port] {.base.} =
 method bridge*(tor: Tor): Bridge {.base.} =
   tor.setting.bridge
 
-proc exitIp*(status: var TorStatus, exitIp: string): R =
+proc exitIp*(status: TorStatus, exitIp: string): R =
   if exitIp.isValidIp4("local"):
     status.exitIp = exitIp
     result.ok
   result.err "Invalid IP address"
 
-proc exitIp*(tor: var Tor, exitIp: string): R =
+proc exitIp*(tor: Tor, exitIp: string): R =
   ?exitIp(tor, exitIp)
 
 method getExitIp*(status: TorStatus): Option[string] {.base.} =
@@ -110,13 +110,6 @@ method hasNewExitIp*(tor: var Tor): bool {.base.} =
     let ret = exitIp(tor, exitIp.get)
     if ret.isOk:
       return true
-
-method reload*(setting: var TorSettings): Result[void, string] {.base.} =
-  ?setting.bridge.reload
-
-method reload*(tor: var Tor): Result[void, string] {.base.} =
-  ?tor.setting.reload
-  ?tor.isTor
 
 # proc reload*(tor: var Tor): Future[Result[void, string]] {.async.} =
 #   ?tor.setting.reload
