@@ -1,7 +1,7 @@
 import std / [ options ]
 import results
 import jester
-import ".." / [ impl_network ]
+import ".." / [ network_impl ]
 import ".." / ".." / lib / [ sys, session, hostap ]
 import ".." / ".." / [ types, notice, settings ]
 import ".." / ".." / views / [ temp, network ]

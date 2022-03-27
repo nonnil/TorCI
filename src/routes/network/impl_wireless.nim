@@ -1,7 +1,7 @@
 import std / [ options, tables, asyncdispatch ]
 import results
 import jester
-import ".." / [ impl_network ]
+import ".." / [ network_impl ]
 import ".." / ".." / [ types, notice, settings ]
 import ".." / ".." / views / [ temp, network ]
 import ".." / ".." / lib / [ sys, session, hostap ]

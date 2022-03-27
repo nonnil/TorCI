@@ -1,15 +1,15 @@
 import std / [ options, strutils ]
 import results
 import jester
-import impl_network
 import ../ views / [ temp, network ]
 import ".." / [ types, notice, settings ]
 import ".." / lib / [ sys, session, hostap, fallbacks ]
 import ../ lib / tor / tor
 # import ../ lib / sys / iface
 import network / [ wireless, impl_wireless ]
+import network_impl
 
-export network, impl_network
+export network, network_impl
 export wireless, impl_wireless
 
 routerWireless()
