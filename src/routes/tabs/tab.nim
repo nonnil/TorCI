@@ -1,10 +1,7 @@
-import std / [ options, tables ]
+import std / [ options ]
 # import results
 
 type
-  Tabs* = ref object
-    list: OrderedTableRef[string, Tab]
-
   Tab* = ref object
     tab: seq[TabField]
 
@@ -12,11 +9,10 @@ type
     label: string
     link: string
 
+# method newTab*()
+
 method len*(tab: Tab): int {.base.} =
   tab.tab.len
-
-method len*(tabs: Tabs): int {.base.} =
-  tabs.list.len
 
 method isEmpty*(tab: Tab): bool {.base.} =
   tab.len == 0 
@@ -46,18 +42,6 @@ proc add*(tab: var Tab, label, link: string) =
 proc add*(tab: Tab, label, link: string) =
   let field: TabField = TabField(label: label, link: link)
   tab.tab.add field
-
-proc newTabs*(): Tabs =
-  result = new Tabs
-  # initialize table
-  result.list = newOrderedTable[string, Tab]()
-
-proc `[]`*(tabs: Tabs, name: string): Tab =
-  tabs.list[name]
-
-# proc getOrDefault*(tabs: tabs, key: string): Tab =
-proc `[]=`*(tabs: Tabs, attribute: string, tab: Tab) =
-  tabs.list[attribute] = tab
 
 iterator items*(tab: Tab): tuple[i: int, label, link: Option[string]] {.inline.} =
   var i: int
