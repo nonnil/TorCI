@@ -3,11 +3,11 @@ import results
 import jester
 import ".." / [ network_impl ]
 import ".." / ".." / lib / [ sys, session, hostap ]
-import ".." / ".." / [ types, notice, settings ]
+import ".." / ".." / [ notice, settings ]
 import ".." / ".." / views / [ temp, network ]
-import impl_wireless
+import wireless_impl
 
-export impl_wireless
+export wireless_impl
 
 proc routerWireless*() =
   router wireless:

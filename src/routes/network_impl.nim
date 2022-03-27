@@ -1,4 +1,3 @@
-import std / [ os ]
 import tabs 
 import ".." / [ notice, types ]
 import ".." / lib / [ session, hostap ]
