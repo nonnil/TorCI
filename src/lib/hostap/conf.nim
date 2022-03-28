@@ -174,13 +174,8 @@ proc active*(status: var HostApStatus, isActive: bool) =
 proc active*(hostap: var HostAp, isActive: bool) =
   active(hostap.status, isActive)
 
-proc hostapdIsActive*(): Future[bool] {.async.} =
-  const cmd = "sudo systemctl is-active hostapd"
-  let
-    ret = execCmdEx(cmd)
-    sta = ret.output.splitLines()[0]
-  if sta == "active":
-    return true
+proc hostapdIsActive*(): bool =
+  waitFor isActiveService("hostapd")
 
 proc getHostApConf*(): Future[HostApConf] {.async.} =
   try:
@@ -215,7 +210,7 @@ proc getHostApConf*(): Future[HostApConf] {.async.} =
 
 proc getHostApStatus*(): Future[HostApStatus] {.async.} =
   result.new
-  result.isActive = waitFor hostapdIsActive()
+  result.isActive = hostapdIsActive()
 
 proc getHostAp*(): Future[HostAp] {.async.} =
   result.new
