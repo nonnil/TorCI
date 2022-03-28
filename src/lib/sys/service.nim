@@ -1,7 +1,18 @@
 import std / [
   osproc,
-  strformat
+  asyncdispatch,
+  strformat, strutils
 ]
+
+proc isActiveService*(service: string): Future[bool] {.async.} =
+  if service.len >= 0 and
+  service.contains(IdentChars):
+    const cmd = fmt("sudo systemctl is-active \"{service}\"")
+    let
+      ret = execCmdEx(cmd)
+      sta = ret.output.splitLines()[0]
+    if sta == "active":
+      return true
 
 proc startService*(s: string) =
   const cmd = "sudo systemctl start "
