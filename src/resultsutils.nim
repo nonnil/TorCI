@@ -61,7 +61,7 @@ macro match*(results: untyped, node: untyped): untyped =
       let `errIdent` = `errorSym`(`tmp`)
 
   result = quote do:
-    let  `tmp` = `results`
+    let `tmp` = `results`
     if `tmp`.isOk:
       `okAssign`
       `okBody`
