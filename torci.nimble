@@ -2,7 +2,7 @@
 
 version       = "0.1.3"
 author        = "Luca (@nonnil)"
-description   = "Configuration Interface for TorBox."
+description   = "Web-based GUI for TorBox."
 license       = "GPL-3.0"
 srcDir        = "src"
 bin           = @["torci"]
