@@ -5,6 +5,7 @@ import ".." / ".." / ".." / src / lib / tor
 import ".." / ".." / ".." / src / lib / sys
 
 router status:
+
   get "/torinfo":
     # empty object
     let
@@ -24,5 +25,10 @@ router status:
   get "/systeminfo":
     let sysInfo = SystemInfo()
     resp $sysInfo.render()
+
+  post "/io":
+    let val = request.formData.getOrDefault("tor-request").body
+    echo "hey"
+    resp Http200, val
 
 serve(status, 1984.Port)
