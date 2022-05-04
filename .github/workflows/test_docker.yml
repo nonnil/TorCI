@@ -1,0 +1,45 @@
+name: Test TorCI in a Docker container
+  
+on:
+  push:
+    paths-ignore:
+      - 'LICENCE'
+      - '*.md'
+      - 'buster'
+      - 'bullseye'
+      - '.github/workflows/release.yml'
+    branches:
+      - main
+      - devel
+
+  pull_request:
+    paths-ignore:
+      - 'LICENCE'
+      - '*.md'
+    branches:
+      - main
+      - devel
+  
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-18.04
+        nim-version:
+          - stable
+          - devel
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+          
+      - name: build
+        run: |
+          docker build -t torci:test tests/onDocker
+
+      - name: run test
+        run: |
+          docker run --rm -v `pwd`:/src/torci torci:test

@@ -17,4 +17,7 @@ RUN echo "export PATH=$PATH:$HOME/.nimble/nim/bin:$HOME/.nimble/bin" >> /root/.b
 
 # install dependencies for TorCI
 
-CMD ["nimble", "test"]
+CMD \
+export PATH="${PATH}":$HOME/.nimble/nim/bin:$HOME/.nimble/bin && \
+nimble test
+# CMD ["nimble", "test"]
