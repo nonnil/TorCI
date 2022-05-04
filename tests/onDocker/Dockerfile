@@ -20,5 +20,5 @@ WORKDIR /src/torci
 
 CMD \
 export PATH="${PATH}":$HOME/.nimble/nim/bin:$HOME/.nimble/bin && \
-nimble test
+nimble -y test
 # CMD ["nimble", "test"]
