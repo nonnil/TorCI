@@ -77,7 +77,7 @@ proc clientStart*(address: string, port: Port, routes: Routes) {.async.} =
       else: echo res.error.msg
       client.close()
 
-proc createData*(node: NimNode): NimNode =
+proc createPostBody*(node: NimNode): NimNode =
   expectKind(node, { nnkStmtList, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
   expectKind(node[0], { nnkTableConstr, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
   result = newStmtList()
@@ -157,7 +157,7 @@ macro routerTest*(routerName: string, node: untyped): untyped =
         expectKind(pair[0], { nnkStrLit, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
         let
           path = pair[0]
-          data = createData(pair[1])
+          data = createPostBody(pair[1])
 
         result.add newCall(
           bindSym("add"),
