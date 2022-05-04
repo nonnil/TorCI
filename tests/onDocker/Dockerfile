@@ -1,5 +1,6 @@
 FROM debian:bullseye-slim as bullseye
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PATH "$PATH:$HOME/.nimble/nim/bin:$HOME/.nimble/bin"
 # ENV PATH="$PATH:$HOME/.nimble/nim/bin:$HOME/.nimble/bin"
 # ENV PATH=$PATH:$HOME/.nimble/nim/bin:$HOME/.nimble/bin
 # ENV PATH=$PATH:$HOME/.nimble/nim/bin:$HOME/.nimble/bin
