@@ -27,10 +27,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - ubuntu-18.04
-        nim-version:
-          - stable
-          - devel
       
     steps:
       - name: Checkout
