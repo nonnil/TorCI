@@ -47,15 +47,16 @@ routes:
 
         login = await login(username, password)
 
-      if login.isOk:
-        setCookie("torci", login.get.token, expires = login.get.expire, httpOnly = true)
-        redirect "/"
-    
-      else:
-        notifies.add(failure, login.error)
-        respLogin()
+      match await login(username, password):
+        Ok(res):
+          setCookie("torci", res.token, expires = res.expire, httpOnly = true)
+          redirect "/"
 
-      respLogin()
+        Err(msg):
+          notifies.add(failure, msg)
+          respLogin()
+
+      # respLogin()
   
   post "/logout":
     loggedIn:
