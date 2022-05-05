@@ -1,6 +1,6 @@
 import std / [ strutils, options ]
 import jester
-import results
+import results, resultsutils
 
 import views / [ temp, login, renderutils ]
 import routes / [ status, network, sys, tabs ]
