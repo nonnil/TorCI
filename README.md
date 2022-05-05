@@ -13,7 +13,7 @@ TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbo
 -   [x] Configure [TorBox](https://radio24/torbox) as easy as [OpenWrt](https://github.com/openwrt)'s [LuCI](https://github.com/openwrt/luci)
 -   [x] JavaScript not required
 -   [x] No Terminal
--   [x] Mobile friendly
+-   [x] Mobile-friendly
 -   [x] Lightweight
 
 ## Roadmap
