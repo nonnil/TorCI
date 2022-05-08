@@ -6,7 +6,7 @@
 
 TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbox). It is implemented in the [Nim](https://nim-lang.org) programming language.
 
-<b>WARNING: THIS IS A BETA VERSION, THEREFORE YOU MAY ENCOUNTER BUGS. IF YOU DO, OPEN AN ISSUE VIA OUR GITHUB REPOSITORY.</b>
+<b>WARNING: THIS IS A ALPHA VERSION, THEREFORE YOU MAY ENCOUNTER BUGS. IF YOU DO, OPEN AN ISSUE VIA OUR GITHUB REPOSITORY.</b>
 
 ## Features:
 
@@ -35,8 +35,8 @@ TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbo
 To build and run TorCI in Docker
 
 ```bash
-$ docker build -t torci:beta .
-$ docker run --rm -d -p 1984:1984 torci:beta
+$ docker build -t torci:debug .
+$ docker run --rm -d -p 1984:1984 torci:debug
 # See debug logs
 $ docker logs `CONTAINER_ID`
 ```
