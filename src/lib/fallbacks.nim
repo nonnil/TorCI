@@ -23,7 +23,7 @@ proc hostapdFallback*() {.async.} =
       f = f.replace("interface=wlan1", "interface=wlan0")
       writeFile hostapd, f
 
-    let isActive = waitFor hostapdIsActive()
+    let isActive = hostapdIsActive()
 
     if not isActive:
       echo("hostapd is not active")
@@ -103,7 +103,7 @@ proc hostapdFallbackKomplex*(wlan, eth: IfaceKind) =
       f = f.replace(re"interface=.*", "interface=" & $wlan)
       restartService("hostapd")
       sleep 5
-      if not waitFor hostapdIsActive():
+      if not hostapdIsActive():
         f = f.multiReplace(
           @[
             ("hw_mode=a", "hw_mode=g"),
