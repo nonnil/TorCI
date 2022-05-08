@@ -1,15 +1,22 @@
 import std / [
-  asyncdispatch, strutils, strformat,
-  re, tables, os, osproc, options
+  asyncdispatch, os, osproc,
+  re, sequtils, sugar,
+  strutils, strformat,
+  tables, options
 ]
-import results
+import results, resultsutils
 import iface
+
+const
+  procPath = "/proc"
+  cpuinfoPath = procPath / "cpuinfo"
 
 type
   SystemInfo* = ref object
+    # cpu*: CpuInfo
+    model*: string
     architecture*: string
     kernelVersion*: string
-    model*: string
     uptime*: int
     localtime*: int
     torboxVer*: string
@@ -24,6 +31,9 @@ type
     macaddr*: string
     ipaddr*: string
     signal*: string
+  
+  CpuInfo* = ref object
+    model, architecture: string
 
 proc hostap*(io: var IO, iface: IfaceKind): Result[void, string] =
   case iface
@@ -133,40 +143,93 @@ proc parseCpuinfo(source, kind: string): string =
     for v in lines:
       if v.match(re"model name.*"):
         result = v.split(":")[1]
-  of "kernelVersion":
-    return source.splitWhitespace[2]
   of "model":
     let lines = source.splitLines
     for v in lines:
       if v.match(re"Model.*"):
         result = v.split(":")[1]
 
-const
-  procPath = "/proc"
-  versionPath = procPath / "version"
-  cpuinfoPath = procPath / "cpuinfo"
+proc getCpuInfo(): Result[CpuInfo, string] =
+
+  func readAsCpuInfo(source: string): CpuInfo =
+    # source.splitLines()
+    #   filterIt((it.match(re"model name.*") or it.match(re"Model.*")))
+    let lines = source.splitLines
+    var
+      arch: string
+      model: string
+    for v in lines:
+      if v.match(re"model name.*"):
+        arch = v.split(":")[1]
+      if v.match(re"Model.*"):
+        model = v.split(":")[1]
+    return CpuInfo(
+      architecture: arch,
+      model: model
+    )
+
+  try:
+    let r = readFile(cpuinfoPath)
+      .readAsCpuInfo()
+    return ok(r)
+  except IOError as e: return err(e.msg)
+  except OSError as e: return err(e.msg)
+    
+
+proc getKernelVersion(): Result[string, string] =
+  const versionPath = procPath / "version"
+
+  func parseKernelVersion(source: string): string =
+    source.splitWhitespace[2]
+
+  try:
+    return ok(readFile(versionPath)
+      .parseKernelVersion()
+    )
+  
+  except IOError as e: return err(e.msg)
+  except OSError as e: return err(e.msg)
+  except ValueError as e: return err(e.msg)
 
 proc getSystemInfo*(): Future[Result[SystemInfo, string]] {.async.} = 
   try:
-    let
-      version = readFile(versionPath)
-      cpuinfo = readFile(cpuinfoPath)
-
-    result = ok SystemInfo(
-      kernelVersion: version.parseCpuinfo("kernelVersion"),
-      model: cpuinfo.parseCpuinfo("model"),
-      architecture: cpuinfo.parseCpuinfo("architecture")
+    var
+      cpuInfo: CpuInfo
+      kernelVer: string
+    match getCpuInfo():
+      Ok(ret): cpuInfo = ret
+      Err(msg): return err(msg)
+    match getKernelVersion():
+      Ok(ret): kernelVer = ret
+      Err(msg): return err(msg)
+    return ok SystemInfo(
+      kernelVersion: kernelVer,
+      architecture: cpuInfo.architecture,
+      model: cpuInfo.model
     )
 
   except IOError as e: return err(e.msg)
+  except OSError as e: return err(e.msg)
 
-proc getRpiModel*(): Future[string] {.async.} =
-  let
-    cpuinfo = readFile(cpuinfoPath)
-    lines = cpuinfo.splitLines
-  for v in lines:
-    if v.match(re"Model.*"):
-      result = v.split(":")[1]
+proc getRpiModel*(): Future[Result[string, string]] {.async.} =
+  try:
+    let
+      lines = readFile(cpuinfoPath)
+        .splitLines
+    for v in lines:
+      if v.match(re"Model.*"):
+        let model = v.split(":")[1]
+        return ok(model)
+    
+    # let pair: seq[string] = readFile(cpuinfoPath)
+    #   .splitLines()
+    #   .filter((s: string) -> bool => s.match(re"Model.*"))
+    #   .map((s: string) => s.split(':'))
+    #   .foldl((s: seq[string]) => s[0])
+    # return ok(pair[1])
+
+  except IOError as e: return err(e.msg)
+  except OSError as e: return err(e.msg)
 
 proc eraseLogs*(): Future[Result[void, string]] {.async.} =
   const find = "sudo find /var/log -type f"
