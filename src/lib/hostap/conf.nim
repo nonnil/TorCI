@@ -3,8 +3,9 @@ import std / [
   os, osproc, asyncdispatch, 
   re, tables
 ]
-import results
+import results, resultsutils
 import ../ sys / [ service, iface ]
+from ../ sys / sys import getRpiModel
 
 const
   model3* = "Raspberry Pi 3 Model B Rev"
@@ -176,6 +177,11 @@ proc active*(hostap: var HostAp, isActive: bool) =
 
 proc hostapdIsActive*(): bool =
   waitFor isActiveService("hostapd")
+
+proc rpiIsModel3*(): Future[bool] {.async.} =
+  match waitFor getRpiModel():
+    Ok(): return true
+    Err(): return false
 
 proc getHostApConf*(): Future[HostApConf] {.async.} =
   try:

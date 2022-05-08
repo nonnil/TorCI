@@ -5,7 +5,6 @@ import ../ views / [ temp, network ]
 import ".." / [ types, notice, settings ]
 import ".." / lib / [ sys, session, hostap, fallbacks ]
 import ../ lib / tor / tor
-# import ../ lib / sys / iface
 import network / [ wireless, wireless_impl ]
 import network_impl
 

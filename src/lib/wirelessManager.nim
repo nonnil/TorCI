@@ -1,10 +1,16 @@
 import strformat, strutils
 import os, osproc, asyncdispatch
+import results
 import wifiScanner
 import ".." / [ types, utils ]
 import sys / iface
 
 # var network: Network = new Network
+
+type
+  ConnectedAp* = ref object
+    ssid*: string
+    ipaddr*: string
 
 template debugWpa(msg: string) =
   when defined(debugWpa):
@@ -213,7 +219,7 @@ proc networkList*(network: Network): Future[WifiList] {.async.} =
   # return network.wifiList
   # return (true, "", network.wifiList)
   
-proc currentNetwork*(wlan: IfaceKind): Future[tuple[ssid, ipAddr: string]] {.async.} =
+proc getConnectedAp*(wlan: IfaceKind): Future[Result[ConnectedAp, string]] {.async.} =
   # let wlan = wpa.wlan
   if not wlan.isWlan:
     return
@@ -223,14 +229,16 @@ proc currentNetwork*(wlan: IfaceKind): Future[tuple[ssid, ipAddr: string]] {.asy
       let
         lines = wpaStatus.output.splitLines()
         status = lines[8].split("=")[1]
+
       if status == "COMPLETED":
         let
           ssid = lines[2].split("=")[1]
           ipaddress = lines[9].split("=")[1]
         # wpa.connected = true
-        result = (ssid: ssid, ipAddr: ipaddress)
-  except:
-    return
+        result = ok ConnectedAp(ssid: ssid, ipaddr: ipaddress)
+
+  except IOError as e:
+    return err(e.msg)
 
 # when isMainModule:
 #   import parseopt

@@ -13,8 +13,8 @@ proc renderConnectedDevs*(devs: Devices): VNode =
             th(): text "MAC Address"
             th(): text "IP Address"
             th(): text "Signal"
-          for v in devs.getDevs:
+          for v in devs:
             tr():
-              td(): text if v.getMacaddr.get.len != 0: v.getMacaddr.get else: "None"
-              td(): text if v.getIpaddr.get.len != 0: v.getIpaddr.get else: "None"
-              td(): text if v.getSignal.get.len != 0: v.getSignal.get else: "None"
+              td(): text if v.macaddr.len != 0: v.macaddr else: "None"
+              td(): text if v.ipaddr.len != 0: v.ipaddr else: "None"
+              td(): text if v.signal.len != 0: v.signal else: "None"

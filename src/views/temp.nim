@@ -92,11 +92,14 @@ proc renderPanel*(v: VNode): VNode =
 proc renderNode*(v: VNode; req: Request; username: string; title: string = "", tab: Tab = new Tab): string =
   let node = buildHtml(html(lang="en")):
     renderHead(cfg, title)
+
     body:
       if tab.isEmpty:
         renderNav(req, username)
+
       else:
         renderNav(req, username, tab)
+
       tdiv(class="container"):
         v
   result = doctype & $node
@@ -111,6 +114,7 @@ proc renderNode*(
 
   let node = buildHtml(html(lang="en")):
     renderHead(cfg, title)
+
     body:
       if tab.len != 0:
         renderNav(req, username, tab)
@@ -118,9 +122,12 @@ proc renderNode*(
       else:
         renderNav(req, username)
 
-      notifies.render()
+      if not notifies.isEmpty:
+        notifies.render()
+
       tdiv(class="container"):
         v
+
   result = doctype & $node
 
 proc renderFlat*(v: VNode, title: string = ""): string =

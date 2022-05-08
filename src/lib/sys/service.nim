@@ -7,7 +7,7 @@ import std / [
 proc isActiveService*(service: string): Future[bool] {.async.} =
   if service.len >= 0 and
   service.contains(IdentChars):
-    const cmd = fmt("sudo systemctl is-active \"{service}\"")
+    let cmd = fmt("systemctl is-active \"{service}\"")
     let
       ret = execCmdEx(cmd)
       sta = ret.output.splitLines()[0]

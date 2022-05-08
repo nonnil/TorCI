@@ -1,6 +1,8 @@
-import options, asyncdispatch, nativesockets
-import results
-import jester
+import std / [
+  options,
+  asyncdispatch, nativesockets
+]
+import jester, results
 import ".." / [ notice, settings ]
 import ".." / lib / sys
 import ../ lib / tor / tor
@@ -9,16 +11,22 @@ import ../ views / [ temp, status ]
 
 template respIO*() =
   let
-    tor: Tor = init(cfg.torAddress, cfg.torPort)
-    torStatus = waitFor tor.checkTor()
+    torAddress = newTorAddress(cfg.torAddress, cfg.torPort)
+    # torStatus = await checkTor(torAddress.get)
+    torInfo = await loadTorInfo(torAddress.get)
+
+  # if torStatus.isOk:
+  #   tor.status = torStatus.get
+  # else:
+  #   tor.status = new TorStatus
 
   let
     iface = await getIO()
     wlan = iface.getInternet.get
-    crNet = await currentNetwork(wlan)
+    connectedAp = await getConnectedAp(wlan)
 
   resp renderNode(
-    renderStatusPane(tor, iface, crNet),
+    renderStatusPane(torInfo, iface, connectedAp),
     request,
     request.getUserName,
     "Status"
@@ -32,10 +40,10 @@ template respIO*(n: Notifies) =
   let
     iface = await getActiveIface()
     wlan = iface.input
-    crNet = await currentNetwork(wlan)
+    connectedAp = await getConnectedAp(wlan)
 
   resp renderNode(
-    renderStatusPane(tor, iface, crNet),
+    renderStatusPane(tor, iface, connectedAp),
     request,
     request.getUserName,
     "Status",
@@ -71,42 +79,38 @@ template respIO*(n: Notifies) =
 
 #   return none(Notifies)
 
-proc doTorRequest*(r: jester.Request): Future[Option[string]] {.async.} =
+template doTorRequest*(r: jester.Request) =
   let req = r.formData.getOrDefault("tor-request").body
 
   if req.len > 0:
     case req
     of "new-circuit":
-      var tor: Tor = init(cfg.torAddress, cfg.torPort)
+      let torAddress = newTorAddress(cfg.torAddress, cfg.torPort)
+      let ret = await checkTor(torAddress.get)
       var notifies = new(Notifies)
-      let ret = await tor.checkTor
 
       if ret.isOk:
-        tor.status = ret.get
+        discard await renewTorExitIp()
+
+        let newTorStatus = await checkTor(torAddress)
+        if not ret.get.compareExitIp(newTorStatus):
+          notifies.add success, "Exit node has been changed."
+
+        else:
+          notifies.add failure, "Request new exit node failed. Please try again later."
       
       else:
         notifies.add failure, ret.error
-
-      discard await renewTorExitIp()
-
-      if tor.hasNewExitIp:
-        notifies.add success, "Exit node has been changed."
-
-      # elif ret.isErr:
-        # notifies.add failure, ret.error
-
-      else:
-        notifies.add failure, "Request new exit node failed. Please try again later."
 
       let ifaces = await getIO()
       let iface = ifaces.getInternet
       if iface.isSome:
         let
           wlan = iface.get
-          crNet = await currentNetwork(wlan)
+          connectedAp = await getConnectedAp(wlan)
 
         let ret = renderNode(
-          renderStatusPane(tor, ifaces, crNet),
+          renderStatusPane(tor, ifaces, connectedAp),
           r,
           r.getUserName,
           "Status",

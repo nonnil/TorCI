@@ -21,7 +21,7 @@ on:
       - devel
   
 jobs:
-  test:
+  setup:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

@@ -4,10 +4,10 @@ import conf
 import ../ ../ views / renderutils
 
 # procs for front-end
-proc renderChannelSelect*(band: char, rpiModel: string): VNode =
+proc renderChannelSelect*(band: char, isModel3: bool): VNode =
   buildHtml(select(name="channel")):
     option(selected="selected"): text "-- Select a channel --"
-    if rpiModel == model3:
+    if isModel3:
       option(value="ga"): text "1 at 20 MHz"
       option(value="gc"): text "2 at 20 MHz"
       option(value="ge"): text "3 at 20 MHz"
@@ -54,7 +54,7 @@ proc renderChannelSelect*(band: char, rpiModel: string): VNode =
       option(value="ag"): text "48 at 40 MHz"
       option(value="ah"): text "48 at 80 MHz"
 
-proc render*(hostap: HostApConf, rpiModel: string, width = 58): VNode =
+proc render*(hostap: HostApConf, isModel3: bool, width = 58): VNode =
   buildHtml(tdiv(class=fmt"columns width-{$width}")):
     tdiv(class="box"):
       tdiv(class="box-header"):
@@ -75,7 +75,7 @@ proc render*(hostap: HostApConf, rpiModel: string, width = 58): VNode =
                 input(`type`="radio", name="band", value="a"): text "5GHz"
               tdiv(class="card-table"):
                 label(class="card-title"): text "Channel"
-                renderChannelSelect(hostap.getBand.get, rpiModel)
+                renderChannelSelect(hostap.getBand.get, isModel3)
               tdiv(class="card-table"):
                 if hostap.isHidden:
                   label(class="card-title"): text "Unhide SSID"
