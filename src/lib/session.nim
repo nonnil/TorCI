@@ -13,15 +13,15 @@ when defined(debug):
 type
   User* = ref object of RootObj
     credential: UserCredential
-    uname: string
+    uname*: string
     # createdTime*: DateTime
 
   UserCredential = ref object
-    token: string
-    expireTime: DateTime
+    token*: string
+    expireTime*: DateTime
   
   UserList = ref object
-    users: seq[User]
+    users*: seq[User]
   
 var userList: UserList = new UserList
 
