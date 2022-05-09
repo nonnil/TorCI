@@ -28,12 +28,14 @@ proc checkTor*(torAddr: string, port: Port): Future[Result[TorStatus, string]] {
   const destHost = "https://check.torproject.org/api/ip"
   let checkTor = waitFor destHost.torsocks(torAddr, port)
   if checkTor.len == 0: result.err "connection failed"
-  let jObj = parseJson(checkTor)
-  if $jObj["IsTor"] == "true":
-    var ts = TorStatus.new
-    ts.isTor = true
-    ts.exitIp = some jObj["IP"].getStr()
-    result.ok ts
+  try:
+    let jObj = parseJson(checkTor)
+    if $jObj["IsTor"] == "true":
+      var ts = TorStatus.new
+      ts.isTor = true
+      ts.exitIp = some jObj["IP"].getStr()
+      result.ok ts
+  except JsonParsingError as e: return err(e.msg)
 
 proc loadTorInfo*(torAddr: string, port: Port): Future[TorInfo] {.async.} =
   let
