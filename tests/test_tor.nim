@@ -3,7 +3,7 @@ import std / [
   options,
   nativesockets, asyncdispatch
 ]
-import results, optionsutils
+import results, resultsutils, optionsutils
 import karax / vdom as kvdom
 import ../ src / lib / sys / service
 import ../ src / lib / tor / tor {.all.}
@@ -18,17 +18,15 @@ suite "Tor tests":
     if not waitFor isActiveService("tor"):
       skip()
 
-    let 
-      ta = newTorAddress("127.0.0.1", 9050.Port)
-    let torStatus = waitFor ta.get.checkTor()
+    var torStatus: TorStatus
 
-    if torStatus.isErr:
-      styledEcho(fgRed, "[Error] ", fgWhite, torStatus.error)
-      skip()
+    match waitFor checkTor("127.0.0.1", 9050.Port):
+      Ok(status): torStatus = status
+      Err(msg): styledEcho(fgRed, "[Error] ", fgWhite, msg); skip()
 
     check:
-      torStatus.get.isTor
-      withSome torStatus.get.getExitIp:
+      torStatus.isTor
+      withSome torStatus.exitIp:
         some exitIp:
           styledEcho(fgGreen, "[Tor is working]")
           styledEcho(fgGreen, "[Exit node ip address] ", fgWhite, exitIp)
@@ -42,7 +40,7 @@ suite "Tor tests":
     let
       status = TorStatus(
         isTor: true,
-        exitIp: "1.1.1.1"
+        exitIp: some"1.1.1.1"
       )
       bridge = Bridge(
         kind: BridgeKind.obfs4,
@@ -54,7 +52,7 @@ suite "Tor tests":
       bridge: bridge
     )
 
-    let dom = dummy.rendering()
+    let dom = dummy.render()
     # styledEcho(fgGreen, "[VDom] ", fgWhite, $dom)
     check:
       len($dom) > 0
