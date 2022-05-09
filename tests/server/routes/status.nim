@@ -1,7 +1,7 @@
 import std / options
 import jester
 import ../ server
-import result, resultsutils
+import results, resultsutils
 import karax / [ vdom ]
 import ".." / ".." / ".." / src / notice 
 import ".." / ".." / ".." / src / lib / tor
@@ -10,14 +10,10 @@ import ".." / ".." / ".." / src / lib / wirelessManager
 
 router status:
 
-  get "/torinfo-empty":
+  get "/torinfo/default":
     # empty object
     var
-      # torStatus = TorStatus()
-      # torBridge = Bridge()
-      # torInfo = TorInfo(status: torStatus, bridge: torBridge)
       torInfo = TorInfo.default()
-    # torinfo.default()
     
     resp $torInfo.render()
 
@@ -52,15 +48,26 @@ router status:
 
     resp $ioInfo.render(connectedAp)
   
-  get "/iface-empty":
+  get "/iface/default":
     let
       ioInfo: IoInfo = IoInfo.new()
       ap: ConnectedAp = ConnectedAp.new()
 
     resp $ioInfo.render(ap)
 
-  get "/systeminfo-empty":
-    let sysInfo = SystemInfo()
+  get "/systeminfo/default":
+    let sysInfo = SystemInfo.default()
+    resp $sysInfo.render()
+
+  get "/systeminfo":
+    var
+      sysInfo = SystemInfo.default()
+      notifies = Notifies.new()
+
+    match await getSystemInfo():
+      Ok(ret): sysInfo = ret
+      Err(msg): notifies.add(failure, msg)
+
     resp $sysInfo.render()
 
   post "/io":
