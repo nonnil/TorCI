@@ -5,7 +5,7 @@ import sys
 import ../ wirelessManager
 from ../../ settings import cfg
 
-proc render*(sysInfo: SystemInfo): VNode =
+method render*(sysInfo: SystemInfo): VNode {.base.} =
   const defStr = "None"
   buildHtml(tdiv(class="columns full-width")):
     tdiv(class="card card-padding card-sys"):
@@ -44,7 +44,7 @@ proc render*(sysInfo: SystemInfo): VNode =
                 tdiv():
                   text cfg.torciVer
 
-func render*(io: IO, ap: ConnectedAp): VNode =
+func render*(io: IoInfo, ap: ConnectedAp): VNode =
   const defStr = "None"
   buildHtml(tdiv(class="columns")):
     tdiv(class="card card-padding card-sky"):

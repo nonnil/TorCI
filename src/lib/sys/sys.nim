@@ -21,8 +21,8 @@ type
     localtime*: int
     torboxVer*: string
 
-  IO* = ref object
-    internet*, hostap*: Option[IfaceKind]
+  IoInfo* = ref object
+    internet, hostap: Option[IfaceKind]
     vpnIsActive*: bool
 
   Devices* = seq[Device]
@@ -35,7 +35,16 @@ type
   CpuInfo* = ref object
     model, architecture: string
 
-proc hostap*(io: var IO, iface: IfaceKind): Result[void, string] =
+method internet*(self: IoInfo): Option[IfaceKind] {.base.} =
+  self.internet
+
+method hostap*(self: IoInfo): Option[IfaceKind] {.base.} =
+  self.hostap
+
+method vpnIsActive*(self: IoInfo): bool {.base.} =
+  self.vpnIsActive
+
+proc hostap*(io: var IoInfo, iface: IfaceKind): Result[void, string] =
   case iface
   of wlan0, wlan1:
     io.hostap = some iface
@@ -246,8 +255,8 @@ proc eraseLogs*(): Future[Result[void, string]] {.async.} =
   except Exception:
     result.err "failure"
 
-proc getIO*(): Future[Result[IO, string]] {.async.} =
-  var ret = IO.new
+proc getIoInfo*(): Future[Result[IoInfo, string]] {.async.} =
+  var ret = IoInfo.new()
 
   const routeCmd = "sudo timeout 5 sudo route"
 
