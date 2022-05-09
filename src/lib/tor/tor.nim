@@ -23,6 +23,11 @@ type
     isVPN: bool
     exitIp: string
 
+proc default*(_: typedesc[TorInfo]): TorInfo =
+  result = TorInfo.new()
+  result.status = TorStatus.new()
+  result.bridge = Bridge.new()
+
 method isTor*(self: TorStatus): bool {.base.} =
   self.isTor
 
