@@ -2,9 +2,8 @@ import std / [
   os, osproc,
   nativesockets, asyncdispatch,
   json, strutils,
-  options
 ]
-import results
+import results, resultsutils
 import torsocks, torcfg, bridges
 import ../ sys / [ service ]
 
@@ -20,9 +19,33 @@ type
   #   bridge: Bridge
 
   TorStatus* = ref object
-    isTor*: bool
-    isVPN*: bool
-    exitIp*: Option[string]
+    isTor: bool
+    isVPN: bool
+    exitIp: string
+
+method isTor*(self: TorStatus): bool {.base.} =
+  self.isTor
+
+method isVpn*(self: TorStatus): bool {.base.} =
+  self.isVpn
+
+method exitIp*(self: TorStatus): string {.base.} =
+  self.exitIp
+
+method isEmpty*(self: TorStatus): bool {.base.} =
+  self.exitIp.len == 0
+
+method isTor*(self: TorInfo): bool {.base.} =
+  self.status.isTor
+
+method isVpn*(self: TorInfo): bool {.base.} =
+  self.status.isVpn
+
+method exitIp*(self: TorInfo): string {.base.} =
+  self.status.exitIp
+
+method isEmpty*(self: TorInfo): bool {.base.} =
+  self.status.exitIp.len == 0
 
 proc checkTor*(torAddr: string, port: Port): Future[Result[TorStatus, string]] {.async.} =
   const destHost = "https://check.torproject.org/api/ip"
@@ -33,18 +56,27 @@ proc checkTor*(torAddr: string, port: Port): Future[Result[TorStatus, string]] {
     if $jObj["IsTor"] == "true":
       var ts = TorStatus.new
       ts.isTor = true
-      ts.exitIp = some jObj["IP"].getStr()
+      ts.exitIp = jObj["IP"].getStr()
       result.ok ts
   except JsonParsingError as e: return err(e.msg)
 
-proc loadTorInfo*(torAddr: string, port: Port): Future[TorInfo] {.async.} =
-  let
-    status = waitFor checkTor(torAddr, port)
-    bridge = waitfor loadBridge()
+proc getTorInfo*(toraddr: string, port: Port): Future[Result[TorInfo, string]] {.async.} =
+  var
+    status: TorStatus
+    bridge: Bridge
 
-  result = new TorInfo
-  result.status = status.get
-  result.bridge = bridge.get
+  match waitFor checkTor(toraddr, port):
+    Ok(sta): status = sta
+    Err(msg): return err(msg)
+
+  match waitFor getBridge():
+    Ok(ret): bridge = ret
+    Err(msg): return err(msg)
+
+  var ret = TorInfo.new()
+  ret.status = status
+  ret.bridge = bridge
+  return ok(ret)
 
 proc renewTorExitIp*(): Future[bool] {.async.} =
   const cmd = "sudo -u debian-tor tor-prompt --run 'SIGNAL NEWNYM'"

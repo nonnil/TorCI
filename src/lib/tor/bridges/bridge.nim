@@ -33,29 +33,31 @@ method isSnowflake*(bridge: Bridge): bool {.base.} =
 method isMeekazure*(bridge: Bridge): bool {.base.} =
   bridge.kind == meekazure
 
-proc loadBridge*(): Future[Result[Bridge, string]] {.async.} =
-  if not torrc.fileExists:
-    result.err "torrc not found"
-  var bridge: Bridge = new Bridge
-  let rc = readFile(torrc)
-  for line in rc.splitLines():
-    if line.startsWith("Use Bridges 1"):
-      bridge.useBridges = true
-      continue
+proc getBridge*(): Future[Result[Bridge, string]] {.async.} =
+  try:
+    var bridge: Bridge = new Bridge
+    let lines = readFile(torrc)
+      .splitLines()
 
-    elif line.startsWith("Bridge obfs4 "):
-      bridge.kind = obfs4
-      continue
+    for line in lines:
+      if line.startsWith("Use Bridges 1"):
+        bridge.useBridges = true
+        continue
 
-    elif line.startsWith("Bridge meek_lite "):
-      bridge.kind = meekazure
-      continue
+      elif line.startsWith("Bridge obfs4 "):
+        bridge.kind = obfs4
+        continue
 
-    elif line.startsWith("Bridge snowflake "):
-      bridge.kind = snowflake
-      continue
+      elif line.startsWith("Bridge meek_lite "):
+        bridge.kind = meekazure
+        continue
 
-  result.ok(bridge)
+      elif line.startsWith("Bridge snowflake "):
+        bridge.kind = snowflake
+        continue
+
+    result.ok(bridge)
+  except CatchableError as e: return err(e.msg)
 
 proc splitAddress(address: string): tuple[ipaddr: string, port: Port] =
   let s = address.split(":")
