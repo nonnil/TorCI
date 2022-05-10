@@ -118,14 +118,14 @@ proc renderMain*(
 
 macro render*(title: string, body: untyped): string =
   # expectKind(body.children, nnkCall)
-  proc createBox(v: var NimNode, n: NimNode): NimNode =
+  proc container(n: NimNode): NimNode =
     expectKind(n, { nnkStmtList })
-    var node = nnkStmtListExpr.newTree()
+    result = nnkStmtListExpr.newTree()
     let
-      tmp = genSym(nskVar)
-      init = newCall(bindSym"new", ident"VNode")
+      # tmp = genSym(nskVar)
+      # init = newCall(bindSym"new", ident"VNode")
       call = newCall(
-        bindSym"buildHtml",
+        ident"buildHtml",
         newCall(
           ident"tdiv",
           nnkExprEqExpr.newTree(
@@ -136,32 +136,23 @@ macro render*(title: string, body: untyped): string =
         n
       )
     echo repr call
-    let x =  tmp.newVarStmt(init)
-    node.add x
+    # let x =  tmp.newVarStmt(init)
+    # node.add x
     # node.add tmp.newAssignment(call)
-    result = node
-    v = newStmtList(call)
+    result.add call
     # echo repr result
     # result.add tmp
 
-  let tmp = genSym(nskVar)
+  # let tmp = genSym(nskVar)
   var node: NimNode = nnkStmtListExpr.newTree()
-  # node.add newStmtList(tmp.newVarStmt(newCall(bindSym"new", ident"VNode")))
 
   for child in body:
     expectKind(child, { nnkCall, nnkCommand, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
     # if child[0].eqIdent("box"):
     expectKind(child[1], { nnkStmtList, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
-    var box: NimNode 
-    let cards = box.createBox(child[1])
-    echo "\n haha"
-    echo repr box
-    # let ru = buildHtml:
-    #   tdiv():
-    #     cards
     node.add newCall(
       bindSym"renderMain",
-      box,
+      container(child[1]),
       ident"request",
       # newDotExpr(ident"request", ident"getUserName"),
       newStrLitNode"Tor-chan",
