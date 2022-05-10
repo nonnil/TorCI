@@ -26,8 +26,8 @@ method len*(n: Notifies): int {.base.} =
 method isEmpty*(n: Notifies): bool {.base.} =
   n.len == 0
 
-proc new*(): Notifies =
-  Notifies()
+proc default*(_: typedesc[Notifies]): Notifies =
+  result = Notifies()
 
 func add*(n: var Notifies, state: State, msg: string) =
   if msg.len == 0: return
