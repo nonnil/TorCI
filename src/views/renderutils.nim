@@ -4,6 +4,8 @@ import karax / [ vdom, karaxdsl ]
 import ../ routes / tabs
 import ".." / [ notice, settings ]
 
+const doctype = "<!DOCTYPE html>\n"
+
 proc getCurrentTab*(r: Request): string =
   const tabs = @[
     (name: "/io", text: "Status"),
@@ -30,8 +32,6 @@ proc icon*(icon: string; text=""; title=""; class=""; href=""): VNode =
 
     if text.len > 0:
       text " " & text
-
-const doctype = "<!DOCTYPE html>\n"
 
 proc renderHead(cfg: Config, title: string = ""): VNode =
   buildHtml(head):
@@ -93,7 +93,6 @@ proc renderNav(req: Request; username: string; tab: Tab = new Tab): VNode =
     if not tab.isEmpty:
       tab.render(req.pathInfo)
 
-
 proc renderMain*(
   v: VNode;
   req: Request;
@@ -122,8 +121,6 @@ macro render*(title: string, body: untyped): string =
     expectKind(n, { nnkStmtList })
     result = nnkStmtListExpr.newTree()
     let
-      # tmp = genSym(nskVar)
-      # init = newCall(bindSym"new", ident"VNode")
       call = newCall(
         ident"buildHtml",
         newCall(
@@ -135,32 +132,19 @@ macro render*(title: string, body: untyped): string =
         ),
         n
       )
-    echo repr call
-    # let x =  tmp.newVarStmt(init)
-    # node.add x
-    # node.add tmp.newAssignment(call)
     result.add call
-    # echo repr result
-    # result.add tmp
 
-  # let tmp = genSym(nskVar)
-  var node: NimNode = nnkStmtListExpr.newTree()
+  var n: NimNode = nnkStmtListExpr.newTree()
 
   for child in body:
     expectKind(child, { nnkCall, nnkCommand, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
     # if child[0].eqIdent("box"):
     expectKind(child[1], { nnkStmtList, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
-    node.add newCall(
-      bindSym"renderMain",
+    n.add newCall(
+      ident"renderMain",
       container(child[1]),
       ident"request",
       # newDotExpr(ident"request", ident"getUserName"),
       newStrLitNode"Tor-chan",
       title
     )
-
-  node.add
-  # echo treeRepr(node)
-
-# macro render*(title: string, body: untyped): string =
-#   $(render title.toStrLit: body)
