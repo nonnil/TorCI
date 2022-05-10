@@ -2,31 +2,36 @@ import std / options
 import jester
 import ../ server
 import results, resultsutils
-import karax / [ vdom ]
+import karax / [ karaxdsl, vdom ]
 import ".." / ".." / ".." / src / notice 
 import ".." / ".." / ".." / src / lib / tor
 import ".." / ".." / ".." / src / lib / sys
 import ".." / ".." / ".." / src / lib / wirelessManager
+import ".." / ".." / ".." / src / views / renderutils
+import ".." / ".." / ".." / src / routes / tabs
 
 router status:
 
-  get "/torinfo/default":
+  get "/default/tor":
     # empty object
     var
       torInfo = TorInfo.default()
     
     resp $torInfo.render()
 
-  get "/torinfo":
+  get "/tor":
     var
-      ti: TorInfo
-      notifies: Notifies
+      ti: TorInfo = TorInfo.default()
+      nc: Notifies = Notifies.default()
 
     match await getTorInfo("127.0.0.1", 9050.Port):
       Ok(ret): ti = ret
-      Err(msg): notifies.add(failure, msg)
+      Err(msg): nc.add(failure, msg)
     
-    resp $ti.render()
+    resp: render "Tor":
+      notice: nc
+      container:
+        ti.render()
 
   get "/iface":
     # empty object
@@ -48,27 +53,30 @@ router status:
 
     resp $ioInfo.render(connectedAp)
   
-  get "/iface/default":
+  get "/default/iface":
     let
       ioInfo: IoInfo = IoInfo.new()
       ap: ConnectedAp = ConnectedAp.new()
 
     resp $ioInfo.render(ap)
 
-  get "/systeminfo/default":
+  get "/default/sys":
     let sysInfo = SystemInfo.default()
     resp $sysInfo.render()
 
-  get "/systeminfo":
+  get "/sys":
     var
       sysInfo = SystemInfo.default()
-      notifies = Notifies.new()
+      nc = Notifies.default()
 
     match await getSystemInfo():
       Ok(ret): sysInfo = ret
-      Err(msg): notifies.add(failure, msg)
+      Err(msg): nc.add(failure, msg)
 
-    resp $sysInfo.render()
+    resp: render "System":
+      notice: nc
+      container:
+        sysInfo.render()
 
   post "/io":
     let val = request.formData.getOrDefault("tor-request").body
