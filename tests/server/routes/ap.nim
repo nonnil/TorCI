@@ -3,9 +3,19 @@ import karax / [ karaxdsl, vdom ]
 import ../ server
 import ".." / ".." / ".." / src / lib / hostap
 import ".." / ".." / ".." / src / views / renderutils
-import ".." / ".." / ".." / src / lib / session
+import ".." / ".." / ".." / src / routes / tabs
+import ".." / ".." / ".." / src / notice
+
+template tab(): Tab =
+  buildTab:
+    "Ap" = "/ap"
+    "Def / Ap" = "/default" / "ap"
+    "Conf" = "/conf"
+    "Def / Conf" = "/default" / "conf"
 
 router ap:
+  get "/tab":
+    resp $tab().render("")
   get "/conf":
     let cf = await getHostApConf()
     resp $cf.render(false)
@@ -29,6 +39,7 @@ router ap:
     # resp $hostap.conf
     #   .render(false)
     resp: render "Access Point":
+      tab: tab
       container:
         hostap.conf.render(false)
         hostap.status.render()
