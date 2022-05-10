@@ -26,10 +26,10 @@ proc `[]`*(tab: Tab, i: int): TabField =
   # if not tab.tab[i].isNil:
   tab.tab[i]
 
-proc label*(tab: TabField): string =
+method label*(tab: TabField): string {.base.} =
   tab.label
 
-proc link*(tab: TabField): string =
+method link*(tab: TabField): string {.base.} =
   tab.link
 
 proc add*(tab: var Tab, label, link: string) =
