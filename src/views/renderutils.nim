@@ -134,17 +134,43 @@ macro render*(title: string, body: untyped): string =
       )
     result.add call
 
-  var n: NimNode = nnkStmtListExpr.newTree()
+  var
+    n: NimNode = nnkStmtListExpr.newTree()
+    c: NimNode = nil
+    t: NimNode = nil
+    nc: NimNode = nil
 
   for child in body:
     expectKind(child, { nnkCall, nnkCommand, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
-    # if child[0].eqIdent("box"):
-    expectKind(child[1], { nnkStmtList, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
-    n.add newCall(
-      ident"renderMain",
-      container(child[1]),
-      ident"request",
-      # newDotExpr(ident"request", ident"getUserName"),
-      newStrLitNode"Tor-chan",
-      title
-    )
+    case $child[0]
+    of "container":
+      expectKind(child[1], { nnkStmtList, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
+      c = container(child[1])
+    of "notice":
+      expectKind(child[1], { nnkStmtList, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
+      let notice = child[1][0]
+      expectKind(notice, { nnkCall, nnkIdent, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
+      nc = nnkStmtListExpr.newTree()
+      nc.add notice
+    of "tab":
+      expectKind(child[1], { nnkStmtList, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
+      let tab = child[1][0]
+      expectKind(tab, { nnkCall, nnkIdent, nnkSym, nnkOpenSymChoice, nnkClosedSymChoice })
+      t = nnkStmtListExpr.newTree()
+      t.add tab
+
+  if t.isNil: t = newCall(newIdentNode"new", newIdentNode("Tab"))
+  if nc.isNil: nc = newCall(ident"default", ident"Notifies")
+
+  n.add newCall(
+    ident"renderMain",
+    c,
+    ident"request",
+    # newDotExpr(ident"request", ident"getUserName"),
+    newStrLitNode"Tor-chan",
+    title,
+    # if t.isNil: discard else: t
+    t,
+    nc
+  )
+  n
