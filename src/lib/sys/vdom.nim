@@ -36,7 +36,7 @@ method render*(sysInfo: SystemInfo): VNode {.base.} =
             td():
               strong():
                 tdiv():
-                  text if sysInfo.torboxVer.len > 0: sysInfo.torboxVer else: "Unknown"
+                  text if sysInfo.torboxVersion.len > 0: sysInfo.torboxVersion else: "Unknown"
           tr():
             td(): text "TorCI Version"
             td():
