@@ -5,11 +5,11 @@ import ../ views / [ temp, network ]
 import ".." / [ types, notice, settings ]
 import ".." / lib / [ sys, session, hostap, fallbacks ]
 import ../ lib / tor / tor
-import network / [ wireless, wireless_impl ]
+import network / [ wireless ]
 import network_impl
 
 export network, network_impl
-export wireless, wireless_impl
+export wireless
 
 routerWireless()
 
