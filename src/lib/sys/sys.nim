@@ -13,13 +13,13 @@ const
 
 type
   SystemInfo* = ref object
-    # cpu*: CpuInfo
-    model*: string
-    architecture*: string
-    kernelVersion*: string
-    uptime*: int
-    localtime*: int
-    torboxVer*: string
+    cpu: CpuInfo
+    # model*: string
+    # architecture*: string
+    kernelVersion: string
+    uptime: int
+    localtime: int
+    torboxVer: string
 
   IoInfo* = ref object
     internet, hostap: Option[IfaceKind]
@@ -35,6 +35,40 @@ type
   CpuInfo* = ref object
     model, architecture: string
 
+# methods for SystemInfo
+proc default*(_: typedesc[SystemInfo]): SystemInfo =
+  result = SystemInfo.new()
+  result.cpu = CpuInfo.new()
+
+method cpu*(self: SystemInfo): CpuInfo {.base.} =
+  self.cpu
+
+method kernelVersion*(self: SystemInfo): string {.base.} =
+  self.kernelVersion
+
+method uptime*(self: SystemInfo): int {.base.} =
+  self.uptime
+
+method localtime*(self: SystemInfo): int {.base.} =
+  self.localtime
+
+method torboxVersion*(self: SystemInfo): string {.base.} =
+  self.torboxVer
+
+method model*(self: SystemInfo): string {.base.} =
+  self.cpu.model
+
+method architecture*(self: SystemInfo): string {.base.} =
+  self.cpu.architecture
+
+# methods for CpuInfo
+method model*(self: CpuInfo): string {.base.} =
+  self.model
+
+method architecture*(self: CpuInfo): string {.base.} =
+  self.architecture
+
+# methods for IoInfo
 method internet*(self: IoInfo): Option[IfaceKind] {.base.} =
   self.internet
 
@@ -205,6 +239,7 @@ proc getSystemInfo*(): Future[Result[SystemInfo, string]] {.async.} =
     var
       cpuInfo: CpuInfo
       kernelVer: string
+
     match getCpuInfo():
       Ok(ret): cpuInfo = ret
       Err(msg): return err(msg)
@@ -213,8 +248,7 @@ proc getSystemInfo*(): Future[Result[SystemInfo, string]] {.async.} =
       Err(msg): return err(msg)
     return ok SystemInfo(
       kernelVersion: kernelVer,
-      architecture: cpuInfo.architecture,
-      model: cpuInfo.model
+      cpu: cpuInfo
     )
 
   except IOError as e: return err(e.msg)
