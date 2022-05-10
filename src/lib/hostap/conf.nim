@@ -22,7 +22,7 @@ type
     isActive: bool
 
   HostApConf* = ref object of RootObj
-    iface: IfaceKind 
+    iface: Option[IfaceKind]
     ssid: string
     password: string
     band: char
@@ -45,135 +45,134 @@ const
     "ag": (48, 0), "ah": (48, 1)
   }.toOrderedTable()
 
-method getConf*(hostap: HostAp): HostApConf {.base.} =
+proc default*(_: typedesc[HostAp]): HostAp =
+  result = HostAp.new()
+  result.conf = HostApConf.new()
+  result.status = HostApStatus.new()
+
+method conf*(hostap: HostAp): HostApConf {.base.} =
   hostap.conf
 
-method getStatus*(hostap: HostAp): HostApStatus {.base.} =
+method status*(hostap: HostAp): HostApStatus {.base.} =
   hostap.status
 
-method getIface*(hostapConf: HostApConf): Option[IfaceKind] {.base.} =
-  if hostapConf.iface.isIface:
-    return some(hostapConf.iface)
+method iface*(self: HostApConf): Option[IfaceKind] {.base.} =
+  self.iface
 
-method getIface*(hostap: HostAp): Option[IfaceKind] {.base.} =
-  hostap.conf.getIface
+method iface*(self: HostAp): Option[IfaceKind] {.base.} =
+  self.conf.iface
 
-method getSSID*(hostapConf: HostApConf): Option[string] {.base.} =
-  if hostapConf.ssid.len > 0:
-    return some hostapConf.ssid
+method ssid*(self: HostApConf): string {.base.} =
+  self.ssid
 
-method getSSID*(hostap: HostAp): Option[string] {.base.} =
-  hostap.conf.getSSID
+method ssid*(self: HostAp): string {.base.} =
+  self.conf.ssid
 
-method getBand*(hostapConf: HostApConf): Option[char] {.base.} =
-  if hostApConf.band.ord != 00:
-    return some hostApConf.band
+method band*(self: HostApConf): char {.base.} =
+  self.band
 
-method getBand*(hostap: HostAp): Option[char] {.base.} =
-  hostap.conf.getBand
+method band*(self: HostAp): char {.base.} =
+  self.conf.band
 
-method getChannel*(hostapConf: HostApConf): Option[string] {.base.} =
-  if hostapConf.channel.len > 0:
-    return some hostapConf.channel 
+method channel*(self: HostApConf): string {.base.} =
+  self.channel
 
-method getChannel*(hostap: HostAp): Option[string] {.base.} =
-  hostap.conf.getChannel
+method channel*(self: HostAp): string {.base.} =
+  self.conf.channel
 
-method getPassword*(hostapConf: HostApConf): Option[string] {.base.} =
-  if hostapConf.password.len > 0:
-    return some hostapConf.password
+method password*(self: HostApConf): string {.base.} =
+  self.password
 
-method getPassword*(hostap: HostAp): Option[string] {.base.} =
-  hostap.conf.getPassword
+method getPassword*(self: HostAp): string {.base.} =
+  self.conf.password
 
-method isHidden*(hostapConf: HostApConf): bool {.base.} =
-  hostapConf.isHidden
+method isHidden*(self: HostApConf): bool {.base.} =
+  self.isHidden
 
-method isHidden*(hostap: HostAp): bool {.base.} =
-  isHidden(hostap.conf)
+method isHidden*(self: HostAp): bool {.base.} =
+  self.conf.isHidden
 
-method isActive*(status: HostApStatus): bool {.base.} =
-  status.isActive
+method isActive*(self: HostApStatus): bool {.base.} =
+  self.isActive
 
-method isActive*(hostap: HostAp): bool {.base.} =
-  isActive(hostap.status)
+method isActive*(self: HostAp): bool {.base.} =
+  self.status.isActive
 
 # proc parseIface(iface: string): IfaceKind =
 #   parseEnum[IfaceKind](iface, unkwnIface) 
 
-proc iface*(hostapConf: var HostApConf, iface: string): Result[void, string] =
+func iface*(self: var HostApConf, iface: string): Result[void, string] =
   let kind = iface.parseIfaceKind()
-  if kind.isSome:
-    hostapConf.iface = kind.get
+  self.iface = kind
   
   result.err("Invalid interface")
 
-proc iface*(hostap: var HostAp, iface: string): Result[void, string] =
-  ?iface(hostap.conf, iface)
+func iface*(self: var HostAp, iface: string): Result[void, string] =
+  iface(self.conf, iface)
 
-proc ssid*(hostapConf: var HostApConf, ssid: string): Result[void, string] =
+func ssid*(self: var HostApConf, ssid: string): Result[void, string] =
   if ssid.len > 32:
     result.err "Please set the SSID to 32 characters or less."
   elif ssid.match(re"^(^[A-Za-z0-9\-\_]+$)"):
-    hostapConf.ssid = ssid
+    self.ssid = ssid
     result.ok
   else:
     result.err "Invalid SSID"
 
-proc ssid*(hostap: var HostAp, ssid: string): Result[void, string] =
-  ?ssid(hostap.conf, ssid)
+func ssid*(self: var HostAp, ssid: string): Result[void, string] =
+  ssid(self.conf, ssid)
 
-proc band*(hostapConf: var HostApConf, band: char): Result[void, string] =
+func band*(self: var HostApConf, band: char): Result[void, string] =
   let ord_band = ord(band.toLowerAscii)
   if ord_band == 97 or ord_band == 103:
-    hostapConf.band = band
+    self.band = band
     result.ok
   else:
     result.err "Invalid band"
 
-proc band*(hostapConf: var HostApConf, band: string): Result[void, string] =
+func band*(self: var HostApConf, band: string): Result[void, string] =
   # if band.len == 1 and band.match(re"^(a|g)$"):
   if band.len == 1:
-    ?band(hostapConf, cast[char](band))
+    ?band(self, cast[char](band))
   else:
     result.err "Invalid band"
 
-proc band*(hostap: var HostAp, band: string): Result[void, string] =
-  ?band(hostap.conf, band)
+func band*(self: var HostAp, band: string): Result[void, string] =
+  band(self.conf, band)
 
-proc channel*(hostapConf: var HostApConf, channel: string): Result[void, string] =
+func channel*(self: var HostApConf, channel: string): Result[void, string] =
   if channels.hasKey(channel):
-    hostApConf.channel = channel
+    self.channel = channel
     result.ok
   else:
     result.err "Invalid channel"
 
-proc channel*(hostap: var HostAp, channel: string): Result[void, string] =
-  ?channel(hostap.conf, channel)
+func channel*(self: var HostAp, channel: string): Result[void, string] =
+  channel(self.conf, channel)
 
-proc password*(hostapConf: HostApConf, password: string): Result[void, string] =
+func password*(self: var HostApConf, password: string): Result[void, string] =
   if password.len > 64:
     result.err "Please set the password to 64 characters or less."
   elif password.len < 8:
     result.err "Please set the password to 8 characters or more"
   else:
-    hostapConf.password = password
+    self.password = password
     result.ok
 
-proc password*(hostap: HostAp, password: string): Result[void, string] =
-  ?password(hostap.conf, password)
+func password*(self: var HostAp, password: string): Result[void, string] =
+  password(self.conf, password)
 
-proc cloak*(hostapConf: HostApConf, boolean: bool) =
-  hostapConf.isHidden = boolean
+func cloak*(self: HostApConf, boolean: bool) =
+  self.isHidden = boolean
 
-proc status*(hostap: HostAp, status: HostApStatus) =
-  hostap.status = status
+func status*(self: var HostAp, status: HostApStatus) =
+  self.status = status
 
-proc active*(status: var HostApStatus, isActive: bool) =
-  status.isActive = isActive
+func active*(self: var HostApStatus, isActive: bool) =
+  self.isActive = isActive
 
-proc active*(hostap: var HostAp, isActive: bool) =
-  active(hostap.status, isActive)
+func active*(self: var HostAp, isActive: bool) =
+  active(self.status, isActive)
 
 proc hostapdIsActive*(): bool =
   waitFor isActiveService("hostapd")
@@ -185,9 +184,9 @@ proc rpiIsModel3*(): Future[bool] {.async.} =
 
 proc getHostApConf*(): Future[HostApConf] {.async.} =
   try:
-    let lines = splitLines(readFile(hostapd))
-
     result.new
+    let lines = readFile(hostapd)
+      .splitlines()
 
     for line in lines:
       if (line.len > 0) and (not line.startsWith("#")):
@@ -285,17 +284,17 @@ method write*(hostapConf: HostApConf) {.base.} =
     copyFile(hostapd, hostapdBakup)
     var stream = readFile(hostapd)
     
-    let ssid = hostapConf.getSSID
-    if ssid.isSome:
-      stream = stream.replace(re"ssid=.*", "ssid=" & ssid.get)
+    let ssid = hostapConf.ssid
+    if not ssid.isEmptyOrWhitespace():
+      stream = stream.replace(re"ssid=.*", "ssid=" & ssid)
 
-    let band = hostapConf.getBand
-    if band.isSome:
-      if band.get == 'a':
+    let band = hostapConf.band
+    if band.isAlphaAscii():
+      if band == 'a':
         let coCode = waitFor getCrda()
         if coCode == "00":
           waitFor changeCrda()
-        stream = stream.replace("hw_mode=g", "hw_mode=" & band.get)
+        stream = stream.replace("hw_mode=g", "hw_mode=" & band)
         stream = stream.replace(re"channel.*", "channel=36")
         stream = stream.replace("#ht_capab=[HT40-][HT40+][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40]", "ht_capab=[HT40-][HT40+][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40]")
 
@@ -305,9 +304,9 @@ method write*(hostapConf: HostApConf) {.base.} =
         stream = stream.replace("vht_oper_chwidth=1", "#vht_oper_chwidth=1")
         stream = stream.replace("vht_oper_centr_freq_seg0_idx=42", "#vht_oper_centr_freq_seg0_idx=42")
 
-    let sig = hostapConf.getChannel
-    if sig.isSome:
-      let (channel, hf) = channels[sig.get]
+    let sig = hostapConf.channel
+    if not sig.isEmptyOrWhitespace:
+      let (channel, hf) = channels[sig]
       stream = stream.replace(re"channel=.*", "channel=" & $channel)
 
       if hf == 0:
@@ -318,9 +317,9 @@ method write*(hostapConf: HostApConf) {.base.} =
         stream = stream.replace("#vht_oper_chwidth=1", "vht_oper_chwidth=1")
         stream = stream.replace("#vht_oper_centr_freq_seg0_idx=42", "vht_oper_centr_freq_seg0_idx=42")
       
-    let password = hostapConf.getPassword
-    if password.isSome:
-      stream = stream.replace(re"wpa_passphrase=.*", "wpa_passphrase=" & password.get)
+    let password = hostapConf.password
+    if not password.isEmptyOrWhitespace():
+      stream = stream.replace(re"wpa_passphrase=.*", "wpa_passphrase=" & password)
     
     block:
       let cloak = if hostapConf.isHidden: "1" else: "0"
