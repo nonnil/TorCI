@@ -30,15 +30,9 @@ proc createTab(node: NimNode): NimNode =
     # let right = newAssignment(ident("str"), asgn[1])
     var right: string
     case asgn[1].kind
-    of nnkStrLit:
-      right = $asgn[1]
-
-    of nnkInfix:
-      # right = $newlit(asgn[1])
-      right = joinPath(asgn[1])
-
-    else:
-      return
+    of nnkStrLit: right = $asgn[1]
+    of nnkInfix: right = joinPath(asgn[1])
+    else: return
 
     # Represent
     # result.add "Tor", "/tor" / "projet"
