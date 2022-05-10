@@ -1,10 +1,10 @@
-import std / [ options, strformat ]
+import std / [ strutils, strformat ]
 import karax / [ karaxdsl, vdom ]
 import conf
 import ../ ../ views / renderutils
 
 # procs for front-end
-proc renderChannelSelect*(band: char, isModel3: bool): VNode =
+func renderChannelSelect*(band: char, isModel3: bool): VNode =
   buildHtml(select(name="channel")):
     option(selected="selected"): text "-- Select a channel --"
     if isModel3:
@@ -54,7 +54,7 @@ proc renderChannelSelect*(band: char, isModel3: bool): VNode =
       option(value="ag"): text "48 at 40 MHz"
       option(value="ah"): text "48 at 80 MHz"
 
-proc render*(hostap: HostApConf, isModel3: bool, width = 58): VNode =
+func render*(hostap: HostApConf, isModel3: bool, width = 58): VNode =
   buildHtml(tdiv(class=fmt"columns width-{$width}")):
     tdiv(class="box"):
       tdiv(class="box-header"):
@@ -68,14 +68,14 @@ proc render*(hostap: HostApConf, isModel3: bool, width = 58): VNode =
             form(`method`="post", action="/net/wireless", enctype="multipart/form-data"):
               tdiv(class="card-table"):
                 label(class="card-title"): text "SSID"
-                input(`type`="text", name="ssid", placeholder=hostap.getSSID.get)
+                input(`type`="text", name="ssid", placeholder=hostap.ssid)
               tdiv(class="card-table"):
                 label(class="card-title"): text "Band"
                 input(`type`="radio", name="band", value="g"): text "2.5GHz"
                 input(`type`="radio", name="band", value="a"): text "5GHz"
               tdiv(class="card-table"):
                 label(class="card-title"): text "Channel"
-                renderChannelSelect(hostap.getBand.get, isModel3)
+                renderChannelSelect(hostap.band, isModel3)
               tdiv(class="card-table"):
                 if hostap.isHidden:
                   label(class="card-title"): text "Unhide SSID"
@@ -95,13 +95,13 @@ proc render*(hostap: HostApConf, isModel3: bool, width = 58): VNode =
             td():
               strong():
                 tdiv():
-                  text hostap.getSSID.get
+                  text hostap.ssid
           tr():
             td(): text "Band"
             td():
               strong():
                 tdiv():
-                  text case hostap.getBand.get
+                  text case hostap.band
                     of 'g':
                       "2.5GHz"
                     of 'a':
@@ -113,7 +113,7 @@ proc render*(hostap: HostApConf, isModel3: bool, width = 58): VNode =
             td():
               strong():
                 tdiv():
-                  text hostap.getChannel.get
+                  text hostap.channel
           tr():
             td(): text "SSID Cloak"
             td():
@@ -124,7 +124,7 @@ proc render*(hostap: HostApConf, isModel3: bool, width = 58): VNode =
             td(): text "Password"
             td():
               strong():
-                if hostap.getPassword.get.len != 0:
+                if not isEmptyOrWhitespace(hostap.password):
                   tdiv(class="password_field_container"):
                     tdiv(class="black_circle")
                     icon "eye-off"
@@ -132,12 +132,12 @@ proc render*(hostap: HostApConf, isModel3: bool, width = 58): VNode =
                     input(class="btn hide_password", `type`="radio", name="password_visibility", value="hide")
                     tdiv(class="shadow")
                     tdiv(class="password_preview_field"):
-                      tdiv(class="shown_password"): text hostap.getPassword.get
+                      tdiv(class="shown_password"): text hostap.password
                 else:
                   tdiv():
                     text "No password has been set"
 
-proc render*(status: HostApStatus, width = 38): VNode =
+func render*(status: HostApStatus, width = 38): VNode =
   buildHtml(tdiv(class=fmt"columns width-{$width}")):
     tdiv(class="box"):
       tdiv(class="box-header"):
