@@ -4,7 +4,7 @@ import std / [
 ]
 
 const
-  atme = "tests" / "onDocker"
+  atme = "tests" / "sandbox"
   # dockerFile = "Dockerfile"
 
 # proc imageExists(label: string): bool =
