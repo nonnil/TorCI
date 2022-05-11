@@ -221,8 +221,7 @@ proc networkList*(network: Network): Future[WifiList] {.async.} =
   
 proc getConnectedAp*(wlan: IfaceKind): Future[Result[ConnectedAp, string]] {.async.} =
   # let wlan = wpa.wlan
-  if not wlan.isWlan:
-    return
+  if not wlan.isWlan: return
   try:
     let wpaStatus = execCmdEx(&"wpa_cli -i {wlan} status")
     if wpaStatus.exitcode == 0:
@@ -237,8 +236,9 @@ proc getConnectedAp*(wlan: IfaceKind): Future[Result[ConnectedAp, string]] {.asy
         # wpa.connected = true
         result = ok ConnectedAp(ssid: ssid, ipaddr: ipaddress)
 
-  except IOError as e:
-    return err(e.msg)
+  except IOError as e: return err(e.msg)
+  except OSError as e: return err(e.msg)
+  except ValueError as e: return err(e.msg)
 
 # when isMainModule:
 #   import parseopt

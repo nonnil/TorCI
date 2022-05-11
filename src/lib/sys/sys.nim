@@ -294,14 +294,12 @@ proc getIoInfo*(): Future[Result[IoInfo, string]] {.async.} =
 
   const routeCmd = "sudo timeout 5 sudo route"
 
-  let
-    routeRes = execCmdEx(routeCmd)
-
-  if routeRes.exitCode != 0:
-    return err("failed \"route\" command")
-
-  let lines = routeRes.output.splitLines()
   try:
+    let routeRes = execCmdEx(routeCmd)
+    if routeRes.exitCode != 0:
+      return err("failed \"route\" command")
+    let lines = routeRes.output.splitLines()
+
     for v in lines:
       let vv = v.splitWhitespace()
       case vv[0]
@@ -321,6 +319,10 @@ proc getIoInfo*(): Future[Result[IoInfo, string]] {.async.} =
     return ok(ret)
 
   except IOError as e: return err(e.msg) 
+  except OSError as e: return err(e.msg) 
+  except ValueError as e: return err(e.msg) 
+  except KeyError as e: return err(e.msg)
+  except IndexError as e: return err(e.msg)
 
 proc changePasswd*(current, `new`, renew: string; username: string = "torbox"): Future[Result[void, string]] {.async.} =
   let
@@ -352,22 +354,26 @@ proc getDeviceSignal*(iface: IfaceKind): Future[OrderedTable[string, string]] {.
             result[macaddr] = splitted[2]
             break
 
-proc getDevices*(iface: IfaceKind): Future[Devices] {.async.} = 
-  let
-    cmd = &"arp -i {$iface}"
-    arp = execCmdEx(cmd).output
-    iw = waitFor getDeviceSignal(iface)
-    
-  if arp.len > 0:
-    for line in arp.splitLines():
-      if line.startsWith("Address"):
-        continue
+proc getDevices*(iface: IfaceKind): Future[Result[Devices, string]] {.async.} = 
+  try:
+    let
+      cmd = &"arp -i {$iface}"
+      arp = execCmdEx(cmd).output
+      iw = waitFor getDeviceSignal(iface)
+    var ret: Devices
+      
+    if arp.len > 0:
+      for line in arp.splitLines():
+        if line.startsWith("Address"):
+          continue
 
-      elif line.len > 0:
-        let splitted = line.splitWhitespace()
-        var device = new(Device)
-        device.ipaddr = splitted[0]
-        device.macaddr = splitted[2]
-        device.signal = iw.getOrDefault(splitted[2])
-        result.add(device)
-        # result.add (macaddr: [2], ipaddr: parsed[0], signal: iw.getOrDefault(parsed[2]))
+        elif line.len > 0:
+          let splitted = line.splitWhitespace()
+          var device = new(Device)
+          device.ipaddr = splitted[0]
+          device.macaddr = splitted[2]
+          device.signal = iw.getOrDefault(splitted[2])
+          ret.add(device)
+    return ok(ret)
+  except OSError as e: return err(e.msg)
+  except IOError as e: return err(e.msg)
