@@ -169,7 +169,6 @@ macro render*(title: string, body: untyped): string =
     # newDotExpr(ident"request", ident"getUserName"),
     newStrLitNode"Tor-chan",
     title,
-    # if t.isNil: discard else: t
     t,
     nc
   )
