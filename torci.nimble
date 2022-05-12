@@ -19,10 +19,14 @@ requires "bcrypt >= 0.2.1"
 requires "result >= 0.3.0"
 requires "validateip >= 0.1.2"
 requires "optionsutils >= 1.2.0"
-requires "https://github.com/nonnil/resultsutils >= 0.1.4"
+requires "resultsutils >= 0.1.4"
+requiers "redis >= 0.3.0"
 
 task scss, "Generate css":
   exec "nim r tools/gencss"
 
 task tests, "Run tests":
   exec "nimble -d:test test -y"
+
+task sandboxed, "Run tests in a Docker container":
+  exec "testament"
