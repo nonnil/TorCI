@@ -13,12 +13,12 @@ when defined(debug):
 type
   User* = ref object of RootObj
     credential: UserCredential
-    uname*: string
+    uname: string
     # createdTime*: DateTime
 
   UserCredential = ref object
-    token*: string
-    expireTime*: DateTime
+    token: string
+    expireTime: DateTime
   
   UserList = ref object
     users*: seq[User]
@@ -26,29 +26,35 @@ type
 var userList: UserList = new UserList
 
 # method getUser*(req: jester.Request): User {.base.} =
-proc newUser*(): User =
+
+method username*(self: User): string {.base.} =
+  self.uname
+
+method token*(self: UserCredential): string {.base.} =
+  self.token
+
+method expire*(self: UserCredential): DateTime {.base.} =
+  self.expireTime
+
+method token*(self: User): string {.base.} =
+  self.credential.token
+
+method expire*(self: User): DateTime {.base.} =
+  self.credential.expireTime
+
+proc new*(_: typedesc[User]): User =
   result = new User
   result.credential = new UserCredential
 
-method getToken*(user: User): string {.base.} =
-  if user.credential.token.len > 0:
-    return user.credential.token
-
-method getExpireTime*(user: User): DateTime {.base.} =
-  user.credential.expireTime
-
-method getUserName*(user: User): Option[string] {.base.} =
-  if user.uname.len > 0: return some(user.uname)
-
-method getUserName*(req: jester.Request): string {.base.} =
-  let token = req.cookies["torci"]
+method username*(req: jester.Request): string {.base.} =
+  let token = req.cookies["torci_token"]
   for user in userList.users:
-    if user.getToken == token:
+    if user.token == token:
       return user.uname
 
-proc getUserName*(token: string): Option[string] =
+proc username*(token: string): Option[string] =
   for user in userList.users:
-    if user.getToken == token:
+    if user.token == token:
       return some(user.uname)
 
 proc newExpireTime(): DateTime =
@@ -69,12 +75,12 @@ proc delete(index: int) =
 
 method isExpired(user: User): bool {.base.} = 
   let now = getTime().utc
-  if now > user.getExpireTime:
+  if user.expire < now:
     return true
 
 method isExpired(expire: DateTime): bool {.base.} = 
   let now = getTime().utc
-  if now > expire:
+  if expire < now:
     return true
 
 method isLoggedIn*(req: jester.Request): bool {.base.} =
@@ -85,7 +91,7 @@ method isLoggedIn*(req: jester.Request): bool {.base.} =
       i.delete
       return false
 
-    elif user.getToken == userToken:
+    elif user.token == userToken:
       return true
 
 # method isValidUser*(req: jester.Request): bool {.base.} =
@@ -184,12 +190,11 @@ proc login*(username, password: string): Future[Result[tuple[token: string, expi
     if $shadow.passwd == crypted:
       let
         token = makeSessionKey()
-      var user = newUser()
-      user.token(token)
-      user.username(username)
+      var user = User.new()
+      user.credential.token = token
+      user.uname = username
       user.add
-      let expire = user.getExpireTime
-      result.ok (token, expire)
+      result.ok (token, user.expire)
 
   except OSError:
     result.err "Invalid username or password"
@@ -200,7 +205,7 @@ proc logout*(req: Request): Future[bool] {.async.} =
   if not req.cookies.hasKey("torci"): return
   let userToken = req.cookies["torci"]
   for i, user in userList.users:
-    if userToken == user.getToken:
+    if userToken == user.token:
       i.delete
       return true
 
