@@ -28,5 +28,5 @@ task scss, "Generate css":
 task tests, "Run tests":
   exec "nimble -d:test test -y"
 
-task sandboxed, "Run tests in Docker container":
+task sandbox, "Run tests in Docker container":
   exec "testament p tests/sandbox/tests"
