@@ -1,14 +1,12 @@
-import std / [ strutils, options ]
+import std / [ strutils, options, asyncdispatch ]
 import jester
 import results, resultsutils
 
-import views / [ temp, login, renderutils ]
+import views / [ login, renderutils ]
 import routes / [ status, network, sys, tabs ]
 import types, config, query, utils, notice
 import settings as torciSettings
-import asyncdispatch
-import lib / [ session, torbox, hostap, fallbacks, wifiScanner, wirelessManager ]
-import lib / tor / tor
+import lib / [ tor, session, torbox, hostap, fallbacks, wifiScanner, wirelessManager ]
 import lib / sys as libsys
 
 {.passL: "-flto", passC: "-flto", optimization: size.}
