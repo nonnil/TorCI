@@ -2,7 +2,7 @@ import std / [
   options,
   strutils, strformat
 ]
-import results, optionsutils
+import results, resultsutils 
 
 type
   CryptPrefix* = enum
@@ -29,43 +29,49 @@ type
     prefix: CryptPrefix 
     salt: string
 
-proc parsePrefix*(str: string): Option[CryptPrefix] =
+proc parsePrefix*(str: string): Result[CryptPrefix, string] =
   try:
     let ret = parseEnum[CryptPrefix](str)
-    return some(ret)
+    return ok(ret)
 
-  except: return none(CryptPrefix)
+  except: return err("Failure to parse hashing method of shadow")
 
-proc parseShadow*(passwd: string): Result[Shadow, string] =
+proc readAsShadow*(passwd: string): Result[Shadow, string] =
   var
     passwd = passwd
     shadow = new Shadow
     expectPrefix: string
 
-  if passwd[0] == '$':
-    passwd = passwd[1..(passwd.len - 1)]
+  try:
+    if passwd[0] == '$':
+      passwd = passwd[1..(passwd.len - 1)]
 
-  # elif passwd[0] == '_':
-  let columns = passwd.split('$')
-  expectPrefix = columns[0]
+    # elif passwd[0] == '_':
+    let columns = passwd.split('$')
+    expectPrefix = columns[0]
 
-  withSome parsePrefix(expectPrefix):
-    some prefix:
-      case prefix
-      of yescrypt, gostYescrypt:
-        if columns.len == 4:
-          shadow.salt = fmt"{columns[1]}${columns[2]}"
-          shadow.prefix = prefix
+    match parsePrefix(expectPrefix):
+      Ok(prefix):
+        case prefix
+        of yescrypt, gostYescrypt:
+          if columns.len == 4:
+            shadow.salt = fmt"{columns[1]}${columns[2]}"
+            shadow.prefix = prefix
 
-      of sha512crypt, sha256crypt:
-        if columns.len == 3:
-          shadow.salt = columns[1]
-          shadow.prefix = prefix
+        of sha512crypt, sha256crypt:
+          if columns.len == 3:
+            shadow.salt = columns[1]
+            shadow.prefix = prefix
 
-      else: return err("not secure cryptgraphics")
-    none: return err("Invalid crypt prefix")
+        else: return err("Invalid hashing method")
+      Err(msg): return err(msg)
 
-  return ok shadow
+    return ok shadow
+  except OSError as e: return err(e.msg)
+  except IOError as e: return err(e.msg)
+  except ValueError as e: return err(e.msg)
+  except KeyError as e: return err(e.msg)
+  except: return err("Something went wrong")
   
 proc fmtSalt*(shadow: Shadow): string =
   result = fmt"${$shadow.prefix}${shadow.salt}"
