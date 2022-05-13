@@ -1,98 +1,39 @@
 import std / [
   times, options, random,
-  strutils, strformat
+  strutils
 ]
-import jester
+import jester, redis
 import bcrypt
-import results
+import results, resultsutils
 import clib / [ c_crypt, shadow ]
 import crypt
 when defined(debug):
   import std / terminal
 
-type
-  User* = ref object of RootObj
-    credential: UserCredential
-    uname: string
-    # createdTime*: DateTime
-
-  UserCredential = ref object
-    token: string
-    expireTime: DateTime
-  
-  UserList = ref object
-    users*: seq[User]
-  
-var userList: UserList = new UserList
-
-# method getUser*(req: jester.Request): User {.base.} =
-
-method username*(self: User): string {.base.} =
-  self.uname
-
-method token*(self: UserCredential): string {.base.} =
-  self.token
-
-method expire*(self: UserCredential): DateTime {.base.} =
-  self.expireTime
-
-method token*(self: User): string {.base.} =
-  self.credential.token
-
-method expire*(self: User): DateTime {.base.} =
-  self.credential.expireTime
-
-proc new*(_: typedesc[User]): User =
-  result = new User
-  result.credential = new UserCredential
-
-method username*(req: jester.Request): string {.base.} =
-  let token = req.cookies["torci_token"]
-  for user in userList.users:
-    if user.token == token:
-      return user.uname
-
-proc username*(token: string): Option[string] =
-  for user in userList.users:
-    if user.token == token:
-      return some(user.uname)
+# method username*(req: jester.Request): string {.base.} =
+#   let token = req.cookies["torci_token"]
+#   for user in userList.users:
+#     if user.token == token:
+#       return user.uname
 
 proc newExpireTime(): DateTime =
   result = getTime().utc + initTimeInterval(hours = 1)
 
-proc token(user: var User, token: string) = 
-  user.credential.token = token
-  user.credential.expireTime = newExpireTime()
+# method isExpired(user: User): bool {.base.} = 
+#   let now = getTime().utc
+#   if user.expire < now:
+#     return true
 
-proc username(user: var User, username: string) =
-  user.uname = username
+# method isExpired(expire: DateTime): bool {.base.} = 
+#   let now = getTime().utc
+#   if expire < now:
+#     return true
 
-proc add(user: User) =
-  userList.users.add(user)
-
-proc delete(index: int) =
-  userList.users.delete(index)
-
-method isExpired(user: User): bool {.base.} = 
-  let now = getTime().utc
-  if user.expire < now:
-    return true
-
-method isExpired(expire: DateTime): bool {.base.} = 
-  let now = getTime().utc
-  if expire < now:
-    return true
-
-method isLoggedIn*(req: jester.Request): bool {.base.} =
+proc isLoggedIn*(req: jester.Request): Future[bool] {.async.} =
   if not req.cookies.hasKey("torci"): return
-  let userToken = req.cookies["torci"]
-  for i, user in userList.users:
-    if user.isExpired:
-      i.delete
-      return false
-
-    elif user.token == userToken:
-      return true
+  let token = req.cookies["torci"]
+  let red = await openAsync()
+  return await red.exists(token)
 
 # method isValidUser*(req: jester.Request): bool {.base.} =
 #   if (req.isLoggedIn) and (req)
@@ -108,7 +49,7 @@ proc randomSalt(): string =
 proc devRandomSalt(): string =
   when defined(posix):
     result = ""
-    var f = open("/dev/urandom")
+    var f = io.open("/dev/urandom")
     var randomBytes: array[0..127, char]
     discard f.readBuffer(addr(randomBytes), 128)
     for i in 0..127:
@@ -146,19 +87,14 @@ proc splitShadow(str: string): seq[string] =
   result = first 
   result[3] = second[0]
 
-# proc getUsername*(r: jester.Request): Future[string] {.async.} =
-#   let token = r.cookies["torci"]
-#   try:
-#     for v in userList.users:
-#       if v.getToken == token:
-#         return v.uname
-  
-#   except:
-#     return
+proc getUsername*(r: jester.Request): Future[string] {.async.} =
+  let token = r.cookies["torci"]
+  let red = await openAsync()
+  return await red.get(token)
 
 proc login*(username, password: string): Future[Result[tuple[token: string, expire: DateTime], string]] {.async.} =
 
-  # Generate password hash using openssl cli
+  # Generate a password hash using openssl cli
   # let 
   #   shadowCmd = &"sudo cat /etc/shadow | grep \"{username}\""
   #   shadowOut = execCmdEx(shadowCmd).output
@@ -166,48 +102,58 @@ proc login*(username, password: string): Future[Result[tuple[token: string, expi
   #   passwdCmd = &"openssl passwd -{shadowV[1]} -salt \"{shadowV[2]}\" \"{password}\""
   #   spawnPasswd = execCmdEx(passwdCmd).output
 
-  if username.len == 0: return err("Please set a username")
-  elif password.len == 0: return err("Please set a password")
+  if username.isEmptyOrWhitespace: return err("Please set a username")
+  elif password.isEmptyOrWhitespace: return err("Please set a password")
   
   try:
     let
-      shadow = getShadow(cstring username)
+      spwd = getShadow(cstring username)
       # splittedShadow = splitShadow($shadow.passwd)
-      ret = parseShadow($shadow.passwd)
+    #   ret = parseShadow($shadow.passwd)
 
-    if ret.isErr:
-      result.err ret.error
-      return
+    # ref: https://forum.nim-lang.org/t/8342
+    if spwd.isnil: return err(username & " is not found")
+    var shadow: Shadow
+    # if ret.isErr:
+    #   result.err ret.error
+    #   return
+    match readAsShadow($spwd.passwd):
+      Ok(parse): shadow = parse
+      Err(msg): return err(msg)
 
-    let crypted: string = crypt(password, fmtSalt(ret.get))
+    let crypted: string = crypt(password, fmtSalt(shadow))
     when defined(debug):
       styledEcho(fgGreen, "Started login...")
-      styledEcho(fgGreen, "[passwd] ", $shadow.passwd)
+      styledEcho(fgGreen, "[passwd] ", $spwd.passwd)
       styledEcho(fgGreen, "[Generated passwd] ", crypted)
     # var passwdV = spawnPasswd.split("$")
     # passwdV[3] = passwdV[3].splitWhitespace[0]
     
-    if $shadow.passwd == crypted:
+    if $spwd.passwd == crypted:
       let
         token = makeSessionKey()
-      var user = User.new()
-      user.credential.token = token
-      user.uname = username
-      user.add
-      result.ok (token, user.expire)
+        red = await openAsync()
+      discard await red.setEx(token, 3600, username)
+      result.ok (token, newExpireTime())
 
-  except OSError:
-    result.err "Invalid username or password"
-
+  except OSError as e: return err(e.msg)
+  except IOError as e: return err(e.msg)
+  except ValueError as e: return err(e.msg)
+  except KeyError as e: return err(e.msg)
+  except RedisError as e: return err(e.msg)
+  except CatchableError as e: return err(e.msg)
+  except NilAccessDefect as e: return err(e.msg)
   except: result.err "Something went wrong" 
 
 proc logout*(req: Request): Future[bool] {.async.} =
   if not req.cookies.hasKey("torci"): return
-  let userToken = req.cookies["torci"]
-  for i, user in userList.users:
-    if userToken == user.token:
-      i.delete
-      return true
+  let token = req.cookies["torci"]
+  let red = await openAsync()
+  let loggedIn = await red.exists(token)
+  if loggedIn:
+    let del = await red.del(@[token])
+    if del == 1: return true
+    else: return false
 
 template loggedIn*(node: untyped) =
   if request.isLoggedIn:
