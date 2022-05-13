@@ -11,6 +11,9 @@ gcc-arm-linux-gnueabihf \
 hostapd wpasupplicant && \
 apt install -y libcrypt-dev:armhf
 
+# Create user
+RUN adduser --disabled-password --gecos "" tor-chan && echo "tor-chan:tor-chan" | chpasswd
+
 # install nim-lang binaries
 RUN curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
 # RUN echo "export PATH=$PATH:$HOME/.nimble/nim/bin:$HOME/.nimble/bin" >> /root/.bashrc
@@ -21,5 +24,6 @@ WORKDIR /src/torci
 CMD \
 export PATH="${PATH}":$HOME/.nimble/nim/bin:$HOME/.nimble/bin && \
 nimble -y install && \
-nim r tests/sandbox/tests/test_sys.nim 
+nimble sandbox
+# nim r tests/sandbox/tests/test_sys.nim 
 # CMD ["nimble", "test"]
