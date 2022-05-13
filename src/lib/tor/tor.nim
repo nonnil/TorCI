@@ -6,6 +6,7 @@ import std / [
 import results, resultsutils
 import torsocks, torcfg, bridges
 import ../ sys / [ service ]
+import ../ ../ settings
 
 export torsocks, bridges
 
@@ -88,6 +89,14 @@ proc renewTorExitIp*(): Future[bool] {.async.} =
   let newIp = execCmdEx(cmd)
   if newIp.output == "250 OK":
     return true
+
+proc renewTorExitIp*(ti: var TorInfo): Future[bool] {.async.} =
+  const cmd = "sudo -u debian-tor tor-prompt --run 'SIGNAL NEWNYM'"
+  let newIp = execCmdEx(cmd)
+  if newIp.output == "250 OK":
+    match await checkTor(cfg.torAddress, cfg.torPort):
+      Ok(stat): ti.status = stat; return true
+      Err(_): return false
   
 proc restartTor*() {.async.} =
   restartService "tor"
