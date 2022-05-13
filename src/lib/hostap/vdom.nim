@@ -1,7 +1,7 @@
 import std / [ strutils, strformat ]
 import karax / [ karaxdsl, vdom ]
 import conf
-import ../ ../ views / renderutils
+import ../ ../ renderutils
 
 # procs for front-end
 func renderChannelSelect*(band: char, isModel3: bool): VNode =
@@ -149,3 +149,7 @@ func render*(status: HostApStatus, width = 38): VNode =
             button(`type`="submit", class="btn btn-disable", name="ctl", value="disable"): text "Disable"
           else:
             button(`type`="submit", class="btn btn-enable", name="ctl", value="enable"): text "Enable"
+
+func render*(self: HostAp, isModel3: bool, confWidth = 58, statusWidth = 38): VNode =
+  result.add self.conf.render(isModel3, confWidth)
+  result.add self.status.render(statusWidth)
