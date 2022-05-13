@@ -10,6 +10,7 @@ proc getCurrentTab*(r: Request): string =
   const tabs = @[
     (name: "/io", text: "Status"),
     (name: "/net", text: "Network"),
+    (name: "/tor", text: "Tor"),
     (name: "/sys", text: "System")
   ]
 
