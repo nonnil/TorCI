@@ -156,13 +156,13 @@ proc logout*(req: Request): Future[bool] {.async.} =
     else: return false
 
 template loggedIn*(node: untyped) =
-  if request.isLoggedIn:
+  if await request.isLoggedIn:
     node
   else:
     redirect "/login"
 
 template notLoggedIn*(node: untyped) =
-  if not request.isLoggedIn:
+  if not await request.isLoggedIn:
     node
   else:
     redirect "/"
