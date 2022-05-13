@@ -1,5 +1,5 @@
 import std / [
-  times, options, random,
+  times, random,
   strutils
 ]
 import jester, redis
