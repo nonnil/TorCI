@@ -13,7 +13,6 @@ suite "route status":
       "/default/iface"
       "/sys"
       "/default/sys"
-      # "/default/sys"
 
     # POST:
     #   "/io": {"tor-request": "renew"}
