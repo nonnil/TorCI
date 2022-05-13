@@ -19,7 +19,7 @@ requires "bcrypt >= 0.2.1"
 requires "result >= 0.3.0"
 requires "validateip >= 0.1.2"
 requires "optionsutils >= 1.2.0"
-requires "resultsutils >= 0.1.5"
+requires "resultsutils >= 0.1.6"
 requires "redis >= 0.3.0"
 
 task scss, "Generate css":
@@ -28,5 +28,5 @@ task scss, "Generate css":
 task tests, "Run tests":
   exec "nimble -d:test test -y"
 
-task sandboxed, "Run tests in a Docker container":
-  exec "testament"
+task sandboxed, "Run tests in Docker container":
+  exec "testament p tests/sandbox/tests"
