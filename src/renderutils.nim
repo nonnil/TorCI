@@ -1,8 +1,7 @@
 import std / [ macros, strutils, re ]
-import jester
-import karax / [ vdom, karaxdsl ]
-import ../ routes / tabs
-import ".." / [ notice, settings ]
+import jester, karax / [ karaxdsl, vdom ]
+import routes / tabs [ tab, vdom ]
+import ./ notice, settings
 
 const doctype = "<!DOCTYPE html>\n"
 
