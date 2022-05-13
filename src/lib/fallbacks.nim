@@ -96,7 +96,7 @@ proc hostapdFallbackKomplex*(wlan, eth: IfaceKind) =
   # If wlan0 or wlan1 is not acting as AP then we have to do something about it!
   let
     conf = waitFor getHostApConf()
-    iface = conf.getIface
+    iface = conf.iface
   if iface.isNone:
     try:
       var f = readFile(hostapd)
