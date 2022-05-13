@@ -40,6 +40,9 @@ proc default*(_: typedesc[SystemInfo]): SystemInfo =
   result = SystemInfo.new()
   result.cpu = CpuInfo.new()
 
+proc default*(_: typedesc[Devices]): Devices =
+  @[Device][]
+
 method cpu*(self: SystemInfo): CpuInfo {.base.} =
   self.cpu
 
