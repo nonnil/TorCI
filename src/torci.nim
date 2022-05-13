@@ -38,22 +38,18 @@ routes:
     template respLogin() =
       resp renderFlat(renderLogin(), "Login", notifies = notifies)
 
-    var notifies: Notifies = new(Notifies)
-
     notLoggedIn:
       let
         username = request.formData.getOrDefault("username").body
         password = request.formData.getOrDefault("password").body
-
-        login = await login(username, password)
+      var nc = new(Notifies)
 
       match await login(username, password):
         Ok(res):
           setCookie("torci", res.token, expires = res.expire, httpOnly = true)
           redirect "/"
-
         Err(msg):
-          notifies.add(failure, msg)
+          nc.add(failure, msg)
           respLogin()
 
       # respLogin()
