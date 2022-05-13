@@ -5,7 +5,7 @@ import sys
 import ../ wirelessManager
 from ../../ settings import cfg
 
-method render*(sysInfo: SystemInfo): VNode {.base.} =
+method render*(self: SystemInfo): VNode {.base.} =
   const defStr = "None"
   buildHtml(tdiv(class="columns full-width")):
     tdiv(class="card card-padding card-sys"):
@@ -18,25 +18,25 @@ method render*(sysInfo: SystemInfo): VNode {.base.} =
             td():
               strong():
                 tdiv():
-                  text if sysInfo.model.len != 0: sysInfo.model else: defStr
+                  text if self.model.len != 0: self.model else: defStr
           tr():
             td(): text "Kernel"
             td():
               strong():
                 tdiv():
-                  text if sysINfo.kernelVersion.len != 0: sysInfo.kernelVersion else: defStr
+                  text if self.kernelVersion.len != 0: self.kernelVersion else: defStr
           tr():
             td(): text "Architecture"
             td():
               strong():
                 tdiv():
-                  text if sysInfo.architecture.len != 0: sysInfo.architecture else: defStr
+                  text if self.architecture.len != 0: self.architecture else: defStr
           tr():
             td(): text "TorBox Version"
             td():
               strong():
                 tdiv():
-                  text if sysInfo.torboxVersion.len > 0: sysInfo.torboxVersion else: "Unknown"
+                  text if self.torboxVersion.len > 0: self.torboxVersion else: "Unknown"
           tr():
             td(): text "TorCI Version"
             td():
@@ -44,7 +44,7 @@ method render*(sysInfo: SystemInfo): VNode {.base.} =
                 tdiv():
                   text cfg.torciVer
 
-func render*(io: IoInfo, ap: ConnectedAp): VNode =
+func render*(self: IoInfo, ap: ConnectedAp): VNode =
   const defStr = "None"
   buildHtml(tdiv(class="columns")):
     tdiv(class="card card-padding card-sky"):
@@ -57,7 +57,7 @@ func render*(io: IoInfo, ap: ConnectedAp): VNode =
             td():
               strong():
                 tdiv():
-                  let internet = io.internet
+                  let internet = self.internet
                   text if internet.isSome: $get(internet)
                     else: defStr
           tr():
@@ -67,7 +67,7 @@ func render*(io: IoInfo, ap: ConnectedAp): VNode =
                 tdiv():
                   # let hostap = io.getHostap
                   # text if hostap.isSome: $hostap.get else: defStr
-                  let hostap = io.hostap
+                  let hostap = self.hostap
                   text if hostap.isSome: $get(hostap)
                     else: defStr
 
@@ -88,4 +88,20 @@ func render*(io: IoInfo, ap: ConnectedAp): VNode =
             td():
               strong():
                 tdiv():
-                  text if io.vpnIsActive: "is Up" else: defStr
+                  text if self.vpnIsActive: "is Up" else: defStr
+
+func render*(self: Devices): VNode =
+  buildHtml(tdiv(class="columns full-width")):
+    tdiv(class="box"):
+      tdiv(class="box-header"):
+        text "Connected Devices"
+      table(class="full-width box-table"):
+        tbody():
+          tr():
+            th(): text "MAC Address"
+            th(): text "IP Address"
+            th(): text "Signal"
+          for v in self:
+            tr():
+              td(): text if v.macaddr.len != 0: v.macaddr else: "None"
+              td(): text if v.ipaddr.len != 0: v.ipaddr else: "None"
