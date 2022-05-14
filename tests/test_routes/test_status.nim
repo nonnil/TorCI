@@ -7,6 +7,8 @@ import ../ server / client
 suite "route status":
   routerTest "status":
     GET:
+      "/status"
+      "/default/status"
       "/tor"
       "/default/tor"
       "/iface"

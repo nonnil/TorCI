@@ -1,8 +1,9 @@
-import jester#, results, resultsutils
+import std / options
+import jester, results, resultsutils
 import karax / [ karaxdsl, vdom ]
 import ../ server
-import ".." / ".." / ".." / src / lib / hostap
-import ".." / ".." / ".." / src / views / renderutils
+import ".." / ".." / ".." / src / lib / [ hostap, sys ]
+import ".." / ".." / ".." / src / renderutils
 import ".." / ".." / ".." / src / routes / tabs
 import ".." / ".." / ".." / src / notice
 
@@ -14,8 +15,46 @@ template tab(): Tab =
     "Def / Conf" = "/default" / "conf"
 
 router ap:
-  get "/tab":
-    resp $tab().render("")
+  get "/hostap":
+    var 
+      hostap: HostAp = HostAp.default()
+      # iface = conf.iface
+      devs = Devices.new()
+      nc = Notifies.default() 
+    
+    hostap = await getHostAp()
+    let
+      isModel3 = await rpiIsModel3()
+      iface = hostap.conf.iface
+    
+    if iface.isSome:
+      match await getDevices(iface.get):
+        Ok(ret): devs = ret
+        Err(msg): nc.add(failure, msg)
+
+    resp: render "Wireless":
+      tab: tab
+      notice: nc
+      container:
+        hostap.render(isModel3)
+        devs.render()
+  
+  get "/default/hostap":
+    var 
+      hostap: HostAp = HostAp.default()
+      # iface = conf.iface
+      devs = Devices.new()
+      nc = Notifies.default() 
+
+    resp: render "Wireless":
+      tab: tab
+      notice: nc
+      container:
+        # hostap.conf.render(false)
+        # hostap.status.render()
+        hostap.render(false)
+        devs.render()
+
   get "/conf":
     let cf = await getHostApConf()
     resp $cf.render(false)
@@ -36,8 +75,6 @@ router ap:
     var hostap = HostAp.default()
     hostap = await getHostAp()
 
-    # resp $hostap.conf
-    #   .render(false)
     resp: render "Access Point":
       tab: tab
       container:

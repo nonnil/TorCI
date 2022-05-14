@@ -7,10 +7,57 @@ import ".." / ".." / ".." / src / notice
 import ".." / ".." / ".." / src / lib / tor
 import ".." / ".." / ".." / src / lib / sys
 import ".." / ".." / ".." / src / lib / wirelessManager
-import ".." / ".." / ".." / src / views / renderutils
+import ".." / ".." / ".." / src / renderutils
 import ".." / ".." / ".." / src / routes / tabs
 
 router status:
+  get "/status":
+    var
+      ti = TorInfo.default()
+      si = SystemInfo.default()
+      ii = IoInfo.new()
+      ap = ConnectedAp.new()
+      nc = Notifies.default()
+
+    match await getTorInfo("127.0.0.1", 9050.Port):
+      Ok(ret): ti = ret
+      Err(msg): nc.add(failure, msg)
+    
+    match await getSystemInfo():
+      Ok(ret): si = ret
+      Err(msg): nc.add(failure, msg)
+
+    match await getIoInfo():
+      Ok(ret):
+        ii = ret
+        if isSome(ii.internet):
+          let wlan = ii.internet.get
+          match await getConnectedAp(wlan):
+            Ok(ret): ap = ret
+            Err(msg): nc.add(failure, msg)
+      Err(msg): nc.add(failure, msg)
+
+    resp: render "Status":
+      notice: nc
+      container:
+        ti.render()
+        ii.render(ap)
+        si.render()
+
+  get "/default/status":
+    var
+      ti = TorInfo.default()
+      si = SystemInfo.default()
+      ii = IoInfo.new()
+      ap = ConnectedAp.new()
+      nc = Notifies.default()
+
+    resp: render "Status":
+      notice: nc
+      container:
+        ti.render()
+        ii.render(ap)
+        si.render()
 
   get "/default/tor":
     # empty object
@@ -34,11 +81,10 @@ router status:
         ti.render()
 
   get "/iface":
-    # empty object
     var
       ioInfo: IoInfo = IoInfo.new()
       connectedAp = ConnectedAp.new()
-      notifies = Notifies.new()
+      nc = Notifies.default()
     
     match await getIoInfo():
       Ok(iface):
@@ -48,11 +94,14 @@ router status:
 
           match await getConnectedAp(wlan):
             Ok(ap): connectedAp = ap
-            Err(msg): notifies.add failure, msg
-      Err(msg): notifies.add failure, msg
+            Err(msg): nc.add failure, msg
+      Err(msg): nc.add failure, msg
 
-    resp $ioInfo.render(connectedAp)
-  
+    resp: render "I/O":
+      notice: nc
+      container:
+        ioInfo.render(connectedAp)
+
   get "/default/iface":
     let
       ioInfo: IoInfo = IoInfo.new()

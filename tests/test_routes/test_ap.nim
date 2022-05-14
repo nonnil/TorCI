@@ -7,6 +7,8 @@ import ../ server / client
 suite "route  AP":
   routerTest "ap":
     GET:
+      "/hostap"
+      "/default/hostap"
       "/ap"
       "/default/ap"
       "/conf"
