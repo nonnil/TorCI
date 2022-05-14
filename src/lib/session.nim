@@ -2,7 +2,8 @@ import std / [
   times, random,
   strutils
 ]
-import jester, redis
+import jester
+import redis
 import bcrypt
 import results, resultsutils
 import clib / [ c_crypt, shadow ]
@@ -49,7 +50,7 @@ proc randomSalt(): string =
 proc devRandomSalt(): string =
   when defined(posix):
     result = ""
-    var f = system.io.open("/dev/urandom")
+    var f = system.open("/dev/urandom")
     var randomBytes: array[0..127, char]
     discard f.readBuffer(addr(randomBytes), 128)
     for i in 0..127:
