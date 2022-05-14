@@ -13,8 +13,8 @@ export torsocks, bridges
 type
   TorInfo* = ref object of RootObj
     # setting*: TorSettings
-    status*: TorStatus
-    bridge*: Bridge
+    status: TorStatus
+    bridge: Bridge
 
   # TorSettings* = ref object
   #   bridge: Bridge
@@ -24,10 +24,20 @@ type
     isVPN: bool
     exitIp: string
 
+# TorInfo
 proc default*(_: typedesc[TorInfo]): TorInfo =
   result = TorInfo.new()
   result.status = TorStatus.new()
   result.bridge = Bridge.new()
+
+method status*(self: TorInfo): TorStatus {.base.} =
+  self.status
+
+method bridge*(self: TorInfo): Bridge {.base.} =
+  self.bridge
+
+func status*(self: var TorInfo, ts: TorStatus) =
+  self.status = ts
 
 method isTor*(self: TorStatus): bool {.base.} =
   self.isTor
@@ -84,19 +94,13 @@ proc getTorInfo*(toraddr: string, port: Port): Future[Result[TorInfo, string]] {
   ret.bridge = bridge
   return ok(ret)
 
-proc renewTorExitIp*(): Future[bool] {.async.} =
+proc renewTorExitIp*(address: string, port: Port): Future[Result[TorStatus, string]] {.async.} =
   const cmd = "sudo -u debian-tor tor-prompt --run 'SIGNAL NEWNYM'"
   let newIp = execCmdEx(cmd)
   if newIp.output == "250 OK":
-    return true
-
-proc renewTorExitIp*(ti: var TorInfo): Future[bool] {.async.} =
-  const cmd = "sudo -u debian-tor tor-prompt --run 'SIGNAL NEWNYM'"
-  let newIp = execCmdEx(cmd)
-  if newIp.output == "250 OK":
-    match await checkTor(cfg.torAddress, cfg.torPort):
-      Ok(stat): ti.status = stat; return true
-      Err(_): return false
+    match await checkTor(address, port):
+      Ok(stat): return ok(stat)
+      Err(msg): return err(msg)
   
 proc restartTor*() {.async.} =
   restartService "tor"
