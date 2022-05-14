@@ -1,22 +1,27 @@
-import std / [ options, strutils ]
-import results
-import jester
-import ../ views / [ temp, network ]
-import ".." / [ types, notice, settings ]
-import ".." / lib / [ sys, session, hostap, fallbacks ]
-import ../ lib / tor / tor
+import std / [ options, strutils, asyncdispatch ]
+import results, resultsutils
+import jester, karax / [ karaxdsl, vdom]
+import ../ renderutils
+import ".." / [ types, notice ]
+import ".." / lib / [tor, sys, session, hostap, fallbacks ]
 import network / [ wireless ]
-import network_impl
+import tabs
 
-export network, network_impl
 export wireless
 
 routerWireless()
 
 # routerwireless()
 proc routingNet*() =
-
   router network:
+    template respMaintenance() =
+      resp renderMain(renderClosed(), request, await request.getUserName, "Under maintenance", tab())
+
+    template tab(): Tab =
+      buildTab:
+        "Bridges" = "/net" / "bridges"
+        "Interfaces" = "/net" / "interfaces"
+        "Wireless" = "/net" / "wireless"
 
     # extend wireless, ""
     # let tab = netTab()
@@ -24,7 +29,20 @@ proc routingNet*() =
 
     get "/bridges":
       loggedIn:
-        respBridges()
+        var
+          bridge = Bridge.new()
+          nc = Notifies.default()
+
+        match await getBridge():
+          Ok(ret): bridge = ret
+          Err(msg): nc.add(failure, msg)
+        
+        resp: render "Bridges":
+          tab: tab
+          notice: nc
+          container:
+            bridge.render()
+            renderInputObfs4()
 
     get "/interfaces":
       loggedIn:
@@ -174,23 +192,20 @@ proc routingNet*() =
       
     post "/bridges":
       loggedIn:
-        var notifies: Notifies
+        var nc = Notifies.default()
         let
           input: string = request.formData.getOrDefault("input-bridges").body
           action = request.formData.getOrDefault("bridge-action").body
 
         if input.len > 0:
           let (failure, success) = await addBridges(input)
-          if failure == 0 and
-          success > 0:
-            notifies.add State.success, "Bridge has been added"
+          if failure == 0 and success > 0:
+            nc.add State.success, "Bridge has been added"
 
-          elif failure > 0 and
-          success > 0:
-            notifies.add State.warn, "Some bridges failed to add"
+          elif failure > 0 and success > 0:
+            nc.add State.warn, "Some bridges failed to add"
 
-          else:
-            notifies.add State.failure, "Failed to bridge add"
+          else: nc.add State.failure, "Failed to bridge add"
           
         if action.len > 0:
           case action
@@ -216,7 +231,15 @@ proc routingNet*() =
           of "snowflake-deactivate":
             await deactivateSnowflake()
 
-        if notifies.len > 0:
-          respBridges(notifies)
+        if not nc.isEmpty:
+          var bridge = Bridge.new()
+          match await getBridge():
+            Ok(ret): bridge = ret
+            Err(msg): nc.add(failure, msg)
+          resp: render "Bridges":
+            tab: tab
+            notice: nc
+            container:
+              bridge.render()
         else:
           redirect "bridges"
