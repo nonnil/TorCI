@@ -34,7 +34,7 @@ jobs:
           
       - name: build
         run: |
-          docker build -t torci:test tests/onDocker
+          docker build -t torci:test tests/sandbox
 
       - name: run test
         run: |
