@@ -1,6 +1,6 @@
 import std / [
   asyncdispatch, os, osproc,
-  re, sequtils, sugar,
+  re,
   strutils, strformat,
   tables, options
 ]
@@ -25,7 +25,8 @@ type
     internet, hostap: Option[IfaceKind]
     vpnIsActive*: bool
 
-  Devices* = seq[Device]
+  Devices* = ref object
+    list: seq[Device]
 
   Device* = ref object
     macaddr*: string
@@ -40,8 +41,8 @@ proc default*(_: typedesc[SystemInfo]): SystemInfo =
   result = SystemInfo.new()
   result.cpu = CpuInfo.new()
 
-proc default*(_: typedesc[Devices]): Devices =
-  @[Device][]
+# proc default*(_: typedesc[Devices]): Devices =
+#   new Devices
 
 method cpu*(self: SystemInfo): CpuInfo {.base.} =
   self.cpu
@@ -80,6 +81,10 @@ method hostap*(self: IoInfo): Option[IfaceKind] {.base.} =
 
 method vpnIsActive*(self: IoInfo): bool {.base.} =
   self.vpnIsActive
+
+# Devices
+method list*(self: Devices): seq[Device] {.base.} =
+  self.list
 
 proc hostap*(io: var IoInfo, iface: IfaceKind): Result[void, string] =
   case iface
@@ -376,7 +381,7 @@ proc getDevices*(iface: IfaceKind): Future[Result[Devices, string]] {.async.} =
           device.ipaddr = splitted[0]
           device.macaddr = splitted[2]
           device.signal = iw.getOrDefault(splitted[2])
-          ret.add(device)
+          ret.list.add(device)
     return ok(ret)
   except OSError as e: return err(e.msg)
   except IOError as e: return err(e.msg)
