@@ -1,0 +1,6 @@
+*.png
+LICENCE
+*.md
+.vscode
+nimcache
+testresults
