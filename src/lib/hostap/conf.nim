@@ -219,8 +219,8 @@ proc getHostApStatus*(): Future[HostApStatus] {.async.} =
 
 proc getHostAp*(): Future[HostAp] {.async.} =
   result.new
-  result.conf = waitFor getHostApConf()
-  result.status = waitFor getHostApStatus()
+  result.conf = await getHostApConf()
+  result.status = await getHostApStatus()
 
 proc parseConf*(s: seq[string]): Future[TableRef[string, string]] {.async.} =
   #var tuple_data = tuple[string, string]
