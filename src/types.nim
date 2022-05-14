@@ -57,5 +57,3 @@ type
     obfs4*: bool
     meekAzure*: bool
     snowflake*: bool
-    
-  ConnectedDevs* = seq[tuple[macaddr, ipaddr, signal: string]]
