@@ -21,7 +21,7 @@ suite "Cryptgraphics":
   test "Test parse on yescrypt":
     privateAccess(Shadow)
     let passwd = "$y$j9T$C5QGAtTr38W/K2jMJ3uTV/$Z5uBSxY.JoKyWiSfUumJTKjiJQFAlAuMfY9YHvAyBmB:19076:0:99999:7:::"
-    let ret = parseShadow(passwd)
+    let ret = readAsShadow(passwd)
     if ret.isErr:
       styledEcho(fgRed, "[Error] ", fgWhite, "parseShadow returned err.")
 
@@ -36,7 +36,7 @@ suite "Cryptgraphics":
   test "Test parse on sha512crypt":
     privateAccess(Shadow)
     let passwd = "$6$D.3Q1uJwc5TIs.g3$VnU8JwwjxWN15Vo2M1CCcf3dr5FJUN9cPUNls0DKW9pknjEwrESA0uGdxMpB735uYJbYBMz86GbkliwrhJVWo.:19068:0:99999:7:::"
-    let ret = parseShadow(passwd)
+    let ret = readAsShadow(passwd)
     if ret.isErr:
       styledEcho(fgRed, "[Error] ", fgWhite, "returned err on parse sha512crypt.")
 
