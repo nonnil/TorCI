@@ -12,16 +12,11 @@ import ../ src / lib / tor / vdom
 suite "Tor":
   test "TorInfo object":
     if not waitFor isActiveService("tor"):
-      skip()
-
-    var ti = TorInfo.default()
-
-    match waitFor getTorInfo("127.0.0.1", 9050.Port):
-      Ok(ret): ti = ret
-      Err(msg): fail
-
-    check:
-      ti.isTor
+      var ti = TorInfo.default()
+      match waitFor getTorInfo("127.0.0.1", 9050.Port):
+        Ok(ret): ti = ret
+        Err(msg): fail
+      check ti.isTor
 
   # test "Test some methods of Tor":
   #   privateAccess(TorInfo)
