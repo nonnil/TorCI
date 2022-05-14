@@ -1,10 +1,10 @@
 import std / [ strutils, options, asyncdispatch ]
-import jester
+import jester, karax / [ karaxdsl, vdom]
 import results, resultsutils
 
-import views / [ login, renderutils ]
+import views / [ login ]
 import routes / [ status, network, sys, tabs ]
-import types, config, query, utils, notice
+import ./ renderutils, types, config, query, utils, notice
 import settings as torciSettings
 import lib / [ tor, session, torbox, hostap, fallbacks, wifiScanner, wirelessManager ]
 import lib / sys as libsys
@@ -34,13 +34,13 @@ routes:
   
   post "/login":
     template respLogin() =
-      resp renderFlat(renderLogin(), "Login", notifies = notifies)
+      resp renderFlat(renderLogin(), "Login", notifies = nc)
 
     notLoggedIn:
       let
         username = request.formData.getOrDefault("username").body
         password = request.formData.getOrDefault("password").body
-      var nc = new(Notifies)
+      var nc = Notifies.default()
 
       match await login(username, password):
         Ok(res):
