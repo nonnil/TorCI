@@ -49,7 +49,7 @@ proc randomSalt(): string =
 proc devRandomSalt(): string =
   when defined(posix):
     result = ""
-    var f = io.open("/dev/urandom")
+    var f = system.io.open("/dev/urandom")
     var randomBytes: array[0..127, char]
     discard f.readBuffer(addr(randomBytes), 128)
     for i in 0..127:
