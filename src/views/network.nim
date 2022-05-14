@@ -1,12 +1,8 @@
 import karax / [karaxdsl, vdom, vstyles]
 import strformat
 import ../ types
-import network / [ ap ]
-import ../ lib / [ hostap, sys ]
+import ../ lib / [ sys ]
 import ../ lib / sys / [ iface ]
-import ../ lib / tor / bridges
-
-export ap
 
 proc renderInterfaces*(): VNode =
   buildHtml(tdiv(class="card")):
@@ -142,16 +138,3 @@ proc renderWifiConfig*(wlan: IfaceKind, withCaptive: bool; wifiInfo: WifiList; c
     #         label(class="card-title"): text "Password"
     #         input(`type`="password", name="wifi-password")
     #       button(`type`="submit", class="btn-join"): text "Join Network"
-
-proc renderHostApPane*(hostap: HostAp, isModel3: bool, devs: Devices): VNode =
-  buildHtml(tdiv(class="cards")):
-    hostap.getConf
-      .render(isModel3)
-    hostap.getStatus
-      .render()
-    renderConnectedDevs(devs)
-    
-proc renderBridgesPage*(bridge: Bridge): VNode =
-  buildHtml(tdiv(class="cards")):
-    renderInputObfs4()
-    bridge.render()
