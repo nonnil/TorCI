@@ -1,5 +1,5 @@
 import std / [ unittest, asyncdispatch, terminal ]
-import results, resultutils
+import results, resultsutils
 import ../ ../ ../ src / lib / sys
 
 suite "system in Docker container":

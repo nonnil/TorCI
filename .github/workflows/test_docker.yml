@@ -1,4 +1,4 @@
-name: Test TorCI in a Docker container
+name: Test TorCI in Docker container
   
 on:
   push:
