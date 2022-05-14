@@ -1,13 +1,12 @@
 import std / [ options, asyncdispatch ]
-import jester, results, resultsutils
+import results, resultsutils
+import jester, karax / [ karaxdsl, vdom ]
 import ".." / [ notice, settings ]
-import ../ views / [ temp, status ]
+import ../ renderutils
 import ".." / lib / [ session, sys, wirelessManager ]
 import ../ lib / tor
-import impl_status
+import tabs
 # import sugar
-
-export status, impl_status
 
 proc routingStatus*() =
   router status:
@@ -17,142 +16,83 @@ proc routingStatus*() =
 
     get "/io":
       loggedIn:
-        let torInfo = await loadTorInfo(cfg.torAddress, cfg.torPort)
-
         var
-          notifies: Notifies = new Notifies
-          sysInfo: SystemInfo = new SystemInfo
-          iface: IO = new IO
-          connectedAp: ConnectedAp = new ConnectedAp
+          ti = TorInfo.default()
+          si = SystemInfo.default()
+          ii = IoInfo.new()
+          ap = ConnectedAp.new()
+          nc = Notifies.default()
+
+        match await getTorInfo(cfg.torAddress, cfg.torPort):
+          Ok(ret): ti = ret
+          Err(msg): nc.add(failure, msg)
         
         match await getSystemInfo():
-          Ok(info):
-            sysInfo = info
+          Ok(ret): si = ret
+          Err(msg): nc.add(failure, msg)
 
-          Err(msg):
-            notifies.add failure, msg
-
-        match await getIO():
+        match await getIoInfo():
           Ok(ret):
-            iface = ret
-
-            if isSome(iface.internet):
-              let wlan = iface.internet.get
-
+            ii = ret
+            if isSome(ii.internet):
+              let wlan = ii.internet.get
               match await getConnectedAp(wlan):
-                Ok(ap):
-                  connectedAp = ap
-                
-                Err(msg):
-                  notifies.add failure, msg
+                Ok(ret): ap = ret
+                Err(msg): nc.add(failure, msg)
+          Err(msg): nc.add(failure, msg)
 
-          Err(msg):
-            notifies.add failure, msg
-
-        resp renderNode(
-          buildStatusPane(torInfo, sysInfo, iface, connectedAp),
-          request,
-          request.getUserName,
-          "Status",
-          notifies = notifies
-        )
+        resp: render "Status":
+          notice: nc
+          container:
+            ti.render()
+            ii.render(ap)
+            si.render()
 
     post "/io":
       loggedIn:
-        # await doTorRequest(request)
-        # let ret = await doTorRequest(request)
-        # if ret.isSome:
-        #   resp ret.get
-
-        # redirect "/io"
         # let req = r.formData.getOrDefault("tor-request").body
         let req = request.formData.getOrDefault("tor-request").body
-
         case req
         of "new-circuit":
           var
-            notifies = new(Notifies)
-            # alret: Result[TorStatus, string]
-            # checkRet: Result[TorStatus, string]
+            ti = TorInfo.default()
+            ii = IoInfo.new()
+            si = SystemInfo.default()
+            ap = ConnectedAp.new()
+            nc = Notifies.default()
 
-          # let ts = await checkTor(cfg.torAddress, cfg.torPort)
-          let torInfo = await loadTorInfo(cfg.torAddress, cfg.torPort)
-          let renew = await renewTorExitIp()
+          match await getTorInfo(cfg.torAddress, cfg.torPort):
+            Ok(ret): ti = ret
+            Err(msg): nc.add(failure, msg)
 
-          if renew:
-            notifies.add success, "Exit node has been changed."
+          match await renewTorExitIp(cfg.torAddress, cfg.torPort):
+            Ok(ret):
+              ti.status(ret)
+              nc.add success, "Exit node has been changed."
+            Err(msg):
+              nc.add(failure, msg)
+              nc.add failure, "Request new exit node failed. Please try again later."
 
-          else:
-            notifies.add failure, "Request new exit node failed. Please try again later."
-
-          # match ts:
-          #   Ok(torStatus):
-          #     discard await renewTorExitIp()
-
-          #     match await checkTor(cfg.torAddress, cfg.torPort):
-          #       Ok(ts2):
-          #         if not torStatus.compareExitIp(ts2):
-          #           notifies.add success, "Exit node has been changed."
-
-          #       Err():
-          #         notifies.add failure, "Request new exit node failed. Please try again later."
-
-          #   Err(str):
-          #     notifies.add failure, str
-          # doCheckTor(notifies)
-
-          var
-            ifaces: IO = new IO
-            sysInfo: SystemInfo = new SystemInfo
-            connectedAp: ConnectedAp = new ConnectedAp
-
-          # withSome ifaces.getInternet:
-          #   some iface:
-          #     let wlan = iface
-          #     crNet = await currentNetwork(wlan)
           match await getSystemInfo():
-            Ok(info):
-              sysInfo = info
+            Ok(ret): si = ret
+            Err(msg): nc.add failure, msg
 
-            Err(msg):
-              notifies.add failure, msg
-
-          match await getIO():
-            Ok(iface):
-              ifaces = iface
-
-              if isSome(ifaces.internet):
-                let wlan = ifaces.internet.get
-
+          match await getIoInfo():
+            Ok(ret):
+              ii = ret 
+              if isSome(ii.internet):
+                let wlan = ii.internet.get
                 match await getConnectedAp(wlan):
-                  Ok(ap):
-                    connectedAp = ap
+                  Ok(ret): ap = ret
+                  Err(msg): nc.add failure, msg
+            Err(msg): nc.add failure, msg
 
-                  Err(msg):
-                    notifies.add failure, msg
-            
-            Err(msg):
-              notifies.add failure, msg
-
-          # var torInfo = new TorInfo
-          # torInfo.bridge = 
-          # match await loadBridge():
-          #   Ok(bridge):
-          #     torInfo.bridge = bridge
-          #     # torInfo.status = status
-          #   Err():
-          #     return
-
-          # torInfo.status = checkRet.get
-          # doLoadBridge(torInfo)
-
-          resp renderNode(
-            buildStatusPane(torInfo, sysInfo, ifaces, connectedAp),
-            request,
-            request.getUserName,
-            "Status",
-            notifies=notifies
-          )
+          resp: render "Status":
+            notice: nc
+            container:
+              ti.render()
+              ii.render(ap)
+              si.render()
 
         of "restart-tor":
           await restartTor()
