@@ -44,7 +44,6 @@ iterator items*(n: Notifies): tuple[i: int, n: Notice] {.inline.} =
     yield (i, n.notice[i])
     inc i
 
-import std / [ strutils ]
 import karax / [ karaxdsl, vdom, vstyles ]
 method render*(notifies: Notifies): VNode {.base.} =
   const
