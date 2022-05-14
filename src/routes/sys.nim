@@ -1,21 +1,21 @@
-import std / [ os, options ]
-import jester, results
-import tabs
-import ../ views / [ temp, sys ]
-import ".." / [ types, notice ]
+import std / [ os, options, asyncdispatch ]
+import results, resultsutils
+import jester
+import karax / [ karaxdsl, vdom ]
+import ./ tabs
+import ".." / [ renderutils, notice ]
 import ".." / lib / sys as libsys 
 import ".." / lib / session
 
 export sys 
 
-func sysTab*(): Tab =
-  var tab = Tab.new
-  tab.add("Password", "/sys" / "passwd")
-  tab.add("Logs", "/sys" / "logs")
-  tab.add("Update", "/sys" / "update")
+template tab(): Tab =
+  buildTab:
+    "Password" = "/sys" / "passwd"
+    "Logs" = "/sys" / "logs"
+    "Update" = "/sys" / "update"
 
 proc routingSys*() =
-
   router sys:
     get "/sys":
       redirect "/sys/passwd"
@@ -24,28 +24,41 @@ proc routingSys*() =
       loggedIn:
         case request.formData["postType"].body
         of "chgPasswd":
-          let code = await changePasswd(request.formData["crPassword"].body, request.formData["newPassword"].body, request.formData["re_newPassword"].body)
-          if code.isOk:
-            redirect("/login")
-          else:
-            redirect("/login")
+          let
+            oldPasswd = request.formData["crPassword"].body
+            newPasswd = request.formData["newPasswd"].body
+            rePasswd = request.formData["re_newPasswd"].body
+          match await changePasswd(oldPasswd, newPasswd, rePasswd):
+            Ok(): redirect "/login"
+            Err(): redirect "/login"
+
+    post "/sys/logs":
+      loggedIn:
+        let ops = request.formData["ops"].body
+        case ops
         of "eraseLogs":
-          let erase = await eraseLogs()
-          var notifies: Notifies = new()
+          var nc = Notifies.default()
 
-          if erase.isOk:
-            notifies.add success, "Complete erase logs"
-            resp renderNode(renderLogs(), request, request.getUsername, "", sysTab(), notifies)
+          match await eraseLogs():
+            Ok(): nc.add success, "Complete erase logs"
+            Err(): nc.add failure, "Failure erase logs"
 
-          notifies.add failure, "Failure erase logs"
-          resp renderNode(renderLogs(), request, request.getUsername, "", sysTab(), notifies)
+          resp: render "Logs":
+            notice: nc
+            tab: tab
+            container:
+              renderLogs()
 
     get "/sys/passwd":
       loggedIn:
-        # resp renderNode(renderCard("Change Passwd", renderPasswd()), request, cfg, tabForSys)
-        resp renderNode(renderChangePasswd(), request, request.getUserName, "", sysTab())
-      redirect "/login"
+        resp: render "Passwd":
+          tab: tab
+          container:
+            renderPasswdChange()
     
     get "/sys/eraselogs":
       loggedIn:
-        resp renderNode(renderLogs(), request, request.getUsername, "", sysTab())
+        resp: render "Logs":
+          tab: tab
+          container:
+            renderLogs()
