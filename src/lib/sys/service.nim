@@ -16,6 +16,9 @@ proc isActiveService*(service: string): Future[bool] {.async.} =
         return true
   except OSError: return false
   except IOError: return false
+  except ValueError: return false
+  except KeyError: return false
+  except CatchableError: return false
   except: return false
 
 proc startService*(s: string) =
