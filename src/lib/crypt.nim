@@ -1,5 +1,4 @@
 import std / [
-  options,
   strutils, strformat
 ]
 import results, resultsutils 
