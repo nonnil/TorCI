@@ -1,0 +1,13 @@
+version: "0.1"
+services:
+  torci-test:
+    build: .
+    ports:
+      - "1984:1984"
+    volumes:
+      - .:/src/torci
+    depend_on:
+      - redis
+  redis:
+    image: redis:7-alpine
+    command: redis-server
