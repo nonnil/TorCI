@@ -1,6 +1,5 @@
 import std / [
-  unittest, importutils, terminal,
-  options,
+  unittest, importutils,
   nativesockets, asyncdispatch
 ]
 import results, resultsutils
@@ -11,20 +10,18 @@ import ../ src / lib / tor / bridges {.all.}
 import ../ src / lib / tor / vdom
 
 suite "Tor":
-  proc skip() =
+  test "TorInfo object":
     if not waitFor isActiveService("tor"):
       skip()
 
-  test "TorInfo object":
-    skip()
-    var torInfo: TorInfo
+    var ti = TorInfo.default()
 
     match waitFor getTorInfo("127.0.0.1", 9050.Port):
-      Ok(ret): torInfo = ret
+      Ok(ret): ti = ret
       Err(msg): fail
 
     check:
-      torInfo.isTor
+      ti.isTor
 
   # test "Test some methods of Tor":
   #   privateAccess(TorInfo)
