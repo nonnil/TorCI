@@ -151,5 +151,6 @@ func render*(status: HostApStatus, width = 38): VNode =
             button(`type`="submit", class="btn btn-enable", name="ctl", value="enable"): text "Enable"
 
 func render*(self: HostAp, isModel3: bool, confWidth = 58, statusWidth = 38): VNode =
+  result = newVNode(tdiv)
   result.add self.conf.render(isModel3, confWidth)
   result.add self.status.render(statusWidth)
