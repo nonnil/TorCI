@@ -1,9 +1,8 @@
 import std / [
-  options,
   unittest, importutils,
   terminal
 ]
-import results, optionsutils
+import results, resultsutils
 import ../ src / lib / crypt {.all.}
 import ../ src / lib / clib / c_crypt
 
@@ -12,11 +11,11 @@ suite "Cryptgraphics":
     privateAccess(CryptPrefix)
     let yescrypt_prefix = "y"
 
-    withSome parsePrefix(yescrypt_prefix):
-      some prefix:
+    match parsePrefix(yescrypt_prefix):
+      Ok(prefix):
         check:
           prefix == yescrypt
-      none: styledEcho(fgRed, "[Error] ", fgWhite, "prefix parse id failed.")
+      Err(msg): styledEcho(fgRed, "[Error] ", fgWhite, msg)
 
   test "Test parse on yescrypt":
     privateAccess(Shadow)
