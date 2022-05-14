@@ -1,6 +1,6 @@
 import std / [ macros, strutils, re ]
 import jester, karax / [ karaxdsl, vdom ]
-import routes / tabs [ tab, vdom ]
+import routes / tabs
 import ./ notice, settings
 
 const doctype = "<!DOCTYPE html>\n"
