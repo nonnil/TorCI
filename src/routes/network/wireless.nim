@@ -1,38 +1,66 @@
-import std / [ options, sugar ]
+import std / options
 import results, resultsutils
-import jester
-import ".." / [ network_impl ]
+import jester, karax / [ karaxdsl, vdom]
 import ".." / ".." / lib / [ sys, session, hostap ]
-import ".." / ".." / [ notice ]
-import ".." / ".." / views / [ temp, network ]
+import ".." / ".." / [ renderutils, notice ]
+import ../ tabs
 
 proc routerWireless*() =
   router wireless:
+    template tab(): Tab =
+      buildTab:
+        "Bridges" = "/net" / "bridges"
+        "Interfaces" = "/net" / "interfaces"
+        "Wireless" = "/net" / "wireless"
+
     get "/wireless/@hash":
       loggedIn:
         var 
-          hostap: HostAp = HostAp.new
-          conf = await getHostApConf()
-          iface = conf.getIface
-          devs = await getDevices(iface.get)
+          hostap: HostAp = HostAp.default()
+          # iface = conf.iface
+          devs = Devices.default()
+          nc = Notifies.default() 
+        
+        hostap = await getHostAp()
         let
           isModel3 = await rpiIsModel3()
-          isActive = hostapdIsActive()
-        hostap.active(isActive)
-        resp renderNode(renderHostApPane(hostap, isModel3, devs), request, request.getUserName, "Wireless", netTab())
+          iface = hostap.conf.iface
+
+        if iface.isSome:
+          match await getDevices(iface.get):
+            Ok(ret): devs = ret
+            Err(msg): nc.add(failure, msg)
+
+        resp: render "Wireless":
+          tab: tab
+          notice: nc
+          container:
+            hostap.render(isModel3)
+            devs.render()
 
     get "/wireless":
       loggedIn:
         var 
-          hostap: HostAp = HostAp.new
-          conf = await getHostApConf()
-          iface = conf.getIface
-          devs = await getDevices(iface.get)
+          hostap: HostAp = HostAp.default()
+          # iface = conf.iface
+          devs = Devices.default()
+          nc = Notifies.default() 
+        
+        hostap = await getHostAp()
         let
           isModel3 = await rpiIsModel3()
-          isActive = hostapdIsActive()
-        hostap.active(isActive)
-        resp renderNode(renderHostApPane(hostap, isModel3, devs), request, request.getUserName, "Wireless", netTab())
+          iface = hostap.conf.iface
+
+        match await getDevices(iface.get):
+          Ok(ret): devs = ret
+          Err(msg): nc.add(failure, msg)
+
+        resp: render "Wireless":
+          tab: tab
+          notice: nc
+          container:
+            hostap.render(isModel3)
+            devs.render()
 
     post "/wireless":
       loggedIn:
@@ -46,28 +74,38 @@ proc routerWireless*() =
           password = request.formData.getOrDefault("password").body
         
         var
-          notifies: Notifies = new()
+          nc = Notifies.default()
           hostapConf: HostApConf = HostApConf.new
 
-        notifies.add(hostapConf.ssid(ssid))
-        notifies.add(hostapConf.band(band))
-        notifies.add(hostapConf.channel(channel))
-        notifies.add(hostapConf.password(password))
+        nc.add(hostapConf.ssid(ssid))
+        nc.add(hostapConf.band(band))
+        nc.add(hostapConf.channel(channel))
+        nc.add(hostapConf.password(password))
 
         hostapConf.cloak if cloak == "1": true else: false
 
         hostapConf.write()
 
-        if notifies.isEmpty:
-          notifies.add success, "configuration successful. please restart the access point to apply the changes"
+        if nc.isEmpty:
+          nc.add success, "configuration successful. please restart the access point to apply the changes"
 
         var 
           hostap: HostAp = HostAp.new()
           conf = await getHostApConf()
-          devs = await getDevices(conf.getIface.get)
+          devs = Devices.default()
+
+        match await getDevices(conf.iface.get):
+          Ok(ret): devs = ret
+          Err(msg): nc.add(failure, msg)
 
         let isActive = hostapdIsActive()
         hostap.active(isActive)
 
-        # resp renderNode(renderHostApPane(hostap, sysInfo, devs), request, request.getUserName, "Wireless", tab, notifies=notifies)
-        resp renderNode(renderHostApPane(hostap, isModel3, devs), request, request.getUserName, "Wireless", netTab(), notifies=notifies)
+        # resp renderNode(renderHostApPane(hostap, isModel3, devs), request, request.getUserName, "Wireless", netTab(), notifies=notifies)
+        resp: render "Wireless":
+          tab: tab
+          notice: nc
+          container:
+            hostap.conf.render(isModel3)
+            hostap.status.render()
+            devs.render()
