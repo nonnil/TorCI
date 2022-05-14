@@ -5,14 +5,18 @@ import std / [
 ]
 
 proc isActiveService*(service: string): Future[bool] {.async.} =
-  if service.len >= 0 and
-  service.contains(IdentChars):
-    let cmd = fmt("systemctl is-active \"{service}\"")
-    let
-      ret = execCmdEx(cmd)
-      sta = ret.output.splitLines()[0]
-    if sta == "active":
-      return true
+  try:
+    if service.len >= 0 and
+    service.contains(IdentChars):
+      let cmd = fmt("systemctl is-active \"{service}\"")
+      let
+        ret = execCmdEx(cmd)
+        sta = ret.output.splitLines()[0]
+      if sta == "active":
+        return true
+  except OSError: return false
+  except IOError: return false
+  except: return false
 
 proc startService*(s: string) =
   const cmd = "sudo systemctl start "
