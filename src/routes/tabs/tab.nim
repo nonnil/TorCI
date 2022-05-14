@@ -26,11 +26,11 @@ proc `[]`*(tab: Tab, i: int): TabField =
   # if not tab.tab[i].isNil:
   tab.tab[i]
 
-method label*(tab: TabField): string {.base.} =
-  tab.label
+method label*(self: TabField): string {.base.} =
+  self.label
 
-method link*(tab: TabField): string {.base.} =
-  tab.link
+method link*(self: TabField): string {.base.} =
+  self.link
 
 proc add*(tab: var Tab, label, link: string) =
   let field: TabField = TabField(label: label, link: link)

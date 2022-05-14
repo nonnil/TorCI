@@ -1,6 +1,5 @@
 import std / [
-  unittest,
-  options
+  unittest
 ]
 import ../ src / routes / tabs
 
@@ -20,5 +19,5 @@ suite "Tabs":
       "Logs" = "/sys" / "logs"
 
     check:
-      tab[3].get.getLabel.get == "Logs"
+      tab[3].label == "Logs"
       tab.len == 4
