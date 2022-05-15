@@ -12,4 +12,3 @@ nimcache/
 /src/routes/confs.nim
 *.bak
 bullseye
-/mockups
