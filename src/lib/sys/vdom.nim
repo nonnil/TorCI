@@ -105,7 +105,7 @@ func render*(self: Devices): VNode =
             tr():
               td(): text if v.macaddr.len != 0: v.macaddr else: "None"
               td(): text if v.ipaddr.len != 0: v.ipaddr else: "None"
-              td(): text if v.signal.len != 0: v.ipaddr else: "None"
+              td(): text if v.signal.len != 0: v.signal else: "None"
 
 proc renderSys*(): VNode =
   buildHtml(tdiv):
