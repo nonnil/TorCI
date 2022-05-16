@@ -67,6 +67,10 @@ proc renderNav(req: Request; username: string; tab: Tab = new Tab): VNode =
             icon "wifi", class="tab-icon"
             tdiv(class="tab-name"):
               text "Network"
+          a(class=getNavClass(req.pathInfo, "/tor"), href="/tor"):
+            icon "tor", class="tab-icon"
+            tdiv(class="tab-name"):
+              text "Tor"
           a(class=getNavClass(req.pathInfo, "/sys"), href="/sys"):
             icon "cog", class="tab-icon"
             tdiv(class="tab-name"):
