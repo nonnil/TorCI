@@ -7,7 +7,7 @@ license       = "GPL-3.0"
 srcDir        = "src"
 bin           = @["torci"]
 
-skipDirs = @["tests"]
+skipDirs = @["tests", "mockups"]
 
 # Dependencies 
 requires "nim >= 1.4.0"
@@ -28,5 +28,8 @@ task scss, "Generate css":
 task tests, "Run tests":
   exec "nimble -d:test test -y"
 
-task sandbox, "Run tests in Docker container":
+task redis, "Run tests in Docker container":
   exec "testament p tests/sandbox/tests"
+
+task fulltest, "":
+  exec "sudo docker-compose up"
