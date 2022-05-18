@@ -16,6 +16,7 @@ on:
     paths-ignore:
       - 'LICENCE'
       - '*.md'
+      - 'mockups'
     branches:
       - main
       - devel
