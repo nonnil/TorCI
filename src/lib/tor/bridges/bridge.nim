@@ -1,6 +1,7 @@
-import std / [ os, osproc, re, asyncdispatch, strutils ]
-import std / [ sha1, json, uri ]
-import results
+import std / [ os, osproc, re, asyncdispatch, strutils, options ]
+import std / [ sha1, uri ]
+import std / json
+import results, jsony
 import ".." / ".." / ".." / [ types, settings ]
 import ".." / ".." / [ binascii ]
 import ../ ../ sys / [ service ]
@@ -33,6 +34,8 @@ method isSnowflake*(bridge: Bridge): bool {.base.} =
 method isMeekazure*(bridge: Bridge): bool {.base.} =
   bridge.kind == meekazure
 
+# proc default*(_: typedesc[Bridge]): Bridge
+
 proc getBridge*(): Future[Result[Bridge, string]] {.async.} =
   try:
     var bridge: Bridge = new Bridge
@@ -58,6 +61,14 @@ proc getBridge*(): Future[Result[Bridge, string]] {.async.} =
 
     result.ok(bridge)
   except CatchableError as e: return err(e.msg)
+
+proc newHook*(br: var Bridge) =
+  br.kind = direct
+  br.useBridges = false
+  br.isBridgeRelay = false
+  br.activeCount = 0
+  br.deactiveCount = 0
+  br.totalCount = 0
 
 proc splitAddress(address: string): tuple[ipaddr: string, port: Port] =
   let s = address.split(":")
