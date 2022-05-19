@@ -103,6 +103,11 @@ proc newHook*(cpuInfo: var CpuInfo) =
   cpuInfo.architecture = "Unknown"
   cpuInfo.model = "Unknown"
 
+proc newHook*(ii: var IoInfo) =
+  ii.internet = none(IfaceKind)
+  ii.hostap = none(IfaceKind)
+  ii.vpnIsActive = false
+
 proc isMAC*(mac: string): bool =
   var separate: char
 
