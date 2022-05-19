@@ -5,7 +5,6 @@ import std / [
   tables, options
 ]
 import results, resultsutils
-import jsony
 import iface
 
 const
