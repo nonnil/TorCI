@@ -3,7 +3,7 @@ import std / [
   nativesockets, asyncdispatch,
   json, strutils,
 ]
-import results, resultsutils
+import results, resultsutils, jsony
 import torsocks, torcfg, bridges
 import ../ sys / [ service ]
 import ../ ../ settings
@@ -104,6 +104,10 @@ proc renewTorExitIp*(address: string, port: Port): Future[Result[TorStatus, stri
   
 proc restartTor*() {.async.} =
   restartService "tor"
+
+proc newHook*(ts: var TorStatus) =
+  ts.isTor = false
+  ts.exitIp = ""
   
 proc getTorLog*(): Future[string] {.async.} =
   if not fileExists(torlog):
