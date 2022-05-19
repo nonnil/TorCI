@@ -5,6 +5,7 @@ import std / [
   tables, options
 ]
 import results, resultsutils
+import jsony
 import iface
 
 const
@@ -94,6 +95,14 @@ proc hostap*(io: var IoInfo, iface: IfaceKind): Result[void, string] =
   
   else:
     result.err "should be set to wireless interface"
+
+proc newHook*(si: var SystemInfo) =
+  si.kernelVersion = "Unknown"
+  si.torboxVer = "Unknown"
+
+proc newHook*(cpuInfo: var CpuInfo) =
+  cpuInfo.architecture = "Unknown"
+  cpuInfo.model = "Unknown"
 
 proc isMAC*(mac: string): bool =
   var separate: char
