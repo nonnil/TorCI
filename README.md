@@ -11,7 +11,7 @@ TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbo
 ## Features:
 
 -   [x] Configure [TorBox](https://radio24/torbox) as easy as [OpenWrt](https://github.com/openwrt)'s [LuCI](https://github.com/openwrt/luci)
--   [x] JavaScript not required
+-   [x] ~~JavaScript not required~~
 -   [x] No Terminal
 -   [x] Mobile-friendly
 -   [x] Lightweight
@@ -20,7 +20,8 @@ TorCI is a Configuration Interface for [TorBox](https://github.com/radio24/torbo
 
 -	[ ] Improving UI
 -	[ ] All TorBox features support
--	[ ] HTTPS support
+-	[ ] ~~HTTPS support~~
+-	[ ] Themes support
 
 ## Screenshots
 ![Login](https://user-images.githubusercontent.com/85566220/168503740-bef02761-800c-4f16-b792-17c85de6079c.png)
