@@ -32,7 +32,6 @@ jobs:
 
         nim-version:
           - stable
-          - devel
         
         redis-version:
           [ 7 ]
