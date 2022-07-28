@@ -1,6 +1,7 @@
 import std / [
   unittest,
-  asyncdispatch, times, terminal
+  asyncdispatch, nativesockets,
+  times, terminal
 ]
 import redis
 import results, resultsutils
@@ -10,15 +11,15 @@ suite "Login...":
   test "logged in...":
     # privateAccess()
     proc isLoggedIn(key: string): Future[bool] {.async.} =
-      let red = await openAsync()
+      let red = await openAsync(port=7000.Port)
       return await red.exists(key)
 
     proc makeUser(token: string, name: string) {.async.} =
-      let red = await openAsync()
+      let red = await openAsync(port=7000.Port)
       discard await red.setEx(token, 10, name)
 
     proc getUsername(token: string): Future[string] {.async.} =
-      let red = await openAsync()
+      let red = await openAsync(port=7000.Port)
       return await red.get(token)
 
     let ses = makeSessionKey()
