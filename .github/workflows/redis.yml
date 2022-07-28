@@ -29,9 +29,13 @@ jobs:
         os:
           - ubuntu-latest
           - ubuntu-18.04
+
         nim-version:
           - stable
           - devel
+        
+        redis-version:
+          [ 7 ]
       
     steps:
       - name: Checkout
@@ -58,13 +62,10 @@ jobs:
         with:
           nim-version: ${{ matrix.nim-version }}
 
-      - name: Install dependency packages
-        run: |
-          sudo apt install -y redis
-
-      - name: Run redis-server
-        run: |
-          &redis-server --port 7000
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.4.0
+        with:
+          redis-version: ${{ matrix.redis-version }}
             
       - name: Install packages
         run: nimble install -y
