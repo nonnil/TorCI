@@ -1,9 +1,10 @@
-import std / [ os, times, unittest, asyncdispatch ]
+import std / [ times, unittest, asyncdispatch, nativesockets ]
 import redis
 
 converter toInt(x: int64): int = cast[int](x)
+
 proc main() {.async.} =
-  let client = await openAsync()
+  let client = await openAsync(port=7000.Port)
   # client.startPipelining()
   let token = "randomness0"
   let strct = @[
@@ -22,7 +23,7 @@ proc main() {.async.} =
   # echo get
 
 proc normal() {.async.} =
-  let red = await openAsync()
+  let red = await openAsync(port=7000.Port)
   block:
     let res = await red.ping()
     echo res
@@ -37,7 +38,7 @@ proc normal() {.async.} =
     echo res
 
 proc pipe() {.async.} =
-  let red = await openAsync()
+  let red = await openAsync(port=7000.Port)
   red.startPipelining()
   block:
     let res = await red.ping()
