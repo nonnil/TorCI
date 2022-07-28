@@ -1,0 +1,73 @@
+name: Test TorCI
+  
+on:
+  push:
+    paths-ignore:
+      - 'LICENCE'
+      - '*.md'
+      - 'buster'
+      - 'bullseye'
+      - '.github/workflows/release.yml'
+    branches:
+      - main
+      - devel
+
+  pull_request:
+    paths-ignore:
+      - 'LICENCE'
+      - '*.md'
+      - 'mockups'
+    branches:
+      - main
+      - devel
+  
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-18.04
+        nim-version:
+          - stable
+          - devel
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+          
+      - name: Cache choosenim
+        id: cache-choosenim
+        uses: actions/cache@v2
+        with:
+          path: ~/.choosenim
+          key: ${{ runner.os }}-choosenim-${{ matrix.nim-version}}
+
+      - name: Cache nimble
+        id: cache-nimble
+        uses: actions/cache@v2
+        with:
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-${{ matrix.nim-version}}-${{ hashFiles('torci.nimble') }}
+          restore-keys: |
+            ${{ runner.os }}-nimble-${{ matrix.nim-version}}-
+
+      - name: Setup Nim
+        uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: ${{ matrix.nim-version }}
+
+      - name: Install dependency packages
+        run: |
+          sudo apt install -y redis
+
+      - name: Run redis-server
+        run: |
+          redis-server --port 7000
+            
+      - name: Install packages
+        run: nimble install -y
+          
+      - name: Test
+        run: nimble redis -Y
