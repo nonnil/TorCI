@@ -18,6 +18,7 @@ router stat:
     match await checkTor("127.0.0.1", 9050.Port):
       Ok(ret): check = ret
       Err(): discard
+
     resp check.toJson().fromJson()
 
   get "/api/bridgesinfo":
@@ -25,6 +26,7 @@ router stat:
     match await getBridge():
       Ok(ret): br = ret
       Err(): discard
+
     resp br.toJson().fromJson()
 
   get "/api/sysinfo":
@@ -32,6 +34,7 @@ router stat:
     match await getSystemInfo():
       Ok(ret): si = ret
       Err(): discard
+
     resp si.toJson().fromJson()
 
   get "/api/ioinfo":
@@ -61,10 +64,10 @@ router stat:
   #     Err(): discard
   #   resp ap.toJson().fromJson()
 
-  get "/io/js2":
-    resp: render "JS2":
-      container:
-        TorInfo.render2()
+  # get "/io/js2":
+  #   resp: render "JS2":
+  #     container:
+  #       TorInfo.render2()
 
   get "/io/js":
     resp: render "JS":
