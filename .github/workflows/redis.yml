@@ -65,6 +65,7 @@ jobs:
         uses: supercharge/redis-github-action@1.4.0
         with:
           redis-version: ${{ matrix.redis-version }}
+          redis-port: 7000
             
       - name: Install packages
         run: nimble install -y
