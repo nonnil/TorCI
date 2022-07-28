@@ -64,7 +64,7 @@ jobs:
 
       - name: Run redis-server
         run: |
-          redis-server --port 7000
+          &redis-server --port 7000
             
       - name: Install packages
         run: nimble install -y
