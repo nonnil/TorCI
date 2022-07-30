@@ -38,6 +38,10 @@ func add*(n: var Notifies, r: Result[void, string]) =
   if r.isErr:
     n.add(failure, r.error)
 
+proc newHook*(nc: var Notice) =
+  nc.state = success
+  nc.msg = ""
+
 iterator items*(n: Notifies): tuple[i: int, n: Notice] {.inline.} =
   var i: int
   while i < n.len:
@@ -45,13 +49,16 @@ iterator items*(n: Notifies): tuple[i: int, n: Notice] {.inline.} =
     inc i
 
 import karax / [ karaxdsl, vdom, vstyles ]
+
 method render*(notifies: Notifies): VNode {.base.} =
   const
     colourGreen = "#2ECC71"
     colourYellow = ""
     # colourGray = "#afafaf"
     colourRed = "#E74C3C"
+
   result = new VNode
+
   for i, n in notifies.notice:
     let colour =
       case n.getState
