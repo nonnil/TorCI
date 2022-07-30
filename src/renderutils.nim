@@ -1,7 +1,8 @@
-import std / [ macros, strutils, re ]
+import std / [ macros, strutils, re, httpcore ]
 import jester, karax / [ karaxdsl, vdom ]
 import routes / tabs
 import ./ notice, settings
+import lib / [ session ]
 
 const doctype = "<!DOCTYPE html>\n"
 
@@ -213,3 +214,15 @@ proc renderFlat*(v: VNode, title: string = "", notifies: Notifies): string =
       notifies.render
       v
   result = doctype & $ret
+
+template loggedIn*(code: HttpCode = Http403, node: untyped) =
+  if await request.isLoggedIn:
+    node
+  else:
+    resp code, "", "application/json"
+
+template loggedIn*(code: HttpCode = Http403, con: string = "", node: untyped) =
+  if await request.isLoggedIn:
+    node
+  else:
+    resp code, con, "application/json"
