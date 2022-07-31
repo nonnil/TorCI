@@ -1,7 +1,7 @@
 import std / [
   macros, terminal, unittest,
   httpclient, httpcore ,nativesockets, asyncdispatch,
-  strformat, strutils, tables,
+  strformat, strutils, tables, json,
   os, osproc
 ]
 import jester #validateip
@@ -16,6 +16,7 @@ type
 
   RouteEntry* = ref object
     path: string
+    expect: JsonNode
     case kind: HttpMethod
     of HttpPost:
       data: MultipartData
@@ -44,8 +45,7 @@ proc clientStart*(address: string, port: Port, routes: Routes) {.async.} =
         styledEcho fgBlue, "[POST] ", fgWhite, address
         # styledEcho fgBlue, "[POST] ", fgWhite, $entry.data
       
-      else:
-        return
+      else: return
 
       yield res or sleepAsync(4000)
 
