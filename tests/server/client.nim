@@ -22,7 +22,7 @@ type
       data: MultipartData
     else: discard
 
-proc clientStart*(address: string, port: Port, routes: Routes) {.async.} =
+proc start*(address: string, port: Port, routes: Routes) {.async.} =
   for entry in routes.entries:
     for i in 0..20:
       var
@@ -192,7 +192,7 @@ macro routerTest*(routerName: string, node: untyped): untyped =
     clientStart = newCall(
       bindSym"waitFor",
       newCall(
-        bindSym"clientStart",
+        bindSym"start",
         newLit("0.0.0.0"),
         newCall(
           ident"Port",
