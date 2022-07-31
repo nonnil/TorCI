@@ -31,7 +31,7 @@ jobs:
           - ubuntu-18.04
         nim-version:
           - stable
-          - devel
+          # - devel
       
     steps:
       - name: Checkout
