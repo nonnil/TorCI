@@ -15,9 +15,11 @@ type
     entries: seq[RouteEntry]
 
   RouteEntry* = ref object
-    kind: HttpMethod
     path: string
-    data: MultipartData
+    case kind: HttpMethod
+    of HttpPost:
+      data: MultipartData
+    else: discard
 
 proc clientStart*(address: string, port: Port, routes: Routes) {.async.} =
   for entry in routes.entries:
