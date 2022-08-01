@@ -22,6 +22,7 @@ requires "optionsutils >= 1.2.0"
 requires "resultsutils >= 0.1.6"
 requires "redis >= 0.3.0"
 requires "jsony >= 1.1.3"
+requires "toml_serialization >= 0.2.3"
 
 task scss, "Generate css":
   exec "nim r tools/gencss"
