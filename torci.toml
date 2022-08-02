@@ -1,0 +1,5 @@
+[TorCI]
+  version = "0.1.3"
+  address = "0.0.0.0"
+  port = 1984
+  staticDir = "./public"
