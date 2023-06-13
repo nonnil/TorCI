@@ -10,7 +10,7 @@ bin           = @["torci"]
 skipDirs = @["tests", "mockups"]
 
 # Dependencies 
-requires "nim >= 1.4.0"
+requires "nim >= 1.5.0"
 requires "jester >= 0.5.0"
 requires "karax >= 1.2.1"
 requires "sass"
